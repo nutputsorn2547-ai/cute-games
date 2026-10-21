@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ลาเต้อาร์ตน้องแมว</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: cup seen from above on a café table; pattern card top-centre (target + fill), result card centred */
+:root{--bg:#f6ece2;--card:#fffdfa;--ink:#4a372e;--soft:#9c8679;--accent:#c98b62;--accent-deep:#a96a42;--good:#8fcfa0;--warn:#e9a54a;--line:#eedfd2;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+.pattern{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 10px 24px -16px #8a5a3a}
+.pattern canvas{width:64px;height:64px;border-radius:50%;background:#8b5a3c}
+.pattern .txt{display:flex;flex-direction:column;gap:4px;min-width:200px}
+.pattern b{font-size:18px;font-weight:600}
+.pattern .row{font-size:13px;color:var(--soft);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.flow{position:fixed;right:28px;top:50%;transform:translateY(-50%);width:22px;height:36vh;border-radius:11px;background:var(--card);border:2px solid var(--line);overflow:hidden}
+.flow i{position:absolute;left:0;right:0;bottom:0;height:0;background:#fff3e2;border-top:2px solid var(--accent)}
+.flow-lbl{position:fixed;right:14px;top:calc(50% + 18vh + 8px);width:50px;text-align:center;font-size:12px;color:var(--soft)}
+.res{flex-direction:column;text-align:center;gap:8px}
+.res .pct{font-size:60px;font-weight:600;color:var(--accent-deep);line-height:1}
+.stars{font-size:40px;color:var(--warn);letter-spacing:.1em}.stars span{color:var(--line)}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+<script type="importmap">{ "imports": { "three": "../lib/three.module.js" } }</script>
+</head>
+<body>
+<div class="hud"><span class="lbl">คะแนนดีที่สุด</span><b id="best">0%</b></div>
+<div class="pattern" id="patternCard">
+  <canvas id="tpl" width="128" height="128" aria-label="ลายเป้าหมาย"></canvas>
+  <div class="txt"><b id="tplName"></b><div class="row"><span>นมในแก้ว</span><span id="fillTxt">0%</span></div><div class="bar"><i id="fillBar"></i></div></div>
+</div>
+<div class="flow" id="flowBox"><i id="flowFill"></i></div><div class="flow-lbl">แรงเท</div>
+<div class="overlay" id="result" hidden>
+  <div class="card res">
+    <p style="margin:0" id="resName"></p>
+    <div class="pct" id="resPct">0%</div>
+    <div class="stars" id="resStars"></div>
+    <p id="resMsg" style="margin:0"></p>
+    <div class="btns" style="justify-content:center"><button class="btn ghost" id="again">ลองลายเดิม</button><button class="btn" id="nextPat">ลายถัดไป</button></div>
+  </div>
+</div>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
+
+shellMarkup({
+  title: 'ลาเต้อาร์ตน้องแมว',
+  blurb: 'มือถือคือเหยือกนม เลื่อนไปมาเหนือแก้ว เอียงเพื่อเท แล้ววาดลายให้เหมือนตัวอย่าง',
+  steps: ['ถือหงายจอ หัวเครื่องชี้จอ กด <b>ตั้งศูนย์</b>', 'หัน/ก้ม/เงย = เลื่อนตำแหน่ง · บิดข้อมือเอียงข้างหรือกดค้างปุ่ม = เท'],
+});
+const S = setupShell({ game: 'latte', minCutoff: .9, beta: 2 });
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ================= foam simulation ================= */
+const N = 128;                       // grid over the cup surface (unit disk)
+let D = new Float32Array(N * N), D2 = new Float32Array(N * N), poured = 0, ended = false;
+const FILL_MAX = 1;
+const idx = (i, j) => j * N + i;
+const toGrid = v => (v * .5 + .5) * (N - 1);
+function sample(x, y) {
+  x = clamp(x, 0, N - 1.001); y = clamp(y, 0, N - 1.001);
+  const i = x | 0, j = y | 0, fx = x - i, fy = y - j;
+  return D[idx(i, j)] * (1 - fx) * (1 - fy) + D[idx(i + 1, j)] * fx * (1 - fy) + D[idx(i, j + 1)] * (1 - fx) * fy + D[idx(i + 1, j + 1)] * fx * fy;
+}
+// spout s (disk coords -1..1), spout velocity v, flow f 0..1
+function stepFoam(sx, sy, vx, vy, f, dt) {
+  if (f <= 0 || ended) return;
+  const gx = toGrid(sx), gy = toGrid(sy), cell = 2 / (N - 1);
+  const rDep = (.05 + .09 * f) / cell, rPush = rDep * 2.6, push = (1.1 + 1.6 * f) / cell; // grid units/sec
+  const level = poured / FILL_MAX;
+  // advect: radial push away from the stream + drag along the pitcher's motion
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const dx = i - gx, dy = j - gy, d = Math.hypot(dx, dy);
+    let ux = 0, uy = 0;
+    if (d < rPush && d > .001) { const k = (1 - d / rPush); ux += dx / d * push * k * k; uy += dy / d * push * k * k; }
+    const rDrag = rPush * 1.3;
+    if (d < rDrag) { const k = 1 - d / rDrag; ux += vx / cell * k * .9; uy += vy / cell * k * .9; }
+    D2[idx(i, j)] = (ux || uy) ? sample(i - ux * dt, j - uy * dt) : D[idx(i, j)];
+  }
+  [D, D2] = [D2, D];
+  // deposit: early pours sink under the crema (only tint), once the cup is ~35% full the foam floats
+  const floatK = clamp((level - .25) / .2, 0, 1);
+  for (let j = Math.max(0, gy - rDep | 0); j <= Math.min(N - 1, gy + rDep + 1 | 0); j++) for (let i = Math.max(0, gx - rDep | 0); i <= Math.min(N - 1, gx + rDep + 1 | 0); i++) {
+    const d = Math.hypot(i - gx, j - gy); if (d > rDep) continue;
+    const k = 1 - d / rDep;
+    D[idx(i, j)] = Math.min(1.3, D[idx(i, j)] + (floatK * 3.5 + .15) * f * dt * k);
+  }
+  poured = Math.min(FILL_MAX, poured + f * dt * .07);
+}
+// templates (signed distance-ish masks in disk coords)
+const PATTERNS = [
+  { name: 'หัวใจ', fn: (x, y) => { y = -y + .08; x *= 1.15; const a = x * x + y * y - .28; return a * a * a - x * x * y * y * y * 1.1 < 0; } },
+  { name: 'ทิวลิป', fn: (x, y) => { const blob = (cx, cy, r) => (x - cx) ** 2 / (r * r) + (y - cy) ** 2 / (r * r * .55) < 1; return blob(0, .35, .38) || blob(0, .02, .45) || blob(0, -.32, .5) || (Math.abs(x) < .05 && y > -.6 && y < .6); } },
+  { name: 'หน้าน้องแมว', fn: (x, y) => { const face = x * x + (y * 1.1) ** 2 < .3; const ear = (cx) => Math.abs(x - cx) < .18 - (y + .45) * -.0 && y < -.38 && y > -.72 && Math.abs(x - cx) < (y + .72) * .6; return face || ear(-.32) || ear(.32); } },
+];
+let patIdx = 0, mask = null;
+function buildMask() {
+  mask = new Uint8Array(N * N); const f = PATTERNS[patIdx].fn;
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const x = i / (N - 1) * 2 - 1, y = j / (N - 1) * 2 - 1; mask[idx(i, j)] = x * x + y * y < 1 && f(x, y) ? 1 : 0; }
+  const c = $('tpl').getContext('2d'), img = c.createImageData(128, 128);
+  for (let j = 0; j < 128; j++) for (let i = 0; i < 128; i++) {
+    const m = mask[idx(i, j)], inCup = ((i / 127 * 2 - 1) ** 2 + (j / 127 * 2 - 1) ** 2) < 1, o = (j * 128 + i) * 4;
+    const col = m ? [255, 248, 236] : inCup ? [139, 90, 60] : [255, 253, 250];
+    img.data.set([...col, 255], o);
+  }
+  c.putImageData(img, 0, 0);
+  $('tplName').textContent = 'ลาย: ' + PATTERNS[patIdx].name;
+}
+function scorePattern() {
+  let inter = 0, uni = 0, outside = 0;
+  for (let k = 0; k < N * N; k++) {
+    const i = k % N, j = k / N | 0, x = i / (N - 1) * 2 - 1, y = j / (N - 1) * 2 - 1; if (x * x + y * y >= 1) continue;
+    const f = D[k] > .45 ? 1 : 0, m = mask[k];
+    if (f && m) inter++; if (f || m) uni++; if (f && !m) outside++;
+  }
+  return uni ? Math.round(inter / uni * 100) : 0;
+}
+
+/* ================= scene ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.domElement.className = 'scene';
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#f3e4d6');
+const camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+camera.position.set(0, 9, 4.2); camera.lookAt(0, 0, -.3);
+scene.add(new THREE.HemisphereLight('#fffaf2', '#c9a689', 1.6));
+const sun = new THREE.DirectionalLight('#fff1e0', 2); sun.position.set(-4, 10, 3); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .55, ...o });
+const table = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, .4, 64), M('#d9a77f')); table.position.y = -.2; table.receiveShadow = true; scene.add(table);
+const cloth = new THREE.Mesh(new THREE.CircleGeometry(4.2, 48), M('#ffd8e2')); cloth.rotation.x = -Math.PI / 2; cloth.position.y = .01; cloth.receiveShadow = true; scene.add(cloth);
+const CUP_R = 1.9;
+const saucer = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 2.5, .18, 48), M('#ffffff')); saucer.position.y = .09; saucer.receiveShadow = saucer.castShadow = true; scene.add(saucer);
+const CUP_BOTTOM_R = 1.45, CUP_Y0 = .18, CUP_H = 1.8;
+const cupBody = new THREE.Mesh(new THREE.CylinderGeometry(CUP_R + .12, CUP_BOTTOM_R, CUP_H, 48, 1, true), M('#fffaf5', { side: THREE.DoubleSide })); cupBody.position.y = 1.08; cupBody.castShadow = true; scene.add(cupBody);
+const cupRim = new THREE.Mesh(new THREE.TorusGeometry(CUP_R + .12, .07, 10, 64), M('#ffffff')); cupRim.rotation.x = Math.PI / 2; cupRim.position.y = 1.98; scene.add(cupRim);
+const handle = new THREE.Mesh(new THREE.TorusGeometry(.45, .12, 10, 24, Math.PI * 1.3), M('#fffaf5')); handle.position.set(CUP_R + .45, 1.2, 0); handle.rotation.z = -Math.PI * .65; scene.add(handle);
+// cat ears on the cup (cute!)
+for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.ConeGeometry(.35, .5, 4), M('#ffd3e0')); e.position.set(s * 1.2, 2.15, -1.55); e.rotation.x = -.3; scene.add(e); }
+const surfCanvas = document.createElement('canvas'); surfCanvas.width = surfCanvas.height = N;
+const surfTex = new THREE.CanvasTexture(surfCanvas); surfTex.colorSpace = THREE.SRGBColorSpace; surfTex.minFilter = THREE.LinearFilter;
+const surface = new THREE.Mesh(new THREE.CircleGeometry(CUP_R, 64), new THREE.MeshStandardMaterial({ map: surfTex, roughness: .35 }));
+surface.rotation.x = -Math.PI / 2; scene.add(surface);
+// guide outline
+const guideCanvas = document.createElement('canvas'); guideCanvas.width = guideCanvas.height = 256;
+const guideTex = new THREE.CanvasTexture(guideCanvas);
+const guide = new THREE.Mesh(new THREE.CircleGeometry(CUP_R, 64), new THREE.MeshBasicMaterial({ map: guideTex, transparent: true, depthWrite: false }));
+guide.rotation.x = -Math.PI / 2; scene.add(guide);
+function drawGuide() {
+  const g = guideCanvas.getContext('2d'); g.clearRect(0, 0, 256, 256);
+  g.fillStyle = 'rgba(255,255,255,.55)';
+  for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+    const m = mask[idx(i, j)]; if (!m) continue;
+    if (!mask[idx(i + 1, j)] || !mask[idx(i - 1, j)] || !mask[idx(i, j + 1)] || !mask[idx(i, j - 1)]) if ((i + j) % 3 === 0) g.fillRect(i * 2, j * 2, 3, 3);
+  }
+  guideTex.needsUpdate = true;
+}
+// pitcher + milk stream
+const pitcher = new THREE.Group();
+{
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(.55, .7, 1.4, 32), M('#dfe7ef', { metalness: .35, roughness: .3 })); body.castShadow = true;
+  const spout = new THREE.Mesh(new THREE.ConeGeometry(.22, .5, 16), M('#dfe7ef', { metalness: .35, roughness: .3 })); spout.rotation.z = Math.PI / 2 + .5; spout.position.set(-.6, .5, 0);
+  const h = new THREE.Mesh(new THREE.TorusGeometry(.35, .08, 8, 16, Math.PI), M('#ff9fb8')); h.position.set(.62, .1, 0); h.rotation.z = -Math.PI / 2;
+  const face = new THREE.Mesh(new THREE.CircleGeometry(.12, 12), new THREE.MeshBasicMaterial({ color: '#ff9fb8' })); face.position.set(-.2, .1, .62);
+  pitcher.add(body, spout, h, face); scene.add(pitcher);
+}
+const stream = new THREE.Mesh(new THREE.CylinderGeometry(.06, .09, 1, 12), new THREE.MeshStandardMaterial({ color: '#fffaf0', roughness: .3 })); scene.add(stream);
+
+function drawSurface(time) {
+  const g = surfCanvas.getContext('2d'), img = g.getImageData(0, 0, N, N);
+  const lvl = poured / FILL_MAX;
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const k = idx(i, j), d = clamp((D[k] - .2) / .45, 0, 1), o = k * 4;
+    const n = Math.sin(i * .9 + j * .4) * Math.sin(j * .7 - i * .3) * 6;  // crema mottling
+    const br = 120 + lvl * 35 + n, bg = 74 + lvl * 28 + n * .7, bb = 48 + lvl * 20 + n * .5;
+    img.data[o] = br + (255 - br) * d; img.data[o + 1] = bg + (247 - bg) * d; img.data[o + 2] = bb + (236 - bb) * d; img.data[o + 3] = 255;
+  }
+  g.putImageData(img, 0, 0); surfTex.needsUpdate = true;
+  surface.position.y = 1.0 + lvl * .9; guide.position.y = surface.position.y + .005;
+  const rAt = CUP_BOTTOM_R + (CUP_R - CUP_BOTTOM_R) * (surface.position.y - CUP_Y0) / CUP_H, k = rAt / CUP_R;
+  surface.scale.set(k, k, 1); guide.scale.set(k, k, 1);
+}
+
+/* ================= flow & input ================= */
+let mouse = { x: 0, y: 0, down: false };
+addEventListener('mousemove', e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = e.clientY / innerHeight * 2 - 1; });
+renderer.domElement.addEventListener('mousedown', () => { mouse.down = true; });
+addEventListener('mouseup', () => { mouse.down = false; });
+let best = 0; try { best = +localStorage.getItem('latteBest') || 0; } catch (e) {} $('best').textContent = best + '%';
+let spout = { x: 0, y: 0 }, prevSpout = { x: 0, y: 0 }, flow = 0;
+function newCup() { D.fill(0); D2.fill(0); poured = 0; ended = false; $('result').hidden = true; }
+function finish() {
+  if (ended) return; ended = true;
+  const pct = scorePattern();
+  if (pct > best) { best = pct; try { localStorage.setItem('latteBest', best); } catch (e) {} $('best').textContent = best + '%'; }
+  const stars = pct >= 60 ? 3 : pct >= 40 ? 2 : pct >= 20 ? 1 : 0;
+  $('resName').textContent = 'ลาย' + PATTERNS[patIdx].name; $('resPct').textContent = pct + '%';
+  $('resStars').innerHTML = '★'.repeat(stars) + `<span>${'★'.repeat(3 - stars)}</span>`;
+  $('resMsg').textContent = stars === 3 ? 'บาริสต้ามืออาชีพ!' : stars === 2 ? 'สวยแล้ว อีกนิดเดียว' : stars === 1 ? 'เริ่มเป็นลายแล้ว' : 'ลองเทใกล้ๆ ผิวกาแฟตอนนมเกินครึ่งแก้ว';
+  setTimeout(() => { $('result').hidden = false; }, 900);
+  S.jingle(); S.vib([40, 40, 40, 40, 120]);
+}
+$('again').onclick = newCup;
+$('nextPat').onclick = () => { patIdx = (patIdx + 1) % PATTERNS.length; buildMask(); drawGuide(); newCup(); };
+
+/* ================= loop ================= */
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+let last = performance.now(), time = 0, pourSoundT = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; time += dt;
+  S.tick(dt);
+  if (S.pad.tap('newcup')) newCup();
+  if (S.pad.tap('next')) $('nextPat').onclick();
+  let tx, ty, f = 0;
+  if (S.pad.live) {
+    const a = S.pad.aim();
+    tx = clamp(a.yaw / .35, -1.15, 1.15); ty = clamp(-a.pitch / .3, -1.15, 1.15);  // nose down = toward the top of the cup
+    f = Math.max(S.pad.btn.pour ? .65 : 0, clamp((Math.abs(a.roll) - .2) / .55, 0, 1));
+  } else { tx = clamp(mouse.x * 1.6, -1.15, 1.15); ty = clamp(mouse.y * 1.6, -1.15, 1.15); f = mouse.down ? .65 : 0; }
+  spout.x += (tx - spout.x) * .35; spout.y += (ty - spout.y) * .35;
+  const r = Math.hypot(spout.x, spout.y); if (r > 1.1) { spout.x *= 1.1 / r; spout.y *= 1.1 / r; }
+  if (!$('result').hidden || S.pairing()) f = 0;
+  flow += (f - flow) * Math.min(1, dt * 10);
+  const vx = (spout.x - prevSpout.x) / Math.max(dt, 1e-3), vy = (spout.y - prevSpout.y) / Math.max(dt, 1e-3); prevSpout = { ...spout };
+  if (flow > .03 && Math.hypot(spout.x, spout.y) < 1) stepFoam(spout.x, spout.y, clamp(vx, -4, 4), clamp(vy, -4, 4), flow, dt);
+  if (poured >= FILL_MAX && !ended) finish();
+  drawSurface(time);
+  // pitcher follows the spout, tilts with flow
+  const ks = surface.scale.x, wx = spout.x * CUP_R * ks, wz = spout.y * CUP_R * ks;
+  pitcher.scale.setScalar(.75);
+  pitcher.position.set(wx + 1.25, surface.position.y + 2.1 + (1 - flow) * .4, wz + .35);
+  pitcher.rotation.z = .25 + flow * .7;
+  stream.visible = flow > .03 && !ended;
+  if (stream.visible) {
+    pitcher.updateMatrixWorld(); const top = pitcher.localToWorld(new THREE.Vector3(-.8, .55, 0)), bot = new THREE.Vector3(wx, surface.position.y, wz);
+    stream.position.lerpVectors(top, bot, .5); stream.scale.set(.6 + flow, top.distanceTo(bot), .6 + flow);
+    stream.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), top.clone().sub(bot).normalize());
+    pourSoundT -= dt; if (pourSoundT <= 0) { S.noise(.12, 900 + flow * 900, .05 + flow * .08); pourSoundT = .1; }
+  }
+  $('flowFill').style.height = flow * 100 + '%';
+  $('fillBar').style.width = poured / FILL_MAX * 100 + '%'; $('fillTxt').textContent = Math.round(poured / FILL_MAX * 100) + '%';
+  const P = S.pad.live, lvl = poured / FILL_MAX;
+  if (S.pairing() || !$('result').hidden) S.hint('');
+  else if (lvl < .3) S.hint(P ? 'เทนมฐานให้ถึงประมาณ 1 ใน 3 แก้วก่อน (บิดข้อมือ หรือกดค้างปุ่มเท)' : 'กดเมาส์ค้างเพื่อเทนมฐานก่อน');
+  else S.hint(P ? 'เทใกล้ๆ กลางแก้วให้ฟองลอย ส่ายเบาๆ แล้วลากผ่านตรงกลางเพื่อปิดลาย' : 'เทค้างให้ฟองลอย แล้วลากผ่านตรงกลาง');
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+window.__latte = { setPoured(v) { poured = v; }, feed: d => S.pad.feed(d), get poured() { return poured; }, score: () => scorePattern(), get ended() { return ended; } };
+buildMask(); drawGuide(); drawSurface(0);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

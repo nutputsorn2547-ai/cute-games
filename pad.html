@@ -96,6 +96,24 @@ const GAMES = {
     reel: 'หมุนนิ้ววนตามเข็มนาฬิกาเพื่อกรอสาย',
     row: [{ id: 'cast', label: 'เหวี่ยง (ค้าง/ปล่อย)', hold: true }, { id: 'strike', label: 'ตวัด!' }, { id: 'recal', label: 'ตั้งศูนย์' }],
   },
+  cooking: {
+    title: 'ครัวน่ารัก',
+    hint: 'ถือมือถือ<b>หงายจอ</b> หัวเครื่องชี้จอคอม · <b>สะบัดลงเร็วๆ</b> = สับ/ทุบ · <b>หันซ้ายขวา</b> = เลื่อนมีด · ตอนคนหม้อ <b>วนมือถือเป็นวงกลม</b>',
+    big: { id: 'act', label: 'สับ! / ทุบ!', sub: 'แตะแทนการสะบัดได้', tap: true },
+    row: [{ id: 'recal', label: 'ตั้งศูนย์' }, { id: 'next', label: 'ต่อไป ▶' }],
+  },
+  latte: {
+    title: 'ลาเต้อาร์ต',
+    hint: 'ถือมือถือ<b>หงายจอ</b> เหมือนถือเหยือกนม · <b>หัน/ก้ม/เงย</b> = เลื่อนตำแหน่งเท · <b>เอียงข้าง (บิดข้อมือ)</b> หรือกดค้างปุ่ม = เทนม · ส่ายเบาๆ ตอนเทจะได้ลาย',
+    big: { id: 'pour', label: 'เทนม', sub: 'กดค้างไว้ · หรือบิดข้อมือเอียงมือถือ' },
+    row: [{ id: 'recal', label: 'ตั้งศูนย์' }, { id: 'newcup', label: 'แก้วใหม่' }, { id: 'next', label: 'ลายถัดไป' }],
+  },
+  saber: {
+    title: 'ดาบจังหวะ',
+    hint: 'จับมือถือเหมือน<b>ด้ามดาบ</b> หัวเครื่องชี้ไปที่จอ กดตั้งศูนย์ แล้ว<b>ฟันตามทิศลูกศร</b>บนกล่องตอนที่มันลอยมาถึง',
+    big: { id: 'start', label: 'เริ่ม / พัก', sub: 'มือถือจะสั่นทุกครั้งที่ฟันโดน', tap: true },
+    row: [{ id: 'recal', label: 'ตั้งศูนย์' }],
+  },
 };
 
 const params = new URLSearchParams(location.search);
@@ -169,7 +187,8 @@ function start() {
     const up = () => { st.b[id] = false; el.classList.remove('on'); push(); };
     el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   };
-  if (big) wireHold(big, cfg.big.id);
+  if (big && cfg.big.tap) { st.taps[cfg.big.id] = 0; big.addEventListener('pointerdown', e => { e.preventDefault(); st.taps[cfg.big.id]++; big.classList.add('on'); vib(20); push(); }); const off = () => big.classList.remove('on'); big.addEventListener('pointerup', off); big.addEventListener('pointercancel', off); }
+  else if (big) wireHold(big, cfg.big.id);
   for (const r of cfg.row) {
     const el = $(r.id);
     if (r.hold) wireHold(el, r.id);
