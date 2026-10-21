@@ -27,6 +27,13 @@
 .status{font-size:14px;color:var(--warn);min-height:1.4em}
 .yt{position:fixed;left:16px;bottom:16px;width:256px;height:144px;border-radius:12px;overflow:hidden;border:2px solid var(--line);z-index:3}
 .yt iframe{width:100%;height:100%}
+.tappad{position:fixed;left:50%;top:52%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:6;text-align:center;max-width:min(440px,90vw)}
+.tappad p{margin:0;color:var(--soft);line-height:1.5}
+.tapbtn{width:150px;height:150px;border-radius:50%;border:0;font:inherit;font-size:30px;font-weight:600;color:#fff;cursor:pointer;
+  background:radial-gradient(circle at 40% 35%,#ffb3d4,var(--accent-deep));box-shadow:0 0 0 8px #ff7eb633,0 20px 40px -20px #000;transition:transform .06s}
+.tapbtn.hit{transform:scale(.9);box-shadow:0 0 0 18px #ff7eb655}
+.tapbtn:focus-visible{outline:3px solid var(--cyan);outline-offset:4px}
+.yt.locked{pointer-events:none}
 .res{flex-direction:column;text-align:center;gap:6px}
 .rank{font-size:84px;font-weight:600;line-height:1;color:var(--accent)}
 .stats{display:grid;grid-template-columns:auto auto;gap:4px 18px;margin:6px auto;text-align:left;font-variant-numeric:tabular-nums}
@@ -41,6 +48,11 @@
 <div class="hud"><span class="lbl">คะแนน</span><b id="score">0</b></div>
 <div class="combo" id="comboBox">คอมโบ <b id="combo">0</b> · แม่น <span id="acc">–</span></div>
 <div class="yt" id="ytBox" hidden><div id="yt"></div></div>
+<div class="tappad" id="tapPad" hidden>
+  <button class="tapbtn" id="tapBtn">แตะ!</button>
+  <div class="taps" id="taps"></div>
+  <p id="tapTxt">แตะปุ่มนี้ (หรือ Space / ปุ่มบนมือถือ) ตามจังหวะกลองของเพลง</p>
+</div>
 
 <div class="picker" id="picker">
   <h1>ดาบจังหวะน้องกล่อง</h1>
@@ -56,7 +68,6 @@
     <div><label for="bpm">BPM (ถ้ารู้ · ใช้กับ YouTube)</label><input type="number" id="bpm" min="60" max="200" placeholder="ไม่ใส่ก็ได้"></div>
   </div>
   <div class="status" id="status"></div>
-  <div class="taps" id="taps" hidden></div>
   <button class="btn" id="go" hidden>เริ่มเล่น</button>
 </div>
 
@@ -74,7 +85,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
 import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
-import { analyzeBeats, makeNotes, demoTrack } from '../lib/beats.js?v=1';
+import { analyzeBeats, makeNotes, demoTrack } from '../lib/beats.js?v=2';
 
 shellMarkup({
   title: 'ดาบจังหวะน้องกล่อง',
@@ -128,7 +139,7 @@ const trailPts = [];
 /* ================= note blocks ================= */
 const BOX = .8;
 const boxGeo = new RoundedBoxGeometry(BOX, BOX, BOX, 3, .16);
-const COLS = { down: '#ff8fbd', up: '#7fdcff', left: '#ffd36e', right: '#b49cff', any: '#8ff0c8' };
+const COLS = { up: '#ff8fbd', down: '#7fdcff', left: '#ffd36e', right: '#b49cff', any: '#8ff0c8' };
 function faceTex(dir) {
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
   g.fillStyle = '#ffffff'; g.strokeStyle = '#ffffff'; g.lineWidth = 9; g.lineCap = g.lineJoin = 'round';
@@ -206,8 +217,10 @@ function resetRun() {
 function start() {
   resetRun(); $('picker').hidden = true; $('result').hidden = true;
   if (source === 'yt') {
-    notes = []; taps = []; mode = 'tap'; $('taps').hidden = false;
-    yt.seekTo(0); yt.playVideo(); S.big('แตะตามจังหวะ 8 ครั้ง', 2.5);
+    notes = []; taps = []; mode = 'tap'; tapStart = performance.now(); drawTaps();
+    $('tapPad').hidden = false; $('ytBox').classList.add('locked');
+    if (document.activeElement) document.activeElement.blur();
+    yt.seekTo(0); yt.playVideo(); ytTime = { t: 0, at: performance.now() }; S.big('แตะตามจังหวะเพลง', 2);
   } else {
     ac = S.audio(); if (ac.state === 'suspended') ac.resume();
     src = ac.createBufferSource(); src.buffer = songBuf; src.connect(ac.destination);
@@ -217,27 +230,37 @@ function start() {
 }
 $('go').onclick = start;
 $('again').onclick = () => { if (source === 'buffer') notes = makeNotes(info, level); start(); };
-$('pick').onclick = () => { $('result').hidden = true; $('picker').hidden = false; mode = 'menu'; };
+$('pick').onclick = () => { $('result').hidden = true; $('picker').hidden = false; $('tapPad').hidden = true; $('ytBox').classList.remove('locked'); mode = 'menu'; };
 function togglePause() {
+  if (performance.now() - playSince < 2500) return; // extra beat taps right after the count should not pause
   if (mode === 'play') { mode = 'paused'; if (source === 'yt') yt.pauseVideo(); else { pausedAt = songTime(); ac.suspend(); } S.big('พัก'); }
   else if (mode === 'paused') { if (source === 'yt') yt.playVideo(); else ac.resume(); mode = 'play'; }
 }
+let tapStart = 0, playSince = 0;
+const tapNeed = () => { const m = +$('bpm').value; return m >= 60 && m <= 200 ? 3 : 5; };
+function drawTaps() { $('taps').innerHTML = Array.from({ length: tapNeed() }, (_, i) => `<i class="${i < taps.length ? 'on' : ''}"></i>`).join(''); }
 function beatTap() {
-  const t = songTime(); taps.push(t); S.tone(1200, 1200, .05, .08, 'square'); S.vib(20);
-  $('taps').innerHTML = Array.from({ length: 8 }, (_, i) => `<i class="${i < taps.length ? 'on' : ''}"></i>`).join('');
-  if (taps.length >= 8) {
-    // least-squares fit: tap k at offset + k*period
-    const n = taps.length, ks = taps.map((_, i) => i);
-    const mk = ks.reduce((a, b) => a + b) / n, mt = taps.reduce((a, b) => a + b) / n;
-    let num = 0, den = 0; for (let i = 0; i < n; i++) { num += (ks[i] - mk) * (taps[i] - mt); den += (ks[i] - mk) ** 2; }
+  const t = songTime();
+  if (taps.length && t <= taps[taps.length - 1]) taps = []; // clock jumped (seek/resync): start the count again
+  taps.push(t); S.tone(1200, 1200, .05, .08, 'square'); S.vib(20);
+  const b = $('tapBtn'); b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 90);
+  // a gap much longer than the others means the player stopped and restarted: keep only the latest run
+  if (taps.length > 2) { const d = taps.slice(1).map((x, i) => x - taps[i]), med = d.slice().sort((a, c) => a - c)[d.length >> 1]; if (d[d.length - 1] > med * 1.8) taps = [t]; }
+  drawTaps();
+  if (taps.length >= tapNeed()) {
+    // least-squares fit: tap k lands at offset + k*period
+    const n = taps.length, mk = (n - 1) / 2, mt = taps.reduce((a, c) => a + c) / n;
+    let num = 0, den = 0; for (let i = 0; i < n; i++) { num += (i - mk) * (taps[i] - mt); den += (i - mk) ** 2; }
     let period = num / den; const manual = +$('bpm').value; if (manual >= 60 && manual <= 200) period = 60 / manual;
+    if (!(period > .25 && period < 1.2)) { taps = []; drawTaps(); S.big('จังหวะไม่สม่ำเสมอ ลองใหม่', 1.4, '#ffcc66'); return; }
     const offset = mt - mk * period;
     info = { period, offset, bpm: 60 / period, duration: songDuration() };
-    notes = makeNotes(info, level, t + TRAVEL + .6);
-    nextNote = 0; mode = 'play'; $('taps').hidden = true;
+    notes = makeNotes(info, level, t + TRAVEL + .4);
+    nextNote = 0; mode = 'play'; playSince = performance.now(); $('tapPad').hidden = true;
     S.big(`${Math.round(60 / period)} BPM · ลุย!`, 1.6);
   }
 }
+$('tapBtn').addEventListener('pointerdown', e => { e.preventDefault(); if (mode === 'tap') beatTap(); });
 
 /* ================= hit logic ================= */
 const slices = [];
@@ -356,13 +379,13 @@ function frame(now) {
   const P = S.pad.live;
   if (S.pairing() || !$('result').hidden) S.hint('');
   else if (mode === 'menu') S.hint(P ? 'มือถือพร้อมแล้ว เลือกเพลงบนคอมได้เลย' : 'เลือกเพลง หรือกดต่อมือถือที่มุมขวาบน');
-  else if (mode === 'tap') S.hint(`แตะตามจังหวะเพลง (Space หรือปุ่มบนมือถือ) ${taps.length}/8`);
+  else if (mode === 'tap') { S.hint(`แตะตามจังหวะกลอง ${taps.length}/${tapNeed()} · แล้วกล่องจะเริ่มมา`); if (!taps.length && performance.now() - tapStart > 10000) { tapStart = performance.now(); S.big('ยังไม่ได้แตะเลย แตะปุ่มชมพูตามจังหวะนะ', 2.2, '#ffcc66'); } }
   else if (mode === 'play') S.hint(P ? 'ฟันตามทิศลูกศรตอนกล่องถึงเส้นฟ้า' : 'ลากเมาส์ผ่านกล่องตามทิศลูกศร');
   else if (mode === 'paused') S.hint('พักอยู่ · กด Space หรือปุ่มบนมือถือเพื่อเล่นต่อ');
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
-window.__saber = { feed: d => S.pad.feed(d), get mode() { return mode; }, get stats() { return { score, hits, misses, wrong, combo, notes: notes.length, bpm: info && info.bpm, offset: info && info.offset }; }, demo: () => $('demo').onclick(), start };
+window.__saber = { get taps() { return taps.slice(); }, get st() { return songTime(); }, fakeYT() { const t0 = performance.now(); source = 'yt'; ytReady = true; yt = { getCurrentTime: () => (performance.now() - t0) / 1000, getDuration: () => 120, getPlayerState: () => 1, playVideo() {}, pauseVideo() {}, seekTo() {} }; }, tap: () => beatTap(), feed: d => S.pad.feed(d), get mode() { return mode; }, get stats() { return { score, hits, misses, wrong, combo, notes: notes.length, bpm: info && info.bpm, offset: info && info.offset }; }, demo: () => $('demo').onclick(), start };
 requestAnimationFrame(frame);
 </script>
 </body>
