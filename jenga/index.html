@@ -95,7 +95,7 @@ const D2R = Math.PI / 180;
 const L = 3.06, H = 0.6, WD = 1, GAP = 0.03, START_LAYERS = 18;
 const SENS = 30 * D2R;            // phone yaw from centre to screen edge
 const PULL_GAIN = 7.5;            // units of pull per radian of nose-up tilt (~23° tilt pulls a block clear)
-const LAT_GAIN = 0.7;             // hand tremor -> sideways wiggle
+const LAT_GAIN = 2.2;             // turning the phone left/right swings the pulled block sideways
 const PLACE_GAIN = 5;             // placing: units per radian
 const COLORS = ['#ffb3c6', '#ffd6a5', '#fff1a8', '#c8f2c2', '#a9e8f5', '#cdb8ff', '#ffc8dd', '#bde0fe'];
 
@@ -218,7 +218,7 @@ let qT = [1, 0, 0, 0], lastPad = -1e9, cal = null, padTaps = {}, padBtn = {}, ne
 let fwdAxis = [0, 1, 0], aimF = { yaw: 0, pitch: 0, roll: 0 }, yawU = 0, prevYawRaw = null;
 const fYaw = new OneEuro(), fPitch = new OneEuro(), fRoll = new OneEuro();
 let usingMouse = false, mouseNdc = { x: 0, y: 0 }, mouseDown = false;
-let rotInput = 0, camAngle = 0.5;
+let rotInput = 0, camAngle = 0.5, camElev = 0.3, prevLook = null;
 const phoneLive = () => performance.now() - lastPad < 1500;
 
 function rawAngles() { // current aim in radians relative to calibration (phone) or from mouse
@@ -265,6 +265,7 @@ function onPad(d) {
     padTaps = { ...taps };
     padBtn = d.b || {};
     rotInput = (padBtn.rotR ? 1 : 0) - (padBtn.rotL ? 1 : 0);
+    if (Array.isArray(d.look)) { if (prevLook) orbit((d.look[0] - prevLook[0]) * 1.4, (d.look[1] - prevLook[1]) * 1.4); prevLook = d.look.slice(); }
   }
 }
 function drawQr(url) {
@@ -274,10 +275,12 @@ $('showPair').onclick = () => { $('pair').hidden = false; };
 $('mousePlay').onclick = () => { $('pair').hidden = true; usingMouse = true; audio(); };
 
 addEventListener('mousemove', e => { mouseNdc = { x: e.clientX / innerWidth * 2 - 1, y: -(e.clientY / innerHeight * 2 - 1) }; });
-renderer.domElement.addEventListener('mousedown', e => { audio(); if (e.button === 0) mouseDown = true; if (e.button === 2) dragRot = e.clientX; });
+renderer.domElement.addEventListener('mousedown', e => { audio(); if (e.button === 0) mouseDown = true; if (e.button === 2) { dragRot = e.clientX; dragRotY = e.clientY; } });
 addEventListener('mouseup', e => { if (e.button === 0) mouseDown = false; if (e.button === 2) dragRot = null; });
 let dragRot = null;
-addEventListener('mousemove', e => { if (dragRot !== null) { camAngle -= (e.clientX - dragRot) * 0.008; dragRot = e.clientX; } });
+let dragRotY = 0;
+addEventListener('mousemove', e => { if (dragRot !== null) { orbit(e.clientX - dragRot, e.clientY - dragRotY); dragRot = e.clientX; dragRotY = e.clientY; } });
+function orbit(dx, dy) { camAngle -= dx * 0.008; camElev = Math.max(0.05, Math.min(1.35, camElev + dy * 0.006)); }
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 const keys = {};
 addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; audio(); if (e.key.toLowerCase() === 'c' && phoneLive()) recalibrate(); });
@@ -313,7 +316,7 @@ const tmpV = new THREE.Vector3();
 
 function restart() {
   buildTower(); state = 'idle'; grabbed = null; hovered = null; score = 0; $('score').textContent = '0';
-  $('over').hidden = true; camAngle = 0.5;
+  $('over').hidden = true; camAngle = 0.5; camElev = 0.3;
 }
 
 function startGrab(b) {
@@ -384,7 +387,7 @@ function physicsStep() {
   if (state === 'pull' && grabbed) {
     const a = rawAngles(), g = grabInfo;
     const pull = Math.max(-0.15, Math.min(L * 1.25, (a.pitch - g.a0.pitch) * PULL_GAIN));
-    const lat = Math.max(-0.35, Math.min(0.35, wrap(a.yaw - g.a0.yaw) * LAT_GAIN));
+    const lat = Math.max(-0.9, Math.min(0.9, wrap(a.yaw - g.a0.yaw) * LAT_GAIN));
     const tx = g.p0.x + g.dir.x * pull + g.perp.x * lat, tz = g.p0.z + g.dir.z * pull + g.perp.z * lat;
     const c = grabbed.rb.translation(), v = grabbed.rb.linvel();
     const k = 14, mx = 7;
@@ -420,10 +423,13 @@ function frame(now) {
 
   // camera orbit
   const kRot = (keys['arrowright'] || keys['d'] ? 1 : 0) - (keys['arrowleft'] || keys['a'] ? 1 : 0);
-  camAngle += (rotInput + kRot) * 1.4 * dt;
+  camAngle += (rotInput + kRot) * 2.2 * dt;
+  const kEl = (keys['w'] || keys['arrowup'] ? 1 : 0) - (keys['s'] || keys['arrowdown'] ? 1 : 0);
+  camElev = Math.max(0.05, Math.min(1.35, camElev + kEl * 1.2 * dt));
   const topY = (topLayer + 1) * H, lookY = Math.max(3, topY * .5);
   const dist = 15 + topY * .5;
-  camera.position.set(Math.sin(camAngle) * dist, lookY + 5, Math.cos(camAngle) * dist);
+  const hr = Math.cos(camElev) * dist;
+  camera.position.set(Math.sin(camAngle) * hr, lookY + Math.sin(camElev) * dist, Math.cos(camAngle) * hr);
   camera.lookAt(0, lookY, 0);
 
   // pointer
@@ -495,8 +501,8 @@ function frame(now) {
 
   // hints
   if (!$('pair').hidden || state === 'over') hint('');
-  else if (state === 'idle') hint(hovered ? (canTake(hovered) ? (phoneLive() ? 'กดค้างปุ่ม จับ' : 'กดเมาส์ค้างไว้เพื่อจับ') : 'ชั้นบนสุดดึงไม่ได้') : (phoneLive() ? 'หันมือถือเล็งไม้ที่อยากดึง' : 'เลื่อนเมาส์ไปที่ไม้ · คลิกขวาลากเพื่อหมุนกล้อง'));
-  else if (state === 'pull') hint(phoneLive() ? `เงยหัวเครื่องขึ้นช้าๆ เพื่อดึง · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ขึ้นเพื่อดึง · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
+  else if (state === 'idle') hint(hovered ? (canTake(hovered) ? (phoneLive() ? 'กดค้างปุ่ม จับ' : 'กดเมาส์ค้างไว้เพื่อจับ') : 'ชั้นบนสุดดึงไม่ได้') : (phoneLive() ? 'หันมือถือเล็งไม้ · ลากนิ้วบนแผ่นหมุนเพื่อดูรอบตึก' : 'เลื่อนเมาส์ไปที่ไม้ · คลิกขวาลากเพื่อหมุนดูรอบตึก'));
+  else if (state === 'pull') hint(phoneLive() ? `เงยหัวเครื่องเพื่อดึง · ส่ายซ้ายขวาเพื่อโยก · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ขึ้นเพื่อดึง · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
   else if (state === 'place') hint(phoneLive() ? 'หันมือถือเลื่อนไม้ไปบนยอด แล้วปล่อยนิ้ววาง' : 'เลื่อนเมาส์จัดตำแหน่ง แล้วปล่อยปุ่มวาง');
   else if (state === 'settle') hint('รอตึกนิ่ง…');
 

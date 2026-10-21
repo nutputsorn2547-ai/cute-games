@@ -34,6 +34,8 @@ button.on{background:var(--line)}
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:transform .06s,box-shadow .06s}
 .big small{font-size:14px;font-weight:400;opacity:.9;max-width:26ch;line-height:1.4}
 .big.on{transform:translateY(8px);box-shadow:0 2px 0 #c9557a,0 6px 16px -8px #e8678a88}
+.look{height:96px;border:2px dashed var(--line);border-radius:20px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 16px;font-size:14px;color:var(--soft);background:var(--card);touch-action:none}
+.look.on{border-color:var(--pink);color:var(--ink)}
 .join{display:flex;flex-direction:column;gap:12px;margin:auto 0}
 .join input{font:inherit;font-size:28px;text-align:center;letter-spacing:.3em;border:2px solid var(--line);border-radius:16px;padding:12px;background:var(--card);color:var(--ink);text-transform:lowercase}
 .join button{background:var(--pink);color:#fff;border:0}
@@ -70,6 +72,7 @@ const GAMES = {
     title: 'จังก้า',
     hint: 'ถือมือถือ<b>หงายจอขึ้น</b> ให้<b>หัวเครื่องชี้ไปที่จอคอม</b> (หรือถือตั้งเหมือนถ่ายรูปก็ได้) กดตั้งศูนย์ทุกครั้งที่เปลี่ยนท่าถือ เล็งไม้ที่อยากดึง แล้วกดค้าง<b>จับ</b> จากนั้น<b>เงยหัวเครื่องขึ้นช้าๆ</b> เพื่อดึงไม้ออก',
     big: { id: 'grab', label: 'จับ · ดึง', sub: 'กดค้างไว้ · เงยหัวเครื่อง = ดึงออก · ปล่อยนิ้ว = วางไม้' },
+    look: 'ลากนิ้วตรงนี้เพื่อหมุนดูรอบตึก 360° · ลากขึ้นลงเพื่อมองจากบน',
     row: [{ id: 'rotL', label: '◀ หมุน', hold: true }, { id: 'recal', label: 'ตั้งศูนย์' }, { id: 'rotR', label: 'หมุน ▶', hold: true }],
   },
 };
@@ -93,7 +96,7 @@ function start() {
   $('hint').innerHTML = cfg.hint;
   $('room').textContent = 'ห้อง ' + room;
 
-  const st = { q: [1, 0, 0, 0], b: {}, taps: {} };
+  const st = { q: [1, 0, 0, 0], b: {}, taps: {}, look: [0, 0] };
   const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
 
   // build controls
@@ -103,6 +106,15 @@ function start() {
   big.innerHTML = `<span>${cfg.big.label}</span><small>${cfg.big.sub}</small>`;
   const row = document.createElement('div'); row.className = 'row';
   for (const r of cfg.row) { const b = document.createElement('button'); b.id = r.id; b.textContent = r.label; b.dataset.hold = r.hold ? '1' : ''; row.append(b); }
+  if (cfg.look) {
+    const lp = document.createElement('div'); lp.className = 'look'; lp.textContent = cfg.look;
+    let lastP = null;
+    lp.addEventListener('pointerdown', e => { e.preventDefault(); lp.setPointerCapture(e.pointerId); lastP = [e.clientX, e.clientY]; lp.classList.add('on'); });
+    lp.addEventListener('pointermove', e => { if (!lastP) return; st.look[0] += e.clientX - lastP[0]; st.look[1] += e.clientY - lastP[1]; lastP = [e.clientX, e.clientY]; });
+    const end = () => { lastP = null; lp.classList.remove('on'); };
+    lp.addEventListener('pointerup', end); lp.addEventListener('pointercancel', end);
+    ctr.append(lp);
+  }
   ctr.append(big, row);
   const wireHold = (el, id) => {
     st.b[id] = false;
