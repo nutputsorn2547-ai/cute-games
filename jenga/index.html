@@ -84,8 +84,8 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
 import RAPIER from '../lib/rapier.es.js';
-import { hostRoom } from '../lib/link.js';
-import { nlerp, pointerAngles, wrap } from '../lib/aim.js';
+import { hostRoom } from '../lib/link.js?v=2';
+import { pointerAngles, bestForwardAxis, wrap, OneEuro } from '../lib/aim.js?v=2';
 
 await RAPIER.init();
 const $ = id => document.getElementById(id);
@@ -93,9 +93,9 @@ const D2R = Math.PI / 180;
 
 /* ================= constants ================= */
 const L = 3.06, H = 0.6, WD = 1, GAP = 0.03, START_LAYERS = 18;
-const SENS = 22 * D2R;            // phone yaw from centre to screen edge
-const PULL_GAIN = 4.5;            // units of pull per radian of nose-up tilt
-const LAT_GAIN = 1.3;             // hand tremor -> sideways wiggle
+const SENS = 30 * D2R;            // phone yaw from centre to screen edge
+const PULL_GAIN = 7.5;            // units of pull per radian of nose-up tilt (~23° tilt pulls a block clear)
+const LAT_GAIN = 0.7;             // hand tremor -> sideways wiggle
 const PLACE_GAIN = 5;             // placing: units per radian
 const COLORS = ['#ffb3c6', '#ffd6a5', '#fff1a8', '#c8f2c2', '#a9e8f5', '#cdb8ff', '#ffc8dd', '#bde0fe'];
 
@@ -195,7 +195,7 @@ function makeBlock(pos, yaw, layer) {
     const f = new THREE.Mesh(faceGeo, faceMats.happy); f.position.x = s * (L / 2 + 0.004); f.rotation.y = s * Math.PI / 2; mesh.add(f); faces.push(f);
   }
   scene.add(mesh);
-  const b = { rb, col, mesh, mat, faces, layer, tight: 0.06 + Math.random() * 0.28, mood: 'happy', sleepyFace: Math.random() < .25 };
+  const b = { rb, col, mesh, mat, faces, layer, tight: 0.03 + Math.random() * 0.17, home: null, pullDir: null, mood: 'happy', sleepyFace: Math.random() < .25 };
   blocks.push(b); return b;
 }
 
@@ -214,21 +214,34 @@ function buildTower() {
 }
 
 /* ================= input: phone + mouse ================= */
-let qT = [1, 0, 0, 0], q = [1, 0, 0, 0], lastPad = -1e9, cal = null, padTaps = {}, padBtn = {};
+let qT = [1, 0, 0, 0], lastPad = -1e9, cal = null, padTaps = {}, padBtn = {}, needCal = false, lastPadT = 0;
+let fwdAxis = [0, 1, 0], aimF = { yaw: 0, pitch: 0, roll: 0 }, yawU = 0, prevYawRaw = null;
+const fYaw = new OneEuro(), fPitch = new OneEuro(), fRoll = new OneEuro();
 let usingMouse = false, mouseNdc = { x: 0, y: 0 }, mouseDown = false;
 let rotInput = 0, camAngle = 0.5;
 const phoneLive = () => performance.now() - lastPad < 1500;
 
 function rawAngles() { // current aim in radians relative to calibration (phone) or from mouse
   if (phoneLive() && cal) {
-    const a = pointerAngles(q);
-    return { yaw: wrap(a.yaw - cal.yaw), pitch: a.pitch - cal.pitch, roll: a.roll };
+    return { yaw: aimF.yaw - cal.yaw, pitch: aimF.pitch - cal.pitch, roll: aimF.roll };
   }
   // mouse: same pointer mapping, but pulling/placing get 3x the travel so a short drag is enough
   const m = (state === 'pull' || state === 'place') ? 4.5 : 1;
   return { yaw: mouseNdc.x * SENS * m, pitch: mouseNdc.y * SENS * (innerHeight / innerWidth) * m, roll: 0 };
 }
-function recalibrate() { const a = pointerAngles(q); cal = { yaw: a.yaw, pitch: a.pitch }; toast('ตั้งศูนย์แล้ว'); }
+function recalibrate() {
+  fwdAxis = bestForwardAxis(qT);
+  prevYawRaw = null; filterAim(0, true);
+  cal = { yaw: aimF.yaw, pitch: aimF.pitch }; toast('ตั้งศูนย์แล้ว');
+}
+// raw phone quaternion -> smoothed, unwrapped yaw/pitch/roll
+function filterAim(dt, reset) {
+  const a = pointerAngles(qT, fwdAxis);
+  if (prevYawRaw === null) { yawU = a.yaw; } else yawU += wrap(a.yaw - prevYawRaw);
+  prevYawRaw = a.yaw;
+  if (reset) { fYaw.reset(yawU); fPitch.reset(a.pitch); fRoll.reset(a.roll); aimF = { yaw: yawU, pitch: a.pitch, roll: a.roll }; return; }
+  aimF = { yaw: fYaw.filter(yawU, dt), pitch: fPitch.filter(a.pitch, dt), roll: fRoll.filter(a.roll, dt) };
+}
 const grabHeld = () => phoneLive() ? !!padBtn.grab : mouseDown;
 
 const link = hostRoom({
@@ -240,17 +253,20 @@ const link = hostRoom({
     $('chipText').textContent = live ? `มือถือเชื่อมแล้ว · ห้อง ${s.code}` : s.state === 'offline' ? 'ต่อเซิร์ฟเวอร์ไม่ได้ เช็กอินเทอร์เน็ต' : s.code ? `ห้อง ${s.code} · รอมือถือ` : 'กำลังเปิดห้อง…';
     if (live) { $('pair').hidden = true; usingMouse = false; }
   },
-  onData: d => {
+  onData: d => onPad(d),
+});
+function onPad(d) {
+  {
     if (!d || !Array.isArray(d.q)) return;
     qT = d.q.map(Number); lastPad = performance.now();
-    if (!cal) { q = qT.slice(); recalibrate(); }
+    if (!cal) needCal = true;
     const taps = d.taps || {};
-    if (padTaps.recal !== undefined && taps.recal !== padTaps.recal) { q = qT.slice(); recalibrate(); }
+    if (padTaps.recal !== undefined && taps.recal !== padTaps.recal) needCal = true;
     padTaps = { ...taps };
     padBtn = d.b || {};
     rotInput = (padBtn.rotR ? 1 : 0) - (padBtn.rotL ? 1 : 0);
-  },
-});
+  }
+}
 function drawQr(url) {
   try { const qr = window.qrcode(0, 'M'); qr.addData(url); qr.make(); $('qr').innerHTML = qr.createSvgTag(5, 2); } catch (e) { $('qr').textContent = url; }
 }
@@ -309,7 +325,10 @@ function startGrab(b) {
   const axis = new THREE.Vector3(1, 0, 0).applyQuaternion(new THREE.Quaternion(r.x, r.y, r.z, r.w)); axis.y = 0; axis.normalize();
   const toCam = new THREE.Vector3(camera.position.x - p.x, 0, camera.position.z - p.z);
   if (axis.dot(toCam) < 0) axis.negate();
-  grabInfo = { p0: new THREE.Vector3(p.x, p.y, p.z), dir: axis, perp: new THREE.Vector3(-axis.z, 0, axis.x), a0: rawAngles() };
+  // re-grabbing a half-pulled block keeps its direction and progress (pull in several goes)
+  if (b.pullDir) axis.copy(b.pullDir); else b.pullDir = axis.clone();
+  if (!b.home) b.home = new THREE.Vector3(p.x, p.y, p.z);
+  grabInfo = { p0: new THREE.Vector3(p.x, p.y, p.z), home: b.home, dir: axis, perp: new THREE.Vector3(axis.z, 0, -axis.x), a0: rawAngles() };
   blip(500, 900, .09, .12); link.send({ vib: 25 });
 }
 function releasePulled() {
@@ -335,7 +354,7 @@ function drop() {
   b.rb.lockRotations(false, true);
   b.col.setSensor(false);
   b.col.setFriction(0.5); b.col.setFrictionCombineRule(RAPIER.CoefficientCombineRule.Average);
-  b.layer = grabInfo.slotLayer;
+  b.layer = grabInfo.slotLayer; b.home = null; b.pullDir = null;
   if (grabInfo.slotLayer > topLayer) { topLayer = grabInfo.slotLayer; topCount = 1; } else topCount++;
   grabbed = null; grabInfo = null; state = 'settle'; settleT = 2.2;
   blip(300, 180, .12, .2, 'triangle');
@@ -371,7 +390,7 @@ function physicsStep() {
     const k = 14, mx = 7;
     const vx = Math.max(-mx, Math.min(mx, (tx - c.x) * k)), vz = Math.max(-mx, Math.min(mx, (tz - c.z) * k));
     grabbed.rb.setLinvel({ x: vx, y: v.y, z: vz }, true);
-    const out = (c.x - g.p0.x) * g.dir.x + (c.z - g.p0.z) * g.dir.z;
+    const out = (c.x - g.home.x) * g.dir.x + (c.z - g.home.z) * g.dir.z;
     g.out = out;
     if (out >= L * 1.0) startPlace();
   } else if (state === 'place' && grabbed) {
@@ -396,7 +415,7 @@ function physicsStep() {
 
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
-  q = nlerp(q, qT, .5);
+  if (phoneLive()) { if (needCal) { needCal = false; recalibrate(); } else filterAim(dt); }
   toastT -= dt; if (toastT <= 0 && toastT > -dt * 1.5) $('hint').hidden = true;
 
   // camera orbit
@@ -485,7 +504,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-window.__jenga = { get state() { return state; }, get score() { return score; }, get out() { return grabInfo && grabInfo.out; }, get top() { return [topLayer, topCount]; } };
+window.__jenga = { feed: onPad, get aim() { return rawAngles(); }, get hint() { return [hovered && hovered.layer, phoneLive(), !!cal]; }, get state() { return state; }, get score() { return score; }, get out() { return grabInfo && grabInfo.out; }, get top() { return [topLayer, topCount]; } };
 buildTower();
 $('loading').hidden = true; $('hud').hidden = false; $('pair').hidden = false;
 requestAnimationFrame(frame);
