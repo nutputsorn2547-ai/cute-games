@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>จอยมือถือ · Cute Games</title>
+<meta name="theme-color" content="#fff4ec">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: phone held flat like a remote — status strip, one-line hint, a huge hold button under the thumb, small row of helpers */
+:root{--bg:#fff4ec;--card:#ffffff;--ink:#4a3a44;--soft:#9a8590;--pink:#ff8fab;--pink-deep:#e8678a;--mint:#7fd8be;--line:#f1dcd3;--warn:#e98a3a;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+body{display:flex;flex-direction:column;gap:12px;box-sizing:border-box;
+  padding-block:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 14px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--warn)}.dot.ok{background:var(--mint)}
+.soft{color:var(--soft)}
+h1{margin:0;font-size:22px;font-weight:600}
+.hint{margin:0;font-size:15px;line-height:1.55;color:var(--soft)}
+.hint b{color:var(--ink);font-weight:500}
+.warn{margin:0;font-size:14px;line-height:1.5;color:var(--warn)}
+.row{display:flex;gap:10px}
+button{font:inherit;font-weight:500;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 8px;font-size:16px;flex:1}
+button:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+button.on{background:var(--line)}
+.big{flex:1;min-height:180px;border:0;border-radius:32px;color:#fff;font-size:30px;font-weight:600;
+  background:linear-gradient(180deg,var(--pink),var(--pink-deep));box-shadow:0 10px 0 #c9557a,0 18px 30px -10px #e8678a88;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:transform .06s,box-shadow .06s}
+.big small{font-size:14px;font-weight:400;opacity:.9;max-width:26ch;line-height:1.4}
+.big.on{transform:translateY(8px);box-shadow:0 2px 0 #c9557a,0 6px 16px -8px #e8678a88}
+.join{display:flex;flex-direction:column;gap:12px;margin:auto 0}
+.join input{font:inherit;font-size:28px;text-align:center;letter-spacing:.3em;border:2px solid var(--line);border-radius:16px;padding:12px;background:var(--card);color:var(--ink);text-transform:lowercase}
+.join button{background:var(--pink);color:#fff;border:0}
+</style>
+</head>
+<body>
+  <div class="join" id="joinBox" hidden>
+    <h1>ต่อจอยกับคอม</h1>
+    <p class="hint">พิมพ์รหัส 5 ตัวที่ขึ้นบนจอคอม</p>
+    <label for="code" class="soft" style="font-size:13px">รหัสห้อง</label>
+    <input id="code" maxlength="5" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
+    <button id="joinBtn">เชื่อมต่อ</button>
+  </div>
+
+  <div id="padBox" hidden style="display:contents">
+    <div class="top">
+      <span class="chip"><span class="dot" id="dot"></span><span id="conn">กำลังเชื่อมต่อ…</span></span>
+      <span class="soft" id="room"></span>
+    </div>
+    <h1 id="title"></h1>
+    <p class="hint" id="hint"></p>
+    <p class="warn" id="warn" hidden></p>
+    <button id="perm" hidden>แตะเพื่อเปิดเซ็นเซอร์หมุน</button>
+    <div id="controls" style="display:contents"></div>
+  </div>
+
+<script type="module">
+import { joinRoom } from './lib/link.js';
+import { eulerToQuat } from './lib/aim.js';
+
+const $ = id => document.getElementById(id);
+const GAMES = {
+  jenga: {
+    title: 'จังก้า',
+    hint: 'ถือมือถือ<b>หงายจอขึ้น</b> ให้<b>หัวเครื่องชี้ไปที่จอคอม</b> เล็งไม้ที่อยากดึง แล้วกดค้าง<b>จับ</b> จากนั้น<b>เงยหัวเครื่องขึ้นช้าๆ</b> เพื่อดึงไม้ออก',
+    big: { id: 'grab', label: 'จับ · ดึง', sub: 'กดค้างไว้ · เงยหัวเครื่อง = ดึงออก · ปล่อยนิ้ว = วางไม้' },
+    row: [{ id: 'rotL', label: '◀ หมุน', hold: true }, { id: 'recal', label: 'ตั้งศูนย์' }, { id: 'rotR', label: 'หมุน ▶', hold: true }],
+  },
+};
+
+const params = new URLSearchParams(location.search);
+let room = (params.get('room') || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const game = GAMES[params.get('game')] ? params.get('game') : 'jenga';
+
+if (!room) {
+  $('joinBox').hidden = false;
+  $('joinBtn').onclick = () => {
+    const c = $('code').value.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (c.length === 5) location.search = `?room=${c}&game=${game}`;
+  };
+} else start();
+
+function start() {
+  $('padBox').hidden = false;
+  const cfg = GAMES[game];
+  $('title').textContent = cfg.title;
+  $('hint').innerHTML = cfg.hint;
+  $('room').textContent = 'ห้อง ' + room;
+
+  const st = { q: [1, 0, 0, 0], b: {}, taps: {} };
+  const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+  // build controls
+  const ctr = $('controls');
+  const big = document.createElement('button');
+  big.className = 'big'; big.id = cfg.big.id;
+  big.innerHTML = `<span>${cfg.big.label}</span><small>${cfg.big.sub}</small>`;
+  const row = document.createElement('div'); row.className = 'row';
+  for (const r of cfg.row) { const b = document.createElement('button'); b.id = r.id; b.textContent = r.label; b.dataset.hold = r.hold ? '1' : ''; row.append(b); }
+  ctr.append(big, row);
+  const wireHold = (el, id) => {
+    st.b[id] = false;
+    el.addEventListener('pointerdown', e => { e.preventDefault(); el.setPointerCapture(e.pointerId); st.b[id] = true; el.classList.add('on'); vib(15); push(); });
+    const up = () => { st.b[id] = false; el.classList.remove('on'); push(); };
+    el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  };
+  wireHold(big, cfg.big.id);
+  for (const r of cfg.row) {
+    const el = $(r.id);
+    if (r.hold) wireHold(el, r.id);
+    else { st.taps[r.id] = 0; el.addEventListener('click', () => { st.taps[r.id]++; vib(25); push(); }); }
+  }
+
+  // sensors
+  let gotSensor = false;
+  addEventListener('deviceorientation', e => {
+    if (e.beta == null) return;
+    gotSensor = true; $('warn').hidden = true;
+    st.q = eulerToQuat(e.alpha || 0, e.beta, e.gamma);
+  });
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    $('perm').hidden = false;
+    $('perm').onclick = async () => { try { await DeviceOrientationEvent.requestPermission(); } catch (e) {} $('perm').hidden = true; };
+  }
+  setTimeout(() => {
+    if (gotSensor) return;
+    $('warn').textContent = window.isSecureContext ? 'ยังไม่ได้รับค่าเซ็นเซอร์หมุน ลองขยับมือถือ หรือเปิดด้วย Chrome' : 'ต้องเปิดผ่านลิงก์ https เท่านั้นถึงจะอ่านเซ็นเซอร์ได้';
+    $('warn').hidden = false;
+  }, 2500);
+
+  // link
+  const labels = { connecting: 'กำลังเชื่อมต่อ…', connected: 'เชื่อมกับคอมแล้ว', lost: 'หลุด กำลังต่อใหม่…', 'no-room': 'ไม่พบห้องนี้ เปิดเกมบนคอมไว้หรือยัง?', error: 'ต่อไม่ได้ กำลังลองใหม่…' };
+  const link = joinRoom({
+    code: room,
+    onStatus: s => { $('conn').textContent = labels[s] || s; $('dot').classList.toggle('ok', s === 'connected'); if (s === 'connected') vib([30, 60, 30]); },
+    onData: d => { if (d && d.vib) vib(d.vib); },
+  });
+  function push() { link.send(st); }
+  setInterval(push, 16);
+
+  try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {} });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cute Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: a short intro, then a grid of game cards (ready vs coming soon) */
+:root{--bg:#fff4ec;--card:#ffffff;--ink:#4a3a44;--soft:#9a8590;--pink:#ff8fab;--pink-deep:#e8678a;--mint:#7fd8be;--line:#f1dcd3;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);
+  padding-block:calc(env(safe-area-inset-top,0px) + 40px) 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{margin:0;font-size:clamp(34px,7vw,52px);font-weight:600;text-wrap:balance}
+h1 span{color:var(--pink-deep)}
+.lead{margin:8px 0 0;color:var(--soft);line-height:1.7;max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.game{display:flex;flex-direction:column;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:22px;padding:20px;text-decoration:none;color:inherit;min-width:0}
+a.game:hover,a.game:focus-visible{border-color:var(--pink);outline:none;transform:translateY(-2px)}
+.game h2{margin:0;font-size:22px;font-weight:600}
+.game p{margin:0;color:var(--soft);line-height:1.6;font-size:15px}
+.tag{align-self:flex-start;font-size:13px;border-radius:999px;padding:3px 11px;background:var(--mint);color:#1f4d40}
+.soon{opacity:.7}.soon .tag{background:var(--line);color:var(--soft)}
+.how{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 24px;line-height:1.75}
+.how h2{margin:0 0 6px;font-size:18px}
+.how ol{margin:0;padding-left:1.2em}
+.how a{color:var(--pink-deep)}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Cute <span>Games</span></h1>
+    <p class="lead">เกม 3D ที่ใช้มือถือเป็นจอยแบบหมุนจริง เปิดเกมบนคอม แล้วสแกน QR ด้วยมือถือ ไม่ต้องลงแอป ไม่ต้องอยู่ Wi-Fi เดียวกัน</p>
+  </header>
+  <section class="grid" aria-label="เกม">
+    <a class="game" href="jenga/"><span class="tag">เล่นได้แล้ว</span><h2>จังก้าน้องไม้</h2><p>เล็ง จับ แล้วเงยมือถือค่อยๆ ดึงไม้ออก มือสั่นตึกก็สั่น</p></a>
+    <div class="game soon"><span class="tag">เร็วๆ นี้</span><h2>ครัวน่ารัก</h2><p>หั่นผัก ทุบเนื้อ คนหม้อ ด้วยการเหวี่ยงมือถือ</p></div>
+    <div class="game soon"><span class="tag">เร็วๆ นี้</span><h2>ลาเต้อาร์ต</h2><p>เอียงมือถือเทนมลงถ้วย วาดหัวใจให้สวย</p></div>
+  </section>
+  <section class="how">
+    <h2>วิธีเล่น</h2>
+    <ol>
+      <li>เปิดเกมบนคอม (Chrome หรือ Edge)</li>
+      <li>สแกน QR บนจอด้วยกล้องมือถือ หรือเปิด <a href="pad.html">หน้าจอย</a> แล้วพิมพ์รหัสห้อง</li>
+      <li>ถือมือถือหงายจอ ให้หัวเครื่องชี้ไปที่จอคอม แล้วกดตั้งศูนย์</li>
+    </ol>
+  </section>
+</main>
+</body>
+</html>
