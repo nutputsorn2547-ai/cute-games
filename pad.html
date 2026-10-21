@@ -36,6 +36,16 @@ button.on{background:var(--line)}
 .big.on{transform:translateY(8px);box-shadow:0 2px 0 #c9557a,0 6px 16px -8px #e8678a88}
 .look{height:96px;border:2px dashed var(--line);border-radius:20px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 16px;font-size:14px;color:var(--soft);background:var(--card);touch-action:none}
 .look.on{border-color:var(--pink);color:var(--ink)}
+.meter{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.mbar{height:14px;border-radius:7px;background:var(--line);overflow:hidden}
+.mbar i{display:block;height:100%;width:0;background:var(--mint);border-radius:7px;transition:width .1s}
+.mbar i.hot{background:var(--pink-deep)}
+.reelwrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.reel{position:relative;width:min(72vw,40vh);aspect-ratio:1;max-width:100%;border-radius:50%;background:radial-gradient(circle,var(--card) 34%,var(--line) 35%,var(--line) 37%,var(--card) 38%);
+  border:3px solid var(--line);display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:var(--soft);touch-action:none;padding:0 22%;box-sizing:border-box}
+.reel.on{border-color:var(--pink)}
+.knob{position:absolute;inset:0;border-radius:50%;pointer-events:none}
+.knob::after{content:"";position:absolute;top:6%;left:50%;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:var(--pink);box-shadow:0 4px 0 var(--pink-deep)}
 .join{display:flex;flex-direction:column;gap:12px;margin:auto 0}
 .join input{font:inherit;font-size:28px;text-align:center;letter-spacing:.3em;border:2px solid var(--line);border-radius:16px;padding:12px;background:var(--card);color:var(--ink);text-transform:lowercase}
 .join button{background:var(--pink);color:#fff;border:0}
@@ -75,6 +85,13 @@ const GAMES = {
     look: 'ลากนิ้วตรงนี้เพื่อหมุนดูรอบตึก 360° · ลากขึ้นลงเพื่อมองจากบน',
     row: [{ id: 'rotL', label: '◀ หมุน', hold: true }, { id: 'recal', label: 'ตั้งศูนย์' }, { id: 'rotR', label: 'หมุน ▶', hold: true }],
   },
+  fishing: {
+    title: 'ตกปลา',
+    hint: 'ถือมือถือ<b>หงายจอ</b> หัวเครื่องชี้จอคอมเหมือนถือคันเบ็ด <b>เงยขึ้นแล้วสะบัดลงเร็วๆ</b> เพื่อเหวี่ยงเบ็ด ปลากินเหยื่อเมื่อไหร่ <b>กระตุกขึ้นเร็วๆ</b> แล้ว<b>หมุนนิ้ววนรอบรอก</b>เพื่อกรอสาย',
+    meter: true,
+    reel: 'หมุนนิ้ววนตามเข็มนาฬิกาเพื่อกรอสาย',
+    row: [{ id: 'cast', label: 'เหวี่ยง (ค้าง/ปล่อย)', hold: true }, { id: 'strike', label: 'ตวัด!' }, { id: 'recal', label: 'ตั้งศูนย์' }],
+  },
 };
 
 const params = new URLSearchParams(location.search);
@@ -96,14 +113,39 @@ function start() {
   $('hint').innerHTML = cfg.hint;
   $('room').textContent = 'ห้อง ' + room;
 
-  const st = { q: [1, 0, 0, 0], b: {}, taps: {}, look: [0, 0] };
+  const st = { q: [1, 0, 0, 0], b: {}, taps: {}, look: [0, 0], reel: 0 };
+  let tension = 0;
   const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
 
   // build controls
   const ctr = $('controls');
-  const big = document.createElement('button');
-  big.className = 'big'; big.id = cfg.big.id;
-  big.innerHTML = `<span>${cfg.big.label}</span><small>${cfg.big.sub}</small>`;
+  let big = null;
+  if (cfg.big) {
+    big = document.createElement('button');
+    big.className = 'big'; big.id = cfg.big.id;
+    big.innerHTML = `<span>${cfg.big.label}</span><small>${cfg.big.sub}</small>`;
+  }
+  if (cfg.meter) {
+    const m = document.createElement('div'); m.className = 'meter';
+    m.innerHTML = '<span class="soft">แรงตึงสาย</span><div class="mbar"><i id="mfill"></i></div>';
+    ctr.append(m);
+  }
+  if (cfg.reel) {
+    const wrap = document.createElement('div'); wrap.className = 'reelwrap';
+    const r = document.createElement('div'); r.className = 'reel'; r.innerHTML = `<div class="knob" id="knob"></div><span>${cfg.reel}</span>`;
+    wrap.append(r); ctr.append(wrap);
+    let lastA = null, spin = 0;
+    const ang = e => { const b = r.getBoundingClientRect(); return Math.atan2(e.clientY - (b.top + b.height / 2), e.clientX - (b.left + b.width / 2)); };
+    r.addEventListener('pointerdown', e => { e.preventDefault(); r.setPointerCapture(e.pointerId); lastA = ang(e); r.classList.add('on'); });
+    r.addEventListener('pointermove', e => {
+      if (lastA === null) return;
+      const a = ang(e); let d = a - lastA; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI;
+      lastA = a; st.reel += d; spin += d;
+      $('knob').style.transform = `rotate(${spin}rad)`;
+    });
+    const end = () => { lastA = null; r.classList.remove('on'); };
+    r.addEventListener('pointerup', end); r.addEventListener('pointercancel', end);
+  }
   const row = document.createElement('div'); row.className = 'row';
   for (const r of cfg.row) { const b = document.createElement('button'); b.id = r.id; b.textContent = r.label; b.dataset.hold = r.hold ? '1' : ''; row.append(b); }
   if (cfg.look) {
@@ -115,14 +157,15 @@ function start() {
     lp.addEventListener('pointerup', end); lp.addEventListener('pointercancel', end);
     ctr.append(lp);
   }
-  ctr.append(big, row);
+  if (big) ctr.append(big);
+  ctr.append(row);
   const wireHold = (el, id) => {
     st.b[id] = false;
     el.addEventListener('pointerdown', e => { e.preventDefault(); el.setPointerCapture(e.pointerId); st.b[id] = true; el.classList.add('on'); vib(15); push(); });
     const up = () => { st.b[id] = false; el.classList.remove('on'); push(); };
     el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   };
-  wireHold(big, cfg.big.id);
+  if (big) wireHold(big, cfg.big.id);
   for (const r of cfg.row) {
     const el = $(r.id);
     if (r.hold) wireHold(el, r.id);
@@ -151,9 +194,15 @@ function start() {
   const link = joinRoom({
     code: room,
     onStatus: s => { $('conn').textContent = labels[s] || s; $('dot').classList.toggle('ok', s === 'connected'); if (s === 'connected') vib([30, 60, 30]); },
-    onData: d => { if (d && d.vib) vib(d.vib); },
+    onData: d => {
+      if (!d) return;
+      if (d.vib) vib(d.vib);
+      if (typeof d.ten === 'number') { tension = d.ten; const f = $('mfill'); if (f) { f.style.width = Math.min(100, tension * 100) + '%'; f.classList.toggle('hot', tension > .8); } }
+    },
   });
   function push() { link.send(st); }
+  // the line tugs back: buzz harder and longer as tension rises
+  setInterval(() => { if (tension > 0.12) vib(Math.round(12 + Math.min(1, tension) * 110)); }, 170);
   setInterval(push, 16);
 
   try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
