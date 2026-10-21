@@ -94,8 +94,7 @@ const D2R = Math.PI / 180;
 /* ================= constants ================= */
 const L = 3.06, H = 0.6, WD = 1, GAP = 0.03, START_LAYERS = 18;
 const SENS = 30 * D2R;            // phone yaw from centre to screen edge
-const PULL_GAIN = 7.5;            // units of pull per radian of nose-up tilt (~23° tilt pulls a block clear)
-const LAT_GAIN = 2.2;             // turning the phone left/right swings the pulled block sideways
+const MOVE_GAIN = 7;              // units of block travel per radian of phone tilt/turn (~25° moves a block clear)
 const PLACE_GAIN = 5;             // placing: units per radian
 const COLORS = ['#ffb3c6', '#ffd6a5', '#fff1a8', '#c8f2c2', '#a9e8f5', '#cdb8ff', '#ffc8dd', '#bde0fe'];
 
@@ -218,16 +217,16 @@ let qT = [1, 0, 0, 0], lastPad = -1e9, cal = null, padTaps = {}, padBtn = {}, ne
 let fwdAxis = [0, 1, 0], aimF = { yaw: 0, pitch: 0, roll: 0 }, yawU = 0, prevYawRaw = null;
 const fYaw = new OneEuro(), fPitch = new OneEuro(), fRoll = new OneEuro();
 let usingMouse = false, mouseNdc = { x: 0, y: 0 }, mouseDown = false;
-let rotInput = 0, camAngle = 0.5, camElev = 0.3, prevLook = null;
+let rotInput = 0, camAngle = 0.5, camElev = 0.3, prevLook = null, kbAim = { yaw: 0, pitch: 0 };
 const phoneLive = () => performance.now() - lastPad < 1500;
 
 function rawAngles() { // current aim in radians relative to calibration (phone) or from mouse
   if (phoneLive() && cal) {
-    return { yaw: aimF.yaw - cal.yaw, pitch: aimF.pitch - cal.pitch, roll: aimF.roll };
+    return { yaw: aimF.yaw - cal.yaw + kbAim.yaw, pitch: aimF.pitch - cal.pitch + kbAim.pitch, roll: aimF.roll };
   }
   // mouse: same pointer mapping, but pulling/placing get 3x the travel so a short drag is enough
   const m = (state === 'pull' || state === 'place') ? 4.5 : 1;
-  return { yaw: mouseNdc.x * SENS * m, pitch: mouseNdc.y * SENS * (innerHeight / innerWidth) * m, roll: 0 };
+  return { yaw: mouseNdc.x * SENS * m + kbAim.yaw, pitch: mouseNdc.y * SENS * (innerHeight / innerWidth) * m + kbAim.pitch, roll: 0 };
 }
 function recalibrate() {
   fwdAxis = bestForwardAxis(qT);
@@ -331,7 +330,9 @@ function startGrab(b) {
   // re-grabbing a half-pulled block keeps its direction and progress (pull in several goes)
   if (b.pullDir) axis.copy(b.pullDir); else b.pullDir = axis.clone();
   if (!b.home) b.home = new THREE.Vector3(p.x, p.y, p.z);
-  grabInfo = { p0: new THREE.Vector3(p.x, p.y, p.z), home: b.home, dir: axis, perp: new THREE.Vector3(axis.z, 0, -axis.x), a0: rawAngles() };
+  kbAim = { yaw: 0, pitch: 0 };
+  grabInfo = { right: new THREE.Vector3(Math.cos(camAngle), 0, -Math.sin(camAngle)), fwd: new THREE.Vector3(-Math.sin(camAngle), 0, -Math.cos(camAngle)),
+    p0: new THREE.Vector3(p.x, p.y, p.z), home: b.home, dir: axis, perp: new THREE.Vector3(axis.z, 0, -axis.x), a0: rawAngles() };
   blip(500, 900, .09, .12); link.send({ vib: 25 });
 }
 function releasePulled() {
@@ -385,22 +386,28 @@ function towerTop() { let m = 0; for (const b of blocks) if (b !== grabbed) m = 
 
 function physicsStep() {
   if (state === 'pull' && grabbed) {
+    // Joystick-style, relative to the screen: nose down (W) pushes into the screen, nose up (S) pulls toward you,
+    // turn left/right (A/D) slides left/right. The tower's neighbours decide what actually moves.
     const a = rawAngles(), g = grabInfo;
-    const pull = Math.max(-0.15, Math.min(L * 1.25, (a.pitch - g.a0.pitch) * PULL_GAIN));
-    const lat = Math.max(-0.9, Math.min(0.9, wrap(a.yaw - g.a0.yaw) * LAT_GAIN));
-    const tx = g.p0.x + g.dir.x * pull + g.perp.x * lat, tz = g.p0.z + g.dir.z * pull + g.perp.z * lat;
+    const dYaw = wrap(a.yaw - g.a0.yaw), dPitch = a.pitch - g.a0.pitch;
+    const move = g.right.clone().multiplyScalar(dYaw * MOVE_GAIN).add(g.fwd.clone().multiplyScalar(-dPitch * MOVE_GAIN));
+    if (move.length() > 4.5) move.setLength(4.5);
+    // Inside the tower a block can only slide along its own length: keep the part of the
+    // joystick that points along the block, plus a little sideways wobble from the rest.
+    const along = move.dot(g.dir), side = Math.max(-0.35, Math.min(0.35, move.dot(g.perp) * 0.35));
+    const tx = g.p0.x + g.dir.x * along + g.perp.x * side, tz = g.p0.z + g.dir.z * along + g.perp.z * side;
     const c = grabbed.rb.translation(), v = grabbed.rb.linvel();
-    const k = 14, mx = 7;
+    const k = 16, mx = 9;
     const vx = Math.max(-mx, Math.min(mx, (tx - c.x) * k)), vz = Math.max(-mx, Math.min(mx, (tz - c.z) * k));
     grabbed.rb.setLinvel({ x: vx, y: v.y, z: vz }, true);
-    const out = (c.x - g.home.x) * g.dir.x + (c.z - g.home.z) * g.dir.z;
+    const out = Math.abs((c.x - g.home.x) * g.dir.x + (c.z - g.home.z) * g.dir.z);
     g.out = out;
     if (out >= L * 1.0) startPlace();
   } else if (state === 'place' && grabbed) {
     const a = rawAngles(), g = grabInfo;
     const right = new THREE.Vector3(Math.cos(camAngle), 0, -Math.sin(camAngle));
     const fwd = new THREE.Vector3(-Math.sin(camAngle), 0, -Math.cos(camAngle));
-    const off = right.multiplyScalar(wrap(a.yaw - g.a0.yaw) * PLACE_GAIN).add(fwd.multiplyScalar((a.pitch - g.a0.pitch) * PLACE_GAIN));
+    const off = right.multiplyScalar(wrap(a.yaw - g.a0.yaw) * PLACE_GAIN).add(fwd.multiplyScalar(-(a.pitch - g.a0.pitch) * PLACE_GAIN));
     if (off.length() > 2.4) off.setLength(2.4);
     const hoverY = g.hoverY;
     const c = grabbed.rb.translation(), r = grabbed.rb.rotation();
@@ -422,9 +429,14 @@ function frame(now) {
   toastT -= dt; if (toastT <= 0 && toastT > -dt * 1.5) $('hint').hidden = true;
 
   // camera orbit
-  const kRot = (keys['arrowright'] || keys['d'] ? 1 : 0) - (keys['arrowleft'] || keys['a'] ? 1 : 0);
+  const holding = state === 'pull' || state === 'place';
+  if (holding) { // WASD steers the held block (keyboard play)
+    kbAim.yaw += ((keys['d'] ? 1 : 0) - (keys['a'] ? 1 : 0)) * .5 * dt;
+    kbAim.pitch += ((keys['s'] ? 1 : 0) - (keys['w'] ? 1 : 0)) * .5 * dt;
+  }
+  const kRot = (keys['arrowright'] || (!holding && keys['d']) ? 1 : 0) - (keys['arrowleft'] || (!holding && keys['a']) ? 1 : 0);
   camAngle += (rotInput + kRot) * 2.2 * dt;
-  const kEl = (keys['w'] || keys['arrowup'] ? 1 : 0) - (keys['s'] || keys['arrowdown'] ? 1 : 0);
+  const kEl = ((!holding && keys['w']) || keys['arrowup'] ? 1 : 0) - ((!holding && keys['s']) || keys['arrowdown'] ? 1 : 0);
   camElev = Math.max(0.05, Math.min(1.35, camElev + kEl * 1.2 * dt));
   const topY = (topLayer + 1) * H, lookY = Math.max(3, topY * .5);
   const dist = 15 + topY * .5;
@@ -437,7 +449,10 @@ function frame(now) {
   const ndc = { x: Math.max(-1, Math.min(1, a.yaw / SENS)), y: Math.max(-1, Math.min(1, a.pitch / (SENS * innerHeight / innerWidth))) };
   const showCursor = phoneLive() || usingMouse || mouseNdc.x !== 0;
   cursor.hidden = !showCursor || state === 'over';
-  if (state === 'idle' || state === 'settle') {
+  if ((state === 'pull' || state === 'place') && grabbed) { // cursor rides on the held block
+    const t = grabbed.rb.translation(), sp = new THREE.Vector3(t.x, t.y, t.z).project(camera);
+    cursor.style.left = ((sp.x + 1) / 2 * innerWidth) + 'px'; cursor.style.top = ((1 - sp.y) / 2 * innerHeight) + 'px';
+  } else if (state === 'idle' || state === 'settle') {
     cursor.style.left = ((ndc.x + 1) / 2 * innerWidth) + 'px'; cursor.style.top = ((1 - ndc.y) / 2 * innerHeight) + 'px';
   }
 
@@ -502,15 +517,15 @@ function frame(now) {
   // hints
   if (!$('pair').hidden || state === 'over') hint('');
   else if (state === 'idle') hint(hovered ? (canTake(hovered) ? (phoneLive() ? 'กดค้างปุ่ม จับ' : 'กดเมาส์ค้างไว้เพื่อจับ') : 'ชั้นบนสุดดึงไม่ได้') : (phoneLive() ? 'หันมือถือเล็งไม้ · ลากนิ้วบนแผ่นหมุนเพื่อดูรอบตึก' : 'เลื่อนเมาส์ไปที่ไม้ · คลิกขวาลากเพื่อหมุนดูรอบตึก'));
-  else if (state === 'pull') hint(phoneLive() ? `เงยหัวเครื่องเพื่อดึง · ส่ายซ้ายขวาเพื่อโยก · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ขึ้นเพื่อดึง · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
-  else if (state === 'place') hint(phoneLive() ? 'หันมือถือเลื่อนไม้ไปบนยอด แล้วปล่อยนิ้ววาง' : 'เลื่อนเมาส์จัดตำแหน่ง แล้วปล่อยปุ่มวาง');
+  else if (state === 'pull') hint(phoneLive() ? `เงย = ดึงออก · ก้ม = ดันเข้า · หันซ้ายขวา = เลื่อน · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ขึ้น/ลง/ซ้าย/ขวา หรือ WASD · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
+  else if (state === 'place') hint(phoneLive() ? 'ก้ม/เงย/หันซ้ายขวา เลื่อนไม้บนยอด แล้วปล่อยนิ้ววาง' : 'เลื่อนเมาส์จัดตำแหน่ง แล้วปล่อยปุ่มวาง');
   else if (state === 'settle') hint('รอตึกนิ่ง…');
 
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
 
-window.__jenga = { feed: onPad, get aim() { return rawAngles(); }, get hint() { return [hovered && hovered.layer, phoneLive(), !!cal]; }, get state() { return state; }, get score() { return score; }, get out() { return grabInfo && grabInfo.out; }, get top() { return [topLayer, topCount]; } };
+window.__jenga = { feed: onPad, get g() { return grabInfo && { dr: grabInfo.dir.dot(grabInfo.right), df: grabInfo.dir.dot(grabInfo.fwd) }; }, get aim() { return rawAngles(); }, get hint() { return [hovered && hovered.layer, phoneLive(), !!cal]; }, get state() { return state; }, get score() { return score; }, get out() { return grabInfo && grabInfo.out; }, get top() { return [topLayer, topCount]; } };
 buildTower();
 $('loading').hidden = true; $('hud').hidden = false; $('pair').hidden = false;
 requestAnimationFrame(frame);
