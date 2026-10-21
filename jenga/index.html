@@ -22,6 +22,12 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 .chip button{font:inherit;font-size:13px;border:0;background:var(--line);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer}
 .hint{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:999px;
   padding:10px 20px;font-size:16px;box-shadow:0 8px 24px -12px #c98b9a;max-width:calc(100vw - 48px);text-align:center;pointer-events:none}
+.players{position:fixed;left:24px;top:130px;margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;pointer-events:none;font-variant-numeric:tabular-nums}
+.players li{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:5px 14px 5px 8px;font-size:15px;opacity:.75}
+.players li.now{border-color:var(--pc);opacity:1;transform:translateX(6px)}
+.players li b{margin-left:6px;font-weight:600}
+.pdot{width:14px;height:14px;border-radius:50%;background:var(--pc)}
+.big-msg{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%);font-size:44px;font-weight:600;text-shadow:0 3px 0 #fff;pointer-events:none;white-space:nowrap}
 .cursor{position:fixed;left:0;top:0;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid var(--pink-deep);
   background:color-mix(in srgb,var(--pink) 30%,transparent);pointer-events:none;transition:transform .08s}
 .cursor.grab{transform:scale(.6);background:var(--pink-deep)}
@@ -50,6 +56,8 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 <div class="loading" id="loading">กำลังวางไม้…</div>
 <div class="hud" hidden id="hud"><span class="lbl">ย้ายสำเร็จ</span><b id="score">0</b><span class="lbl" id="best"></span></div>
 <div class="chip" id="chip"><span class="dot" id="dot"></span><span id="chipText">กำลังเปิดห้อง…</span><button id="showPair">ต่อมือถือ</button></div>
+<ul class="players" id="players" hidden></ul>
+<div class="big-msg" id="bigMsg" hidden></div>
 <div class="hint" id="hint" hidden></div>
 <div class="cursor" id="cursor" hidden></div>
 
@@ -84,7 +92,7 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
 import RAPIER from '../lib/rapier.es.js';
-import { hostRoom } from '../lib/link.js?v=2';
+import { hostRoom } from '../lib/link.js?v=3';
 import { pointerAngles, bestForwardAxis, wrap, OneEuro } from '../lib/aim.js?v=2';
 
 await RAPIER.init();
@@ -243,20 +251,63 @@ function filterAim(dt, reset) {
 }
 const grabHeld = () => phoneLive() ? !!padBtn.grab : mouseDown;
 
+const PCOLORS = ['#ff8fab', '#7fc8f8', '#ffc65c', '#8ee3a7', '#c3a6ff', '#ff9f6b'];
+let players = [], turn = 0, roundStarter = 0, linkReady = false;
 const link = hostRoom({
   game: 'jenga',
   onStatus: s => {
     if (s.code) { $('code').textContent = s.code; drawQr(s.padUrl); }
+    syncPlayers(s.ids || []);
     const live = s.phones > 0;
     $('dot').classList.toggle('ok', live);
-    $('chipText').textContent = live ? `มือถือเชื่อมแล้ว · ห้อง ${s.code}` : s.state === 'offline' ? 'ต่อเซิร์ฟเวอร์ไม่ได้ เช็กอินเทอร์เน็ต' : s.code ? `ห้อง ${s.code} · รอมือถือ` : 'กำลังเปิดห้อง…';
+    $('chipText').textContent = live ? (players.length > 1 ? `${players.length} คน · ห้อง ${s.code}` : `มือถือเชื่อมแล้ว · ห้อง ${s.code}`) : s.state === 'offline' ? 'ต่อเซิร์ฟเวอร์ไม่ได้ เช็กอินเทอร์เน็ต' : s.code ? `ห้อง ${s.code} · รอมือถือ` : 'กำลังเปิดห้อง…';
     if (live) { $('pair').hidden = true; usingMouse = false; }
   },
-  onData: d => onPad(d),
+  onData: (d, id) => onPad(d, id),
 });
-function onPad(d) {
+linkReady = true;
+
+/* ================= friends mode: phones take turns ================= */
+function multi() { return players.length > 1; }
+function active() { return players[turn % Math.max(1, players.length)]; }
+function syncPlayers(ids) {
+  const before = active() && active().id;
+  for (const id of ids) if (!players.find(p => p.id === id)) {
+    const used = new Set(players.map(p => p.n));
+    let n = 1; while (used.has(n)) n++;
+    players.push({ id, n, name: 'ผู้เล่น ' + n, color: PCOLORS[(n - 1) % PCOLORS.length], score: 0 });
+    toast(`ผู้เล่น ${n} เข้าห้องแล้ว`);
+  }
+  players = players.filter(p => ids.includes(p.id));
+  if (!players.length) turn = 0;
+  else if (!active() || active().id !== before) { const i = players.findIndex(p => p.id === before); turn = i >= 0 ? i : turn % players.length; if (i < 0) newTurn(); }
+  renderPlayers(); announceTurn();
+}
+function sendActive(obj) { const a = active(); if (a && multi()) link.sendTo(a.id, obj); else link.send(obj); }
+function newTurn() { cal = null; needCal = false; padTaps = {}; padBtn = {}; prevLook = null; rotInput = 0; lastPad = -1e9; }
+function nextTurn() {
+  if (!multi()) return;
+  turn = (turn + 1) % players.length; newTurn();
+  renderPlayers(); announceTurn();
+  big(`ตาของ ${active().name}`);
+}
+function announceTurn() {
+  if (!linkReady) return;
+  players.forEach((p, i) => link.sendTo(p.id, { you: p.name, color: p.color, turn: !multi() || i === turn % players.length, waitingFor: multi() ? active().name : '' }));
+  if (multi() && active()) link.sendTo(active().id, { vib: [60, 60, 60] });
+}
+function renderPlayers() {
+  const box = $('players');
+  box.hidden = !multi();
+  box.innerHTML = players.map((p, i) => `<li class="${i === turn % players.length ? 'now' : ''}" style="--pc:${p.color}"><span class="pdot"></span>${p.name}<b>${p.score}</b></li>`).join('');
+}
+let bigT = 0;
+function big(t, sec = 1.6) { $('bigMsg').textContent = t; $('bigMsg').hidden = false; $('bigMsg').style.color = multi() && active() ? active().color : ''; bigT = sec; }
+
+function onPad(d, id) {
   {
     if (!d || !Array.isArray(d.q)) return;
+    if (multi() && (!active() || id !== active().id)) return; // only the player whose turn it is controls the hand
     qT = d.q.map(Number); lastPad = performance.now();
     if (!cal) needCal = true;
     const taps = d.taps || {};
@@ -314,6 +365,7 @@ const raycaster = new THREE.Raycaster();
 const tmpV = new THREE.Vector3();
 
 function restart() {
+  if (multi()) { for (const p of players) p.score = 0; roundStarter = (roundStarter + 1) % players.length; turn = roundStarter; newTurn(); renderPlayers(); announceTurn(); setTimeout(() => big(`ตาของ ${active().name}`), 300); }
   buildTower(); state = 'idle'; grabbed = null; hovered = null; score = 0; $('score').textContent = '0';
   $('over').hidden = true; camAngle = 0.5; camElev = 0.3;
 }
@@ -333,7 +385,7 @@ function startGrab(b) {
   kbAim = { yaw: 0, pitch: 0 };
   grabInfo = { right: new THREE.Vector3(Math.cos(camAngle), 0, -Math.sin(camAngle)), fwd: new THREE.Vector3(-Math.sin(camAngle), 0, -Math.cos(camAngle)),
     p0: new THREE.Vector3(p.x, p.y, p.z), home: b.home, dir: axis, perp: new THREE.Vector3(axis.z, 0, -axis.x), a0: rawAngles() };
-  blip(500, 900, .09, .12); link.send({ vib: 25 });
+  blip(500, 900, .09, .12); sendActive({ vib: 25 });
 }
 function releasePulled() {
   const b = grabbed; if (!b) return;
@@ -349,7 +401,7 @@ function startPlace() {
   b.col.setSensor(true); // floats through nothing while being carried
   const hoverY = Math.max(H / 2 + slotLayer * H + H * 1.3, towerTop() + H * 1.6);
   grabInfo = { ...grabInfo, slotLayer, hoverY, a0: rawAngles(), offset: new THREE.Vector3(c.x, 0, c.z), risen: false };
-  blip(700, 1300, .12, .12); link.send({ vib: [20, 40, 20] });
+  blip(700, 1300, .12, .12); sendActive({ vib: [20, 40, 20] });
 }
 function drop() {
   const b = grabbed;
@@ -366,11 +418,16 @@ function drop() {
 function collapse() {
   if (state === 'over') return;
   if (grabbed) { try { grabbed.col.setSensor(false); grabbed.rb.setBodyType(RAPIER.RigidBodyType.Dynamic, true); grabbed.rb.lockRotations(false, true); } catch (e) {} grabbed = null; }
-  state = 'over'; rumble(); link.send({ vib: [200, 80, 300] });
+  const loser = multi() ? active() : null;
+  state = 'over'; rumble(); sendActive({ vib: [200, 80, 300] });
   if (score > best) { best = score; try { localStorage.setItem('jengaBest', best); } catch (e) {} }
   showBest();
   setTimeout(() => {
     $('final').textContent = score; $('overInfo').textContent = score >= best && score > 0 ? 'สถิติใหม่! ชิ้นที่ย้ายสำเร็จ' : 'ชิ้นที่ย้ายสำเร็จ';
+    if (multi() && loser) {
+      $('final').textContent = loser.name; $('final').style.color = loser.color;
+      $('overInfo').textContent = 'ทำตึกถล่ม! · ' + players.map(p => `${p.name} ${p.score}`).join(' · ');
+    } else $('final').style.color = '';
     $('over').hidden = false;
   }, 1800);
 }
@@ -426,6 +483,7 @@ function physicsStep() {
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   if (phoneLive()) { if (needCal) { needCal = false; recalibrate(); } else filterAim(dt); }
+  bigT -= dt; if (bigT <= 0) $('bigMsg').hidden = true;
   toastT -= dt; if (toastT <= 0 && toastT > -dt * 1.5) $('hint').hidden = true;
 
   // camera orbit
@@ -449,6 +507,7 @@ function frame(now) {
   const ndc = { x: Math.max(-1, Math.min(1, a.yaw / SENS)), y: Math.max(-1, Math.min(1, a.pitch / (SENS * innerHeight / innerWidth))) };
   const showCursor = phoneLive() || usingMouse || mouseNdc.x !== 0;
   cursor.hidden = !showCursor || state === 'over';
+  cursor.style.borderColor = multi() && active() ? active().color : '';
   if ((state === 'pull' || state === 'place') && grabbed) { // cursor rides on the held block
     const t = grabbed.rb.translation(), sp = new THREE.Vector3(t.x, t.y, t.z).project(camera);
     cursor.style.left = ((sp.x + 1) / 2 * innerWidth) + 'px'; cursor.style.top = ((1 - sp.y) / 2 * innerHeight) + 'px';
@@ -499,12 +558,13 @@ function frame(now) {
     b.mesh.position.set(t.x, t.y, t.z);
     const r = b.rb.rotation(); b.mesh.quaternion.set(r.x, r.y, r.z, r.w);
   }
-  if (state === 'pull' && moving > 2) { tensionT -= dt; if (tensionT <= 0) { link.send({ vib: 18 }); tensionT = .25; } }
+  if (state === 'pull' && moving > 2) { tensionT -= dt; if (tensionT <= 0) { sendActive({ vib: 18 }); tensionT = .25; } }
   if (state === 'settle') {
     settleT -= dt;
     if (settleT <= 0 && (moving === 0 || settleT < -2.5)) {
       state = 'idle'; score++; $('score').textContent = score;
-      blip(880, 1320, .12, .12); setTimeout(() => blip(1100, 1650, .14, .1), 110); link.send({ vib: [30, 50, 30] });
+      if (multi()) { active().score++; renderPlayers(); setTimeout(nextTurn, 700); }
+      blip(880, 1320, .12, .12); setTimeout(() => blip(1100, 1650, .14, .1), 110); sendActive({ vib: [30, 50, 30] });
       toast(['เก่งมาก!', 'น่ารักกก', 'มือนิ่งสุดๆ', 'อีกชิ้น!'][score % 4]);
     }
   }
@@ -516,6 +576,7 @@ function frame(now) {
 
   // hints
   if (!$('pair').hidden || state === 'over') hint('');
+  else if (multi() && !phoneLive() && state === 'idle') hint(`ตาของ ${active().name} · ชี้มือถือที่จอแล้วเริ่มได้เลย`);
   else if (state === 'idle') hint(hovered ? (canTake(hovered) ? (phoneLive() ? 'กดค้างปุ่ม จับ' : 'กดเมาส์ค้างไว้เพื่อจับ') : 'ชั้นบนสุดดึงไม่ได้') : (phoneLive() ? 'หันมือถือเล็งไม้ · ลากนิ้วบนแผ่นหมุนเพื่อดูรอบตึก' : 'เลื่อนเมาส์ไปที่ไม้ · คลิกขวาลากเพื่อหมุนดูรอบตึก'));
   else if (state === 'pull') hint(phoneLive() ? `เงย = ดึงออก · ก้ม = ดันเข้า · หันซ้ายขวา = เลื่อน · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ขึ้น/ลง/ซ้าย/ขวา หรือ WASD · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
   else if (state === 'place') hint(phoneLive() ? 'ก้ม/เงย/หันซ้ายขวา เลื่อนไม้บนยอด แล้วปล่อยนิ้ววาง' : 'เลื่อนเมาส์จัดตำแหน่ง แล้วปล่อยปุ่มวาง');
@@ -525,7 +586,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-window.__jenga = { feed: onPad, get g() { return grabInfo && { dr: grabInfo.dir.dot(grabInfo.right), df: grabInfo.dir.dot(grabInfo.fwd) }; }, get aim() { return rawAngles(); }, get hint() { return [hovered && hovered.layer, phoneLive(), !!cal]; }, get state() { return state; }, get score() { return score; }, get out() { return grabInfo && grabInfo.out; }, get top() { return [topLayer, topCount]; } };
+window.__jenga = { next: nextTurn, sync: syncPlayers, get players() { return players.map(p => p.name + ':' + p.score); }, get turn() { return active() && active().name; }, feed: onPad, get g() { return grabInfo && { dr: grabInfo.dir.dot(grabInfo.right), df: grabInfo.dir.dot(grabInfo.fwd) }; }, get aim() { return rawAngles(); }, get hint() { return [hovered && hovered.layer, phoneLive(), !!cal]; }, get state() { return state; }, get score() { return score; }, get out() { return grabInfo && grabInfo.out; }, get top() { return [topLayer, topCount]; } };
 buildTower();
 $('loading').hidden = true; $('hud').hidden = false; $('pair').hidden = false;
 requestAnimationFrame(frame);

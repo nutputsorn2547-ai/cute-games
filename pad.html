@@ -46,6 +46,9 @@ button.on{background:var(--line)}
 .reel.on{border-color:var(--pink)}
 .knob{position:absolute;inset:0;border-radius:50%;pointer-events:none}
 .knob::after{content:"";position:absolute;top:6%;left:50%;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:var(--pink);box-shadow:0 4px 0 var(--pink-deep)}
+.banner{border-radius:16px;padding:10px 14px;font-weight:500;font-size:17px;background:var(--card);border:3px solid var(--pc,var(--pink));display:flex;align-items:center;gap:10px}
+.banner::before{content:"";width:16px;height:16px;border-radius:50%;background:var(--pc,var(--pink));flex:none}
+body.waiting #controls > *{opacity:.4;pointer-events:none}
 .join{display:flex;flex-direction:column;gap:12px;margin:auto 0}
 .join input{font:inherit;font-size:28px;text-align:center;letter-spacing:.3em;border:2px solid var(--line);border-radius:16px;padding:12px;background:var(--card);color:var(--ink);text-transform:lowercase}
 .join button{background:var(--pink);color:#fff;border:0}
@@ -66,6 +69,7 @@ button.on{background:var(--line)}
       <span class="soft" id="room"></span>
     </div>
     <h1 id="title"></h1>
+    <div class="banner" id="banner" hidden></div>
     <p class="hint" id="hint"></p>
     <p class="warn" id="warn" hidden></p>
     <button id="perm" hidden>แตะเพื่อเปิดเซ็นเซอร์หมุน</button>
@@ -73,7 +77,7 @@ button.on{background:var(--line)}
   </div>
 
 <script type="module">
-import { joinRoom } from './lib/link.js?v=2';
+import { joinRoom } from './lib/link.js?v=3';
 import { eulerToQuat } from './lib/aim.js?v=2';
 
 const $ = id => document.getElementById(id);
@@ -197,6 +201,11 @@ function start() {
     onData: d => {
       if (!d) return;
       if (d.vib) vib(d.vib);
+      if (d.you) {
+        const b = $('banner'); b.hidden = false; b.style.setProperty('--pc', d.color || '');
+        b.textContent = d.turn ? (d.waitingFor ? `ตาของคุณ! (${d.you})` : d.you) : `รอตา ${d.waitingFor} · คุณคือ ${d.you}`;
+        document.body.classList.toggle('waiting', !d.turn);
+      }
       if (typeof d.ten === 'number') { tension = d.ten; const f = $('mfill'); if (f) { f.style.width = Math.min(100, tension * 100) + '%'; f.classList.toggle('hot', tension > .8); } }
     },
   });
