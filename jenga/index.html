@@ -93,6 +93,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
 import RAPIER from '../lib/rapier.es.js';
 import { hostRoom } from '../lib/link.js?v=3';
+import { VMouse, fullscreenButton } from '../lib/vmouse.js?v=1';
 import { pointerAngles, bestForwardAxis, wrap, OneEuro } from '../lib/aim.js?v=2';
 
 await RAPIER.init();
@@ -224,7 +225,10 @@ function buildTower() {
 let qT = [1, 0, 0, 0], lastPad = -1e9, cal = null, padTaps = {}, padBtn = {}, needCal = false, lastPadT = 0;
 let fwdAxis = [0, 1, 0], aimF = { yaw: 0, pitch: 0, roll: 0 }, yawU = 0, prevYawRaw = null;
 const fYaw = new OneEuro(), fPitch = new OneEuro(), fRoll = new OneEuro();
-let usingMouse = false, mouseNdc = { x: 0, y: 0 }, mouseDown = false;
+let usingMouse = false;
+// mouse is pointer-locked while the button is held, so a drag can run past the window edge
+const vm = new VMouse(renderer.domElement, { lock: 'press', limit: 4, enabled: () => !phoneLive() });
+const mouseNdc = { get x() { return vm.x; }, get y() { return -vm.y; } };
 let rotInput = 0, camAngle = 0.5, camElev = 0.3, prevLook = null, kbAim = { yaw: 0, pitch: 0 };
 const phoneLive = () => performance.now() - lastPad < 1500;
 
@@ -233,7 +237,7 @@ function rawAngles() { // current aim in radians relative to calibration (phone)
     return { yaw: aimF.yaw - cal.yaw + kbAim.yaw, pitch: aimF.pitch - cal.pitch + kbAim.pitch, roll: aimF.roll };
   }
   // mouse: same pointer mapping, but pulling/placing get 3x the travel so a short drag is enough
-  const m = (state === 'pull' || state === 'place') ? 4.5 : 1;
+  const m = (state === 'pull' || state === 'place') ? 2.5 : 1;
   return { yaw: mouseNdc.x * SENS * m + kbAim.yaw, pitch: mouseNdc.y * SENS * (innerHeight / innerWidth) * m + kbAim.pitch, roll: 0 };
 }
 function recalibrate() {
@@ -249,7 +253,7 @@ function filterAim(dt, reset) {
   if (reset) { fYaw.reset(yawU); fPitch.reset(a.pitch); fRoll.reset(a.roll); aimF = { yaw: yawU, pitch: a.pitch, roll: a.roll }; return; }
   aimF = { yaw: fYaw.filter(yawU, dt), pitch: fPitch.filter(a.pitch, dt), roll: fRoll.filter(a.roll, dt) };
 }
-const grabHeld = () => phoneLive() ? !!padBtn.grab : mouseDown;
+const grabHeld = () => phoneLive() ? !!padBtn.grab : vm.down;
 
 const PCOLORS = ['#ff8fab', '#7fc8f8', '#ffc65c', '#8ee3a7', '#c3a6ff', '#ff9f6b'];
 let players = [], turn = 0, roundStarter = 0, linkReady = false;
@@ -322,11 +326,11 @@ function drawQr(url) {
   try { const qr = window.qrcode(0, 'M'); qr.addData(url); qr.make(); $('qr').innerHTML = qr.createSvgTag(5, 2); } catch (e) { $('qr').textContent = url; }
 }
 $('showPair').onclick = () => { $('pair').hidden = false; };
-$('mousePlay').onclick = () => { $('pair').hidden = true; usingMouse = true; audio(); };
+const goFull = fullscreenButton();
+$('mousePlay').onclick = () => { $('pair').hidden = true; usingMouse = true; audio(); goFull(); };
 
-addEventListener('mousemove', e => { mouseNdc = { x: e.clientX / innerWidth * 2 - 1, y: -(e.clientY / innerHeight * 2 - 1) }; });
-renderer.domElement.addEventListener('mousedown', e => { audio(); if (e.button === 0) mouseDown = true; if (e.button === 2) { dragRot = e.clientX; dragRotY = e.clientY; } });
-addEventListener('mouseup', e => { if (e.button === 0) mouseDown = false; if (e.button === 2) dragRot = null; });
+renderer.domElement.addEventListener('mousedown', e => { audio(); if (e.button === 2) { dragRot = e.clientX; dragRotY = e.clientY; } });
+addEventListener('mouseup', e => { if (e.button === 2) dragRot = null; });
 let dragRot = null;
 let dragRotY = 0;
 addEventListener('mousemove', e => { if (dragRot !== null) { orbit(e.clientX - dragRot, e.clientY - dragRotY); dragRot = e.clientX; dragRotY = e.clientY; } });
@@ -465,7 +469,7 @@ function physicsStep() {
     const right = new THREE.Vector3(Math.cos(camAngle), 0, -Math.sin(camAngle));
     const fwd = new THREE.Vector3(-Math.sin(camAngle), 0, -Math.cos(camAngle));
     const off = right.multiplyScalar(wrap(a.yaw - g.a0.yaw) * PLACE_GAIN).add(fwd.multiplyScalar(-(a.pitch - g.a0.pitch) * PLACE_GAIN));
-    if (off.length() > 2.4) off.setLength(2.4);
+    if (off.length() > 5) off.setLength(5);
     const hoverY = g.hoverY;
     const c = grabbed.rb.translation(), r = grabbed.rb.rotation();
     if (!g.risen && Math.abs(c.y - hoverY) < 0.2) { g.risen = true; g.a0 = rawAngles(); }
@@ -505,7 +509,7 @@ function frame(now) {
   // pointer
   const a = rawAngles();
   const ndc = { x: Math.max(-1, Math.min(1, a.yaw / SENS)), y: Math.max(-1, Math.min(1, a.pitch / (SENS * innerHeight / innerWidth))) };
-  const showCursor = phoneLive() || usingMouse || mouseNdc.x !== 0;
+  const showCursor = phoneLive() || usingMouse || vm.moved;
   cursor.hidden = !showCursor || state === 'over';
   cursor.style.borderColor = multi() && active() ? active().color : '';
   if ((state === 'pull' || state === 'place') && grabbed) { // cursor rides on the held block
