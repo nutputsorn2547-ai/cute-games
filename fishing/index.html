@@ -89,7 +89,6 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 <script type="module">
 import * as THREE from 'three';
 import { hostRoom } from '../lib/link.js?v=3';
-import { VMouse } from '../lib/vmouse.js?v=2';
 import { pointerAngles, bestForwardAxis, wrap, OneEuro } from '../lib/aim.js?v=2';
 
 const $ = id => document.getElementById(id);
@@ -283,7 +282,7 @@ let fwdAxis = [0, 1, 0], aimF = { yaw: 0, pitch: 0 }, yawU = 0, prevYawRaw = nul
 const fYaw = new OneEuro(.6, 1.6), fPitch = new OneEuro(.6, 1.6);
 const pitchHist = [], flickHist = [];
 let flickDown = 0, flickUp = false, lastFlick = 0;
-let usingMouse = false, keys = {}, reelAcc = 0, strikeEvt = false, castHeld = false;
+let usingMouse = false, mouse = { x: 0, y: 0 }, keys = {}, reelAcc = 0, strikeEvt = false, castHeld = false;
 const phoneLive = () => performance.now() - lastPad < 1500;
 function filterAim(dt, reset) {
   const a = pointerAngles(qT, fwdAxis);
@@ -333,9 +332,7 @@ const link = hostRoom({
 });
 $('showPair').onclick = () => { $('pair').hidden = false; };
 $('mousePlay').onclick = () => { $('pair').hidden = true; usingMouse = true; audio(); };
-// mouse locks on the first click and stays locked (Esc releases), so steering the rod never hits the window edge
-const mouse = new VMouse(renderer.domElement, { lock: 'session', limit: 1.6, enabled: () => !phoneLive() && $('pair').hidden });
-document.addEventListener('pointerlockchange', () => { if (mouse.locked) toast('ล็อกเมาส์ไว้ในเกมแล้ว ขยับได้ไม่ติดขอบจอ · กด Esc เพื่อปล่อย', 3); });
+addEventListener('mousemove', e => { mouse = { x: e.clientX / innerWidth * 2 - 1, y: e.clientY / innerHeight * 2 - 1 }; });
 renderer.domElement.addEventListener('mousedown', e => { audio(); if (e.button === 0) strikeEvt = true; });
 addEventListener('wheel', e => { reelAcc += Math.max(-1, Math.min(1, e.deltaY / 100)) * 1.2; }, { passive: true });
 addEventListener('keydown', e => { const k = e.key.toLowerCase(); keys[k] = true; audio(); if (k === 'c' && phoneLive()) needCal = true; if (k === ' ') e.preventDefault(); });
@@ -373,7 +370,7 @@ function big(t, sec = 1.4) { $('bigMsg').textContent = t; $('bigMsg').hidden = f
 const vib = p => link.send({ vib: p });
 
 function rodState(a) {
-  const yaw = clamp(a.yaw * .9, -1.35, 1.35), pitch = clamp(.5 + a.pitch, -.25, 1.45);
+  const yaw = clamp(a.yaw * .9, -1.0, 1.0), pitch = clamp(.5 + a.pitch, -.15, 1.35);
   const dir = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
   return { yaw, pitch, dir, tipStraight: ROD_BASE.clone().addScaledVector(dir, ROD_LEN) };
 }

@@ -45,7 +45,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
 import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
-import { VMouse } from '../lib/vmouse.js?v=2';
 
 shellMarkup({
   title: 'ครัวน่ารัก',
@@ -291,27 +290,14 @@ function restart() {
 $('again').onclick = restart;
 
 /* ================= input ================= */
-let mouseClick = 0;
-// mouse locks on the first click (Esc releases) so moving the tool never hits the window edge
-const mouse = new VMouse(renderer.domElement, { lock: 'session', limit: 1.05, enabled: () => !S.pad.live && !S.pairing() });
-document.addEventListener('pointerlockchange', () => { if (mouse.locked) S.toast('ล็อกเมาส์ไว้ในเกมแล้ว · กด Esc เพื่อปล่อย', 3); });
+let mouse = { x: 0, y: 0 }, mouseClick = 0;
+addEventListener('mousemove', e => { mouse = { x: e.clientX / innerWidth * 2 - 1, y: e.clientY / innerHeight * 2 - 1 }; });
 renderer.domElement.addEventListener('mousedown', () => { mouseClick++; });
 addEventListener('keydown', e => { if (e.key === ' ') { mouseClick++; e.preventDefault(); } if (e.key.toLowerCase() === 'n' && station) station.t = 0; });
 const aimHist = [];
-// aim as a point on screen (NDC, y up). The phone reaches every screen edge with about ±25° of turn.
 function aimNow() {
-  if (S.pad.live) {
-    // phone centre (after ตั้งศูนย์) points at the board or the pot, edges of the turn reach the screen edges
-    const a = S.pad.aim(), c = new THREE.Vector3(0, station && station.kind === 'stir' ? 1.55 : .6, 0).project(camera);
-    return { x: clamp(c.x + a.yaw / .45, -1.05, 1.05), y: clamp(c.y + a.pitch / .34, -1.05, 1.05) };
-  }
-  return { x: mouse.x, y: -mouse.y };
-}
-const ray = new THREE.Raycaster(), hitV = new THREE.Vector3();
-function toPlane(ndc, y) {
-  ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
-  const d = ray.ray.direction, o = ray.ray.origin, t = d.y < -1e-4 ? (y - o.y) / d.y : 50;
-  return hitV.copy(o).addScaledVector(d, t).clone();
+  if (S.pad.live) { const a = S.pad.aim(); return { x: a.yaw, y: a.pitch }; }
+  return { x: mouse.x * .55, y: -mouse.y * .45 };
 }
 
 /* ================= loop ================= */
@@ -333,33 +319,34 @@ function frame(now) {
     $('stTime').textContent = Math.max(0, Math.ceil(station.t)) + ' วิ';
     if (station.kind === 'chop') {
       const g = station.veg.userData;
-      const x = clamp(toPlane(a, .7).x, -7, 7);
+      const x = clamp(a.x / .5, -1, 1) * 2.6;
       knife.position.x += (x - knife.position.x) * .5;
       station.swing = Math.max(0, station.swing - dt * 5);
-      knife.position.y = .75 + (1 - station.swing) * 1.3;
+      const lift = clamp(a.y / .4, -.2, 1);
+      knife.position.y = .75 + (1 - station.swing) * (1 + lift * .8);
       knife.rotation.x = -.15 + station.swing * .2;
-      if (strike) chopAt(clamp(toPlane(before, .7).x, -7, 7), strike);
+      if (strike) chopAt(clamp(before.x / .5, -1, 1) * 2.6, strike);
       $('stBar').style.width = Math.min(100, g.cuts.length / station.goal * 100) + '%';
       $('stGoal').textContent = `${g.v.name}: ${g.cuts.length}/${station.goal} ชิ้น · หั่นเสร็จ ${station.done} อย่าง`;
       if (station.t <= 0) nextStation();
     } else if (station.kind === 'pound') {
-      const h = toPlane(a, .87), x = clamp(h.x, -7, 7), z = clamp(h.z, -4, 4);
+      const x = clamp(a.x / .5, -1, 1) * 2.2, z = clamp(-a.y / .4, -1, 1) * -1.3;
       mallet.position.x += (x - mallet.position.x) * .5; mallet.position.z += (z - mallet.position.z) * .5;
       station.swing = Math.max(0, station.swing - dt * 5);
       mallet.position.y = 1.0 + (1 - station.swing) * 1.2; mallet.rotation.x = -station.swing * .5;
       station.target.material.opacity = .5 + Math.sin(time * 8) * .4;
-      if (strike) { const hb = toPlane(before, .87); poundAt(clamp(hb.x, -7, 7), clamp(hb.z, -4, 4), strike); }
+      if (strike) poundAt(clamp(before.x / .5, -1, 1) * 2.2, clamp(-before.y / .4, -1, 1) * -1.3, strike);
       $('stBar').style.width = Math.min(100, station.hits / 15 * 100) + '%';
       $('stGoal').textContent = `ทุบโดน ${station.hits} ครั้ง`;
       if (station.t <= 0) nextStation();
     } else if (station.kind === 'stir') {
-      const h = toPlane(a, 1.55), x = h.x, z = h.z;
+      const x = clamp(a.x / .4, -1.2, 1.2) * (POT_R - .4), z = clamp(-a.y / .35, -1.2, 1.2) * -(POT_R - .4);
       const rr = Math.hypot(x, z), lx = rr > POT_R - .4 ? x * (POT_R - .4) / rr : x, lz = rr > POT_R - .4 ? z * (POT_R - .4) / rr : z;
       ladle.position.set(lx, 1.55, lz);
       const ang = Math.atan2(z, x);
       if (station.prevAng !== null && rr > .35) {
         let d = ang - station.prevAng; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI;
-        station.speed += (Math.abs(d) / rawDt / (2 * Math.PI) - station.speed) * Math.min(1, rawDt * 4); // revolutions per second (real time, not the clamped frame step)
+        station.speed += (Math.abs(d) / rawDt / (2 * Math.PI) - station.speed) * Math.min(1, rawDt * 4); // revolutions per second (real time)
         station.swirl += d;
       } else station.speed += (0 - station.speed) * Math.min(1, dt * 2);
       station.prevAng = ang;
@@ -381,8 +368,8 @@ function frame(now) {
 
   const P = S.pad.live;
   if (S.pairing() || !$('result').hidden) S.hint('');
-  else if (station && station.kind === 'chop') S.hint(P ? 'ชี้มือถือไปตรงที่จะหั่น แล้วสะบัดลงเพื่อสับ · หั่นให้ชิ้นเท่ากันได้คะแนนเพิ่ม' : 'เลื่อนเมาส์ แล้วคลิก/Space เพื่อสับ');
-  else if (station && station.kind === 'pound') S.hint(P ? 'ชี้มือถือไปที่วงกลม แล้วสะบัดลงแรงๆ' : 'เล็งด้วยเมาส์ คลิกเพื่อทุบ');
+  else if (station && station.kind === 'chop') S.hint(P ? 'หันมือถือเลื่อนมีด แล้วสะบัดลงเพื่อสับ · หั่นให้ชิ้นเท่ากันได้คะแนนเพิ่ม' : 'เลื่อนเมาส์ แล้วคลิก/Space เพื่อสับ');
+  else if (station && station.kind === 'pound') S.hint(P ? 'หัน/ก้ม/เงย เล็งวงกลม แล้วสะบัดลงแรงๆ' : 'เล็งด้วยเมาส์ คลิกเพื่อทุบ');
   else if (station && station.kind === 'stir') S.hint(P ? 'วนมือถือเป็นวงกลมช้าๆ สม่ำเสมอ' : 'วนเมาส์เป็นวงกลม');
   renderer.render(scene, camera);
   requestAnimationFrame(frame);

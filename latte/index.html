@@ -45,7 +45,6 @@
 <script type="module">
 import * as THREE from 'three';
 import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
-import { VMouse } from '../lib/vmouse.js?v=2';
 
 shellMarkup({
   title: 'ลาเต้อาร์ตน้องแมว',
@@ -187,16 +186,10 @@ function drawSurface(time) {
 }
 
 /* ================= flow & input ================= */
-// mouse is pointer-locked while pouring, so a pour stroke is never cut off by the window edge
-const mouse = new VMouse(renderer.domElement, { lock: 'press', limit: 1.05, enabled: () => !S.pad.live && !S.pairing() });
-const ray = new THREE.Raycaster();
-// screen point (NDC, y up) -> spout position in cup units (1 = cup rim)
-function toCup(nx, ny) {
-  ray.setFromCamera(new THREE.Vector2(nx, ny), camera);
-  const d = ray.ray.direction, o = ray.ray.origin, y = surface.position.y, t = d.y < -1e-4 ? (y - o.y) / d.y : 0;
-  const r = CUP_R * surface.scale.x;
-  return { x: (o.x + d.x * t) / r, y: (o.z + d.z * t) / r };
-}
+let mouse = { x: 0, y: 0, down: false };
+addEventListener('mousemove', e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = e.clientY / innerHeight * 2 - 1; });
+renderer.domElement.addEventListener('mousedown', () => { mouse.down = true; });
+addEventListener('mouseup', () => { mouse.down = false; });
 let best = 0; try { best = +localStorage.getItem('latteBest') || 0; } catch (e) {} $('best').textContent = best + '%';
 let spout = { x: 0, y: 0 }, prevSpout = { x: 0, y: 0 }, flow = 0;
 function newCup() { D.fill(0); D2.fill(0); poured = 0; ended = false; $('result').hidden = true; }
@@ -225,13 +218,12 @@ function frame(now) {
   if (S.pad.tap('next')) $('nextPat').onclick();
   let tx, ty, f = 0;
   if (S.pad.live) {
-    // phone centre (after ตั้งศูนย์) points at the middle of the cup; about ±25° of turn reaches the screen edges
-    const a = S.pad.aim(), c = surface.position.clone().project(camera);
-    const p = toCup(clamp(c.x + a.yaw / .45, -1.05, 1.05), clamp(c.y + a.pitch / .34, -1.05, 1.05)); tx = p.x; ty = p.y;
+    const a = S.pad.aim();
+    tx = clamp(a.yaw / .35, -1.15, 1.15); ty = clamp(-a.pitch / .3, -1.15, 1.15);  // nose down = toward the top of the cup
     f = Math.max(S.pad.btn.pour ? .65 : 0, clamp((Math.abs(a.roll) - .2) / .55, 0, 1));
-  } else { const p = toCup(mouse.x, -mouse.y); tx = p.x; ty = p.y; f = mouse.down ? .65 : 0; }
+  } else { tx = clamp(mouse.x * 1.6, -1.15, 1.15); ty = clamp(mouse.y * 1.6, -1.15, 1.15); f = mouse.down ? .65 : 0; }
   spout.x += (tx - spout.x) * .35; spout.y += (ty - spout.y) * .35;
-  const r = Math.hypot(spout.x, spout.y); if (r > 3.2) { spout.x *= 3.2 / r; spout.y *= 3.2 / r; } // the pitcher can roam the whole screen; only pours inside the cup count
+  const r = Math.hypot(spout.x, spout.y); if (r > 1.1) { spout.x *= 1.1 / r; spout.y *= 1.1 / r; }
   if (!$('result').hidden || S.pairing()) f = 0;
   flow += (f - flow) * Math.min(1, dt * 10);
   const vx = (spout.x - prevSpout.x) / Math.max(dt, 1e-3), vy = (spout.y - prevSpout.y) / Math.max(dt, 1e-3); prevSpout = { ...spout };
