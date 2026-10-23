@@ -89,7 +89,7 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 <script type="module">
 import * as THREE from 'three';
 import { hostRoom } from '../lib/link.js?v=3';
-import { VMouse, fullscreenButton } from '../lib/vmouse.js?v=1';
+import { VMouse } from '../lib/vmouse.js?v=2';
 import { pointerAngles, bestForwardAxis, wrap, OneEuro } from '../lib/aim.js?v=2';
 
 const $ = id => document.getElementById(id);
@@ -332,8 +332,7 @@ const link = hostRoom({
   onData: d => onPad(d),
 });
 $('showPair').onclick = () => { $('pair').hidden = false; };
-const goFull = fullscreenButton();
-$('mousePlay').onclick = () => { $('pair').hidden = true; usingMouse = true; audio(); goFull(); };
+$('mousePlay').onclick = () => { $('pair').hidden = true; usingMouse = true; audio(); };
 // mouse locks on the first click and stays locked (Esc releases), so steering the rod never hits the window edge
 const mouse = new VMouse(renderer.domElement, { lock: 'session', limit: 1.6, enabled: () => !phoneLive() && $('pair').hidden });
 document.addEventListener('pointerlockchange', () => { if (mouse.locked) toast('ล็อกเมาส์ไว้ในเกมแล้ว ขยับได้ไม่ติดขอบจอ · กด Esc เพื่อปล่อย', 3); });

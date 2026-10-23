@@ -93,7 +93,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
 import RAPIER from '../lib/rapier.es.js';
 import { hostRoom } from '../lib/link.js?v=3';
-import { VMouse, fullscreenButton } from '../lib/vmouse.js?v=1';
+import { VMouse } from '../lib/vmouse.js?v=2';
 import { pointerAngles, bestForwardAxis, wrap, OneEuro } from '../lib/aim.js?v=2';
 
 await RAPIER.init();
@@ -226,8 +226,8 @@ let qT = [1, 0, 0, 0], lastPad = -1e9, cal = null, padTaps = {}, padBtn = {}, ne
 let fwdAxis = [0, 1, 0], aimF = { yaw: 0, pitch: 0, roll: 0 }, yawU = 0, prevYawRaw = null;
 const fYaw = new OneEuro(), fPitch = new OneEuro(), fRoll = new OneEuro();
 let usingMouse = false;
-// mouse is pointer-locked while the button is held, so a drag can run past the window edge
-const vm = new VMouse(renderer.domElement, { lock: 'press', limit: 4, enabled: () => !phoneLive() });
+// mouse is pointer-locked while the button is held, so a drag never slips off the window; the pointer can reach every screen edge
+const vm = new VMouse(renderer.domElement, { lock: 'press', limit: 1, enabled: () => !phoneLive() });
 const mouseNdc = { get x() { return vm.x; }, get y() { return -vm.y; } };
 let rotInput = 0, camAngle = 0.5, camElev = 0.3, prevLook = null, kbAim = { yaw: 0, pitch: 0 };
 const phoneLive = () => performance.now() - lastPad < 1500;
@@ -236,9 +236,7 @@ function rawAngles() { // current aim in radians relative to calibration (phone)
   if (phoneLive() && cal) {
     return { yaw: aimF.yaw - cal.yaw + kbAim.yaw, pitch: aimF.pitch - cal.pitch + kbAim.pitch, roll: aimF.roll };
   }
-  // mouse: same pointer mapping, but pulling/placing get 3x the travel so a short drag is enough
-  const m = (state === 'pull' || state === 'place') ? 2.5 : 1;
-  return { yaw: mouseNdc.x * SENS * m + kbAim.yaw, pitch: mouseNdc.y * SENS * (innerHeight / innerWidth) * m + kbAim.pitch, roll: 0 };
+  return { yaw: mouseNdc.x * SENS + kbAim.yaw, pitch: mouseNdc.y * SENS * (innerHeight / innerWidth) + kbAim.pitch, roll: 0 };
 }
 function recalibrate() {
   fwdAxis = bestForwardAxis(qT);
@@ -326,8 +324,7 @@ function drawQr(url) {
   try { const qr = window.qrcode(0, 'M'); qr.addData(url); qr.make(); $('qr').innerHTML = qr.createSvgTag(5, 2); } catch (e) { $('qr').textContent = url; }
 }
 $('showPair').onclick = () => { $('pair').hidden = false; };
-const goFull = fullscreenButton();
-$('mousePlay').onclick = () => { $('pair').hidden = true; usingMouse = true; audio(); goFull(); };
+$('mousePlay').onclick = () => { $('pair').hidden = true; usingMouse = true; audio(); };
 
 renderer.domElement.addEventListener('mousedown', e => { audio(); if (e.button === 2) { dragRot = e.clientX; dragRotY = e.clientY; } });
 addEventListener('mouseup', e => { if (e.button === 2) dragRot = null; });
@@ -386,8 +383,9 @@ function startGrab(b) {
   // re-grabbing a half-pulled block keeps its direction and progress (pull in several goes)
   if (b.pullDir) axis.copy(b.pullDir); else b.pullDir = axis.clone();
   if (!b.home) b.home = new THREE.Vector3(p.x, p.y, p.z);
-  kbAim = { yaw: 0, pitch: 0 };
-  grabInfo = { right: new THREE.Vector3(Math.cos(camAngle), 0, -Math.sin(camAngle)), fwd: new THREE.Vector3(-Math.sin(camAngle), 0, -Math.cos(camAngle)),
+  const hit = pointerOnPlane(p.y), grabOff = new THREE.Vector3(p.x - hit.x, 0, p.z - hit.z);
+  if (grabOff.length() > L / 2) grabOff.setLength(L / 2);
+  grabInfo = { grabOff, right: new THREE.Vector3(Math.cos(camAngle), 0, -Math.sin(camAngle)), fwd: new THREE.Vector3(-Math.sin(camAngle), 0, -Math.cos(camAngle)),
     p0: new THREE.Vector3(p.x, p.y, p.z), home: b.home, dir: axis, perp: new THREE.Vector3(axis.z, 0, -axis.x), a0: rawAngles() };
   blip(500, 900, .09, .12); sendActive({ vib: 25 });
 }
@@ -395,7 +393,7 @@ function releasePulled() {
   const b = grabbed; if (!b) return;
   b.rb.lockRotations(false, true);
   b.col.setFriction(0.5); b.col.setFrictionCombineRule(RAPIER.CoefficientCombineRule.Average);
-  grabbed = null; grabInfo = null; state = 'idle';
+  grabbed = null; grabInfo = null; state = 'idle'; kbAim = { yaw: 0, pitch: 0 };
 }
 function startPlace() {
   const b = grabbed; state = 'place';
@@ -404,7 +402,7 @@ function startPlace() {
   const c = b.rb.translation();
   b.col.setSensor(true); // floats through nothing while being carried
   const hoverY = Math.max(H / 2 + slotLayer * H + H * 1.3, towerTop() + H * 1.6);
-  grabInfo = { ...grabInfo, slotLayer, hoverY, a0: rawAngles(), offset: new THREE.Vector3(c.x, 0, c.z), risen: false };
+  grabInfo = { ...grabInfo, slotLayer, hoverY };
   blip(700, 1300, .12, .12); sendActive({ vib: [20, 40, 20] });
 }
 function drop() {
@@ -416,7 +414,7 @@ function drop() {
   b.col.setFriction(0.5); b.col.setFrictionCombineRule(RAPIER.CoefficientCombineRule.Average);
   b.layer = grabInfo.slotLayer; b.home = null; b.pullDir = null;
   if (grabInfo.slotLayer > topLayer) { topLayer = grabInfo.slotLayer; topCount = 1; } else topCount++;
-  grabbed = null; grabInfo = null; state = 'settle'; settleT = 2.2;
+  grabbed = null; grabInfo = null; state = 'settle'; settleT = 2.2; kbAim = { yaw: 0, pitch: 0 };
   blip(300, 180, .12, .2, 'triangle');
 }
 function collapse() {
@@ -445,40 +443,44 @@ addEventListener('resize', resize); resize();
 
 function towerTop() { let m = 0; for (const b of blocks) if (b !== grabbed) m = Math.max(m, b.rb.translation().y); return m; }
 
+let pNdc = { x: 0, y: 0 }; // where the pointer is on screen this frame (NDC, y up)
+// The held block follows the pointer: cast the pointer ray onto the horizontal plane at height y.
+function pointerOnPlane(y) {
+  raycaster.setFromCamera(new THREE.Vector2(pNdc.x, pNdc.y), camera);
+  const o = raycaster.ray.origin, d = raycaster.ray.direction;
+  let t = Math.abs(d.y) > 1e-4 ? (y - o.y) / d.y : -1;
+  if (!(t > 0) || t > 45) t = 45; // pointing past the horizon: slide far along the ray instead
+  const p = o.clone().addScaledVector(d, t); p.y = y;
+  const r = Math.hypot(p.x, p.z); if (r > 8.6) { p.x *= 8.6 / r; p.z *= 8.6 / r; } // stay over the table
+  return p;
+}
 function physicsStep() {
   if (state === 'pull' && grabbed) {
-    // Joystick-style, relative to the screen: nose down (W) pushes into the screen, nose up (S) pulls toward you,
-    // turn left/right (A/D) slides left/right. The tower's neighbours decide what actually moves.
-    const a = rawAngles(), g = grabInfo;
-    const dYaw = wrap(a.yaw - g.a0.yaw), dPitch = a.pitch - g.a0.pitch;
-    const move = g.right.clone().multiplyScalar(dYaw * MOVE_GAIN).add(g.fwd.clone().multiplyScalar(-dPitch * MOVE_GAIN));
-    if (move.length() > 4.5) move.setLength(4.5);
-    // Inside the tower a block can only slide along its own length: keep the part of the
-    // joystick that points along the block, plus a little sideways wobble from the rest.
-    const along = move.dot(g.dir), side = Math.max(-0.35, Math.min(0.35, move.dot(g.perp) * 0.35));
+    // drag: the block goes where the pointer points (anywhere on screen). While it is still inside the tower
+    // the neighbours only let it slide along its length; sideways room opens up as it comes out.
+    const g = grabInfo, c = grabbed.rb.translation(), v = grabbed.rb.linvel();
+    const outS = (c.x - g.home.x) * g.dir.x + (c.z - g.home.z) * g.dir.z, out = Math.abs(outS);
+    const p = pointerOnPlane(g.p0.y).add(g.grabOff);
+    const d = new THREE.Vector3(p.x - g.p0.x, 0, p.z - g.p0.z);
+    const along = Math.max(-L * 1.6, Math.min(L * 1.6, d.dot(g.dir)));
+    const freeSide = 0.35 + Math.max(0, out / L - 0.55) * 10;
+    const side = Math.max(-freeSide, Math.min(freeSide, d.dot(g.perp)));
     const tx = g.p0.x + g.dir.x * along + g.perp.x * side, tz = g.p0.z + g.dir.z * along + g.perp.z * side;
-    const c = grabbed.rb.translation(), v = grabbed.rb.linvel();
     const k = 16, mx = 9;
     const vx = Math.max(-mx, Math.min(mx, (tx - c.x) * k)), vz = Math.max(-mx, Math.min(mx, (tz - c.z) * k));
     grabbed.rb.setLinvel({ x: vx, y: v.y, z: vz }, true);
-    const out = Math.abs((c.x - g.home.x) * g.dir.x + (c.z - g.home.z) * g.dir.z);
     g.out = out;
     if (out >= L * 1.0) startPlace();
   } else if (state === 'place' && grabbed) {
-    const a = rawAngles(), g = grabInfo;
-    const right = new THREE.Vector3(Math.cos(camAngle), 0, -Math.sin(camAngle));
-    const fwd = new THREE.Vector3(-Math.sin(camAngle), 0, -Math.cos(camAngle));
-    const off = right.multiplyScalar(wrap(a.yaw - g.a0.yaw) * PLACE_GAIN).add(fwd.multiplyScalar(-(a.pitch - g.a0.pitch) * PLACE_GAIN));
-    if (off.length() > 5) off.setLength(5);
-    const hoverY = g.hoverY;
-    const c = grabbed.rb.translation(), r = grabbed.rb.rotation();
-    if (!g.risen && Math.abs(c.y - hoverY) < 0.2) { g.risen = true; g.a0 = rawAngles(); }
-    if (g.risen) g.offset.lerp(off, .12); // rise first, then slide over the top
+    // carried above the tower: it rises by itself and stays under the pointer wherever it goes on screen
+    const g = grabInfo, c = grabbed.rb.translation(), r = grabbed.rb.rotation();
+    g.grabOff.multiplyScalar(.96);
+    const p = pointerOnPlane(c.y).add(g.grabOff);
     const tgtYaw = g.slotLayer % 2 === 0 ? 0 : Math.PI / 2;
     const cur = new THREE.Quaternion(r.x, r.y, r.z, r.w), want = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), tgtYaw);
     if (cur.dot(want) < 0) want.set(-want.x, -want.y, -want.z, -want.w);
     cur.slerp(want, .18);
-    grabbed.rb.setNextKinematicTranslation({ x: c.x + (g.offset.x - c.x) * .18, y: c.y + (hoverY - c.y) * .18, z: c.z + (g.offset.z - c.z) * .18 });
+    grabbed.rb.setNextKinematicTranslation({ x: c.x + (p.x - c.x) * .3, y: c.y + (g.hoverY - c.y) * .15, z: c.z + (p.z - c.z) * .3 });
     grabbed.rb.setNextKinematicRotation({ x: cur.x, y: cur.y, z: cur.z, w: cur.w });
   }
   world.step();
@@ -509,13 +511,11 @@ function frame(now) {
   // pointer
   const a = rawAngles();
   const ndc = { x: Math.max(-1, Math.min(1, a.yaw / SENS)), y: Math.max(-1, Math.min(1, a.pitch / (SENS * innerHeight / innerWidth))) };
+  pNdc = ndc;
   const showCursor = phoneLive() || usingMouse || vm.moved;
   cursor.hidden = !showCursor || state === 'over';
   cursor.style.borderColor = multi() && active() ? active().color : '';
-  if ((state === 'pull' || state === 'place') && grabbed) { // cursor rides on the held block
-    const t = grabbed.rb.translation(), sp = new THREE.Vector3(t.x, t.y, t.z).project(camera);
-    cursor.style.left = ((sp.x + 1) / 2 * innerWidth) + 'px'; cursor.style.top = ((1 - sp.y) / 2 * innerHeight) + 'px';
-  } else if (state === 'idle' || state === 'settle') {
+  if (state !== 'over') {
     cursor.style.left = ((ndc.x + 1) / 2 * innerWidth) + 'px'; cursor.style.top = ((1 - ndc.y) / 2 * innerHeight) + 'px';
   }
 
@@ -582,15 +582,15 @@ function frame(now) {
   if (!$('pair').hidden || state === 'over') hint('');
   else if (multi() && !phoneLive() && state === 'idle') hint(`ตาของ ${active().name} · ชี้มือถือที่จอแล้วเริ่มได้เลย`);
   else if (state === 'idle') hint(hovered ? (canTake(hovered) ? (phoneLive() ? 'กดค้างปุ่ม จับ' : 'กดเมาส์ค้างไว้เพื่อจับ') : 'ชั้นบนสุดดึงไม่ได้') : (phoneLive() ? 'หันมือถือเล็งไม้ · ลากนิ้วบนแผ่นหมุนเพื่อดูรอบตึก' : 'เลื่อนเมาส์ไปที่ไม้ · คลิกขวาลากเพื่อหมุนดูรอบตึก'));
-  else if (state === 'pull') hint(phoneLive() ? `เงย = ดึงออก · ก้ม = ดันเข้า · หันซ้ายขวา = เลื่อน · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ขึ้น/ลง/ซ้าย/ขวา หรือ WASD · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
-  else if (state === 'place') hint(phoneLive() ? 'ก้ม/เงย/หันซ้ายขวา เลื่อนไม้บนยอด แล้วปล่อยนิ้ววาง' : 'เลื่อนเมาส์จัดตำแหน่ง แล้วปล่อยปุ่มวาง');
+  else if (state === 'pull') hint(phoneLive() ? `ชี้ไปทางที่จะดึง ไม้จะตามตัวชี้ · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ไปทางที่จะดึง (ทั่วทั้งจอ) · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
+  else if (state === 'place') hint(phoneLive() ? 'ชี้ไม้ไปไว้บนยอดตึก แล้วปล่อยนิ้ววาง' : 'ลากไม้ไปไว้บนยอดตึก แล้วปล่อยปุ่มวาง');
   else if (state === 'settle') hint('รอตึกนิ่ง…');
 
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
 
-window.__jenga = { next: nextTurn, sync: syncPlayers, get players() { return players.map(p => p.name + ':' + p.score); }, get turn() { return active() && active().name; }, feed: onPad, get g() { return grabInfo && { dr: grabInfo.dir.dot(grabInfo.right), df: grabInfo.dir.dot(grabInfo.fwd) }; }, get aim() { return rawAngles(); }, get hint() { return [hovered && hovered.layer, phoneLive(), !!cal]; }, get state() { return state; }, get score() { return score; }, get out() { return grabInfo && grabInfo.out; }, get top() { return [topLayer, topCount]; } };
+window.__jenga = { pullTarget() { if (!grabInfo) return null; const p = grabInfo.p0.clone().addScaledVector(grabInfo.dir, 4).project(camera); return { yawDeg: p.x * SENS * 180 / Math.PI, pitchDeg: p.y * SENS * innerHeight / innerWidth * 180 / Math.PI }; }, topTarget() { const p = new THREE.Vector3(0, (topLayer + 1) * H + 1, 0).project(camera); return { yawDeg: p.x * SENS * 180 / Math.PI, pitchDeg: p.y * SENS * innerHeight / innerWidth * 180 / Math.PI }; }, next: nextTurn, sync: syncPlayers, get players() { return players.map(p => p.name + ':' + p.score); }, get turn() { return active() && active().name; }, feed: onPad, get g() { return grabInfo && { dr: grabInfo.dir.dot(grabInfo.right), df: grabInfo.dir.dot(grabInfo.fwd) }; }, get aim() { return rawAngles(); }, get hint() { return [hovered && hovered.layer, phoneLive(), !!cal]; }, get state() { return state; }, get score() { return score; }, get out() { return grabInfo && grabInfo.out; }, get top() { return [topLayer, topCount]; } };
 buildTower();
 $('loading').hidden = true; $('hud').hidden = false; $('pair').hidden = false;
 requestAnimationFrame(frame);

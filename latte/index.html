@@ -45,7 +45,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
-import { VMouse, fullscreenButton } from '../lib/vmouse.js?v=1';
+import { VMouse } from '../lib/vmouse.js?v=2';
 
 shellMarkup({
   title: 'ลาเต้อาร์ตน้องแมว',
@@ -189,8 +189,6 @@ function drawSurface(time) {
 /* ================= flow & input ================= */
 // mouse is pointer-locked while pouring, so a pour stroke is never cut off by the window edge
 const mouse = new VMouse(renderer.domElement, { lock: 'press', limit: 1.05, enabled: () => !S.pad.live && !S.pairing() });
-const goFull = fullscreenButton();
-$('mousePlay').addEventListener('click', () => goFull());
 const ray = new THREE.Raycaster();
 // screen point (NDC, y up) -> spout position in cup units (1 = cup rim)
 function toCup(nx, ny) {

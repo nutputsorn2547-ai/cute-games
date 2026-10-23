@@ -45,7 +45,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
 import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
-import { VMouse, fullscreenButton } from '../lib/vmouse.js?v=1';
+import { VMouse } from '../lib/vmouse.js?v=2';
 
 shellMarkup({
   title: 'ครัวน่ารัก',
@@ -296,8 +296,6 @@ let mouseClick = 0;
 const mouse = new VMouse(renderer.domElement, { lock: 'session', limit: 1.05, enabled: () => !S.pad.live && !S.pairing() });
 document.addEventListener('pointerlockchange', () => { if (mouse.locked) S.toast('ล็อกเมาส์ไว้ในเกมแล้ว · กด Esc เพื่อปล่อย', 3); });
 renderer.domElement.addEventListener('mousedown', () => { mouseClick++; });
-const goFull = fullscreenButton();
-$('mousePlay').addEventListener('click', () => goFull());
 addEventListener('keydown', e => { if (e.key === ' ') { mouseClick++; e.preventDefault(); } if (e.key.toLowerCase() === 'n' && station) station.t = 0; });
 const aimHist = [];
 // aim as a point on screen (NDC, y up). The phone reaches every screen edge with about ±25° of turn.
