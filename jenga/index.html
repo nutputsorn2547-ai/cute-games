@@ -104,6 +104,8 @@ const L = 3.06, H = 0.6, WD = 1, GAP = 0.03, START_LAYERS = 18;
 const SENS = 30 * D2R;            // phone yaw from centre to screen edge
 const MOVE_GAIN = 7;              // units of block travel per radian of phone tilt/turn (~25° moves a block clear)
 const PLACE_GAIN = 5;             // placing: units per radian
+// held-block sensitivity, adjustable with [ and ] (remembered per browser)
+let sensK = 1; try { sensK = +localStorage.getItem('jengaSens') || 1; } catch (e) {}
 const COLORS = ['#ffb3c6', '#ffd6a5', '#fff1a8', '#c8f2c2', '#a9e8f5', '#cdb8ff', '#ffc8dd', '#bde0fe'];
 
 /* ================= renderer & scene ================= */
@@ -233,7 +235,7 @@ function rawAngles() { // current aim in radians relative to calibration (phone)
     return { yaw: aimF.yaw - cal.yaw + kbAim.yaw, pitch: aimF.pitch - cal.pitch + kbAim.pitch, roll: aimF.roll };
   }
   // mouse: same pointer mapping, but pulling/placing get 3x the travel so a short drag is enough
-  const m = (state === 'pull' || state === 'place') ? 4.5 : 1;
+  const m = (state === 'pull' || state === 'place') ? 2 : 1; // mouse while holding: 2x travel (was 4.5x, too twitchy)
   return { yaw: mouseNdc.x * SENS * m + kbAim.yaw, pitch: mouseNdc.y * SENS * (innerHeight / innerWidth) * m + kbAim.pitch, roll: 0 };
 }
 function recalibrate() {
@@ -333,7 +335,15 @@ addEventListener('mousemove', e => { if (dragRot !== null) { orbit(e.clientX - d
 function orbit(dx, dy) { camAngle -= dx * 0.008; camElev = Math.max(0.05, Math.min(1.35, camElev + dy * 0.006)); }
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 const keys = {};
-addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; audio(); if (e.key.toLowerCase() === 'c' && phoneLive()) recalibrate(); });
+addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true; audio();
+  if (e.key.toLowerCase() === 'c' && phoneLive()) recalibrate();
+  if (e.key === '[' || e.key === ']') {
+    sensK = Math.round(Math.max(.3, Math.min(2.5, sensK * (e.key === ']' ? 1.15 : 1 / 1.15))) * 100) / 100;
+    try { localStorage.setItem('jengaSens', sensK); } catch (err) {}
+    toast(`ความไวตอนจับไม้ ${Math.round(sensK * 100)}% · กด [ ลด ] เพิ่ม`);
+  }
+});
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
 /* ================= audio ================= */
@@ -447,7 +457,7 @@ function physicsStep() {
     // turn left/right (A/D) slides left/right. The tower's neighbours decide what actually moves.
     const a = rawAngles(), g = grabInfo;
     const dYaw = wrap(a.yaw - g.a0.yaw), dPitch = a.pitch - g.a0.pitch;
-    const move = g.right.clone().multiplyScalar(dYaw * MOVE_GAIN).add(g.fwd.clone().multiplyScalar(-dPitch * MOVE_GAIN));
+    const move = g.right.clone().multiplyScalar(dYaw * MOVE_GAIN * sensK).add(g.fwd.clone().multiplyScalar(-dPitch * MOVE_GAIN * sensK));
     if (move.length() > 4.5) move.setLength(4.5);
     // Inside the tower a block can only slide along its own length: keep the part of the
     // joystick that points along the block, plus a little sideways wobble from the rest.
@@ -464,7 +474,7 @@ function physicsStep() {
     const a = rawAngles(), g = grabInfo;
     const right = new THREE.Vector3(Math.cos(camAngle), 0, -Math.sin(camAngle));
     const fwd = new THREE.Vector3(-Math.sin(camAngle), 0, -Math.cos(camAngle));
-    const off = right.multiplyScalar(wrap(a.yaw - g.a0.yaw) * PLACE_GAIN).add(fwd.multiplyScalar(-(a.pitch - g.a0.pitch) * PLACE_GAIN));
+    const off = right.multiplyScalar(wrap(a.yaw - g.a0.yaw) * PLACE_GAIN * sensK).add(fwd.multiplyScalar(-(a.pitch - g.a0.pitch) * PLACE_GAIN * sensK));
     if (off.length() > 2.4) off.setLength(2.4);
     const hoverY = g.hoverY;
     const c = grabbed.rb.translation(), r = grabbed.rb.rotation();
@@ -578,7 +588,7 @@ function frame(now) {
   if (!$('pair').hidden || state === 'over') hint('');
   else if (multi() && !phoneLive() && state === 'idle') hint(`ตาของ ${active().name} · ชี้มือถือที่จอแล้วเริ่มได้เลย`);
   else if (state === 'idle') hint(hovered ? (canTake(hovered) ? (phoneLive() ? 'กดค้างปุ่ม จับ' : 'กดเมาส์ค้างไว้เพื่อจับ') : 'ชั้นบนสุดดึงไม่ได้') : (phoneLive() ? 'หันมือถือเล็งไม้ · ลากนิ้วบนแผ่นหมุนเพื่อดูรอบตึก' : 'เลื่อนเมาส์ไปที่ไม้ · คลิกขวาลากเพื่อหมุนดูรอบตึก'));
-  else if (state === 'pull') hint(phoneLive() ? `เงย = ดึงออก · ก้ม = ดันเข้า · หันซ้ายขวา = เลื่อน · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ขึ้น/ลง/ซ้าย/ขวา หรือ WASD · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
+  else if (state === 'pull') hint(phoneLive() ? `เงย = ดึงออก · ก้ม = ดันเข้า · หันซ้ายขวา = เลื่อน · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%` : `ลากเมาส์ขึ้น/ลง/ซ้าย/ขวา หรือ WASD · [ ] ปรับความไว · ${Math.max(0, Math.round((grabInfo.out || 0) / L * 100))}%`);
   else if (state === 'place') hint(phoneLive() ? 'ก้ม/เงย/หันซ้ายขวา เลื่อนไม้บนยอด แล้วปล่อยนิ้ววาง' : 'เลื่อนเมาส์จัดตำแหน่ง แล้วปล่อยปุ่มวาง');
   else if (state === 'settle') hint('รอตึกนิ่ง…');
 
