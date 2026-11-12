@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>แกะสลักหุ่นไม้</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: wood block on a turntable in the middle; mode/target card top-centre, tool panel right, target preview top-left */
+:root{--bg:#f6ecdf;--card:#fffcf7;--ink:#4a3826;--soft:#9a8670;--accent:#c98a4b;--accent-deep:#a8692e;--good:#8fcf7c;--warn:#f2b24a;--line:#eedcc4;--bad:#ff7a7a;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+.job{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 18px;display:flex;flex-direction:column;gap:6px;min-width:330px;text-align:center;box-shadow:0 10px 24px -16px #8a6a40}
+.job b{font-size:19px;font-weight:600}
+.job .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums}
+.seg{display:flex;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{flex:1;font:inherit;font-size:14px;border:0;background:transparent;color:var(--soft);padding:6px 12px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff}
+.side{position:fixed;right:24px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;width:190px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.panel .lbl{font-size:12px;color:var(--soft)}
+.tools{display:flex;flex-direction:column;gap:6px}
+.tools button{font:inherit;font-size:14px;text-align:left;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:7px 10px;cursor:pointer}
+.tools button.on{border-color:var(--accent);background:#fbf1e4}
+.tools button:focus-visible,.seg button:focus-visible{outline:3px solid var(--accent-deep);outline-offset:2px}
+.swatches{display:flex;flex-wrap:wrap;gap:6px}
+.swatches i{width:24px;height:24px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.swatches i.on{border-color:var(--ink)}
+.preview{position:fixed;left:24px;top:110px;width:170px;height:170px;border-radius:18px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.preview span{position:absolute;left:10px;top:8px;font-size:12px;color:var(--soft)}
+.result{flex-direction:column;text-align:center;gap:8px}
+.stars{font-size:52px;letter-spacing:.1em;color:var(--warn)}.stars span{color:var(--line)}
+.scores{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-variant-numeric:tabular-nums;text-align:left;margin:0 auto}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+<script type="importmap">{ "imports": { "three": "../lib/three.module.js" } }</script>
+</head>
+<body>
+<div class="hud"><span class="lbl">ชิ้นงานเสร็จ</span><b id="count">0</b></div>
+<div class="job">
+  <div class="seg" id="modeSeg"><button data-m="task" class="on">ทำตามโจทย์</button><button data-m="free">สร้างสรรค์</button></div>
+  <b id="jobTitle"></b>
+  <div class="row"><span id="matchTxt"></span><span id="missTxt"></span><span id="timeTxt"></span></div>
+  <div class="bar" id="matchBarBox"><i id="matchBar"></i></div>
+</div>
+<div class="preview" id="preview"><span>หน้าตาที่ต้องแกะ</span></div>
+<div class="side">
+  <div class="panel"><span class="lbl">เครื่องมือ (ปุ่ม 1 2 3)</span>
+    <div class="tools" id="tools"><button data-t="0" class="on">สิ่ว · แกะละเอียด</button><button data-t="1">ขวานเล็ก · แกะหยาบ</button><button data-t="2">พู่กัน · ระบายสี</button></div>
+  </div>
+  <div class="panel" id="palette" hidden><span class="lbl">สี</span><div class="swatches" id="swatches"></div></div>
+  <div class="panel"><span class="lbl">ตัวช่วย</span>
+    <div class="tools"><button id="undoBtn">ย้อนกลับ (Z)</button><button id="guideBtn" class="on">เส้นนำ: เปิด</button><button id="doneBtn">ส่งงาน</button><button id="newBtn">ไม้ก้อนใหม่</button></div>
+  </div>
+</div>
+<div class="overlay" id="result" hidden>
+  <div class="card result">
+    <p style="margin:0" id="resSub"></p>
+    <h1 id="resTitle"></h1>
+    <div class="stars" id="stars"></div>
+    <div class="scores" id="scores"></div>
+    <div class="btns" style="justify-content:center;margin-top:8px"><button class="btn ghost" id="keep">แกะต่อ</button><button class="btn" id="nextJob">ชิ้นต่อไป</button></div>
+  </div>
+</div>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
+import { setupShell, shellMarkup } from '../lib/shell.js?v=4';
+
+shellMarkup({
+  title: 'แกะสลักหุ่นไม้',
+  blurb: 'มือถือคือสิ่ว แกะไม้ให้เป็นหุ่นตามโจทย์ หรือแกะอะไรก็ได้ในโหมดสร้างสรรค์ แล้วระบายสีให้น่ารัก',
+  steps: ['ถือหงายจอ หัวเครื่องชี้จอ กด <b>ตั้งศูนย์</b>', 'ชี้ที่เนื้อไม้ กดค้าง <b>แกะ</b> แล้วขยับ · บิดข้อมือหรือลากนิ้วบนแผ่นเพื่อหมุนไม้'],
+});
+const S = setupShell({ game: 'carving', minCutoff: .8, beta: 1.6 });
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+
+/* ================= voxel block ================= */
+const NX = 22, NY = 30, NZ = 22, VS = .13;           // voxels and their size
+const N = NX * NY * NZ, idx = (x, y, z) => (y * NZ + z) * NX + x;
+const solid = new Uint8Array(N), target = new Uint8Array(N), paint = new Int16Array(N).fill(-1);
+const PAINTS = ['#ffffff', '#3b2a20', '#ff8fab', '#ff6b6b', '#ffb84d', '#ffe066', '#8fd17f', '#6fc7e8', '#9b8cff', '#c98a4b'];
+let paintIdx = 2;
+// target shapes, in normalized block coords u (x), v (y up), w (z), each -1..1
+const sph = (u, v, w, cx, cy, cz, r, sy = 1) => ((u - cx) / r) ** 2 + ((v - cy) / (r * sy)) ** 2 + ((w - cz) / r) ** 2 < 1;
+const SHAPES = [
+  { name: 'ตุ๊กตาหิมะ', f: (u, v, w) => sph(u, v, w, 0, -.48, 0, .62) || sph(u, v, w, 0, .25, 0, .46) || sph(u, v, w, 0, .74, 0, .2, 1.4) && v > .62 },
+  { name: 'น้องหมี', f: (u, v, w) => sph(u, v, w, 0, -.42, 0, .7, .78) || sph(u, v, w, 0, .38, 0, .55) || sph(u, v, w, -.42, .82, 0, .2) || sph(u, v, w, .42, .82, 0, .2) || sph(u, v, w, 0, .28, .5, .2) },
+  { name: 'เห็ดน้อย', f: (u, v, w) => (v > .05 && sph(u, v, w, 0, .05, 0, .95, .85)) || (v <= .1 && v > -1 && u * u + w * w < .38 ** 2) },
+  { name: 'จรวด', f: (u, v, w) => { const r = Math.hypot(u, w); return (v > -.7 && v < .35 && r < .42) || (v >= .35 && r < .42 * (1 - (v - .35) / .62)) || (v < -.2 && v > -.95 && Math.abs(u) < .85 && Math.abs(w) < .1) || (v < -.2 && v > -.95 && Math.abs(w) < .85 && Math.abs(u) < .1); } },
+  { name: 'แจกันลายคลื่น', f: (u, v, w) => { const r = Math.hypot(u, w), R = .55 + .25 * Math.sin(v * 3.2) ; return r < R && v > -.95 && v < .9 && !(r < R - .22 && v > -.7); } },
+];
+let shapeIdx = 0, gameMode = 'task';
+function fillBlock() {
+  solid.fill(1); paint.fill(-1);
+  const sh = SHAPES[shapeIdx];
+  for (let y = 0; y < NY; y++) for (let z = 0; z < NZ; z++) for (let x = 0; x < NX; x++) {
+    const u = (x + .5) / NX * 2 - 1, v = (y + .5) / NY * 2 - 1, w = (z + .5) / NZ * 2 - 1;
+    target[idx(x, y, z)] = gameMode === 'task' && sh.f(u, v, w) ? 1 : 0;
+  }
+}
+
+/* ================= scene ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.domElement.className = 'scene';
+const LITE = new URLSearchParams(location.search).has('lite'); // ?lite: no shadows, for slow computers
+if (LITE) { renderer.shadowMap.enabled = false; renderer.setPixelRatio(1); }
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#f3e6d4');
+const camera = new THREE.PerspectiveCamera(38, 1, .1, 100);
+camera.position.set(0, 3.9, 9.6); camera.lookAt(0, 2.15, 0);
+scene.add(new THREE.HemisphereLight('#fffaf2', '#c9a77f', 1.4));
+const sun = new THREE.DirectionalLight('#fff1dc', 2.1); sun.position.set(-4, 9, 7); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 6, bottom: -2 }); scene.add(sun);
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .75, ...o });
+const bench = new THREE.Mesh(new RoundedBoxGeometry(12, .8, 6, 4, .2), M('#b7865a')); bench.position.y = -.4; bench.receiveShadow = true; scene.add(bench);
+const turntable = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.6, .3, 48), M('#8fc9b5')); turntable.position.y = .15; turntable.receiveShadow = true; scene.add(turntable);
+const pivot = new THREE.Group(); pivot.position.set(0, .3, 0); scene.add(pivot);
+const block = new THREE.Group(); block.position.set(-NX * VS / 2, 0, -NZ * VS / 2); pivot.add(block);
+const vox = new THREE.InstancedMesh(new THREE.BoxGeometry(VS, VS, VS), new THREE.MeshStandardMaterial({ roughness: .85 }), N);
+vox.castShadow = true; vox.receiveShadow = true; block.add(vox);
+const mtx = new THREE.Matrix4(), zero = new THREE.Matrix4().makeScale(0, 0, 0), colTmp = new THREE.Color();
+let guideOn = true;
+function woodColor(x, y, z) {
+  // growth rings around a slightly off-centre core, wobbling with height, plus a little per-cell noise
+  const r = Math.hypot(x - NX / 2 + .3 + Math.sin(y * .3) * 1.2, z - NZ / 2 - .7); const ring = .5 + .5 * Math.sin(r * 1.5 + Math.sin(y * .45 + x * .2) * 1.1);
+  const n = ((x * 73856093 ^ y * 19349663 ^ z * 83492791) >>> 0) % 100 / 100;
+  return colTmp.set('#e8bd8c').lerp(new THREE.Color('#c08350'), ring * .5 + n * .12);
+}
+function voxColor(i, x, y, z) {
+  if (paint[i] >= 0) return colTmp.set(PAINTS[paint[i]]);
+  const c = woodColor(x, y, z);
+  if (gameMode === 'task' && guideOn && !target[i]) c.lerp(new THREE.Color('#ff7f9a'), .5); // wood that should be carved away
+  return c;
+}
+function refreshVoxel(x, y, z) {
+  const i = idx(x, y, z);
+  if (!solid[i]) { vox.setMatrixAt(i, zero); return; }
+  mtx.makeTranslation((x + .5) * VS, (y + .5) * VS, (z + .5) * VS); vox.setMatrixAt(i, mtx);
+  vox.setColorAt(i, voxColor(i, x, y, z));
+}
+function refreshAll() {
+  for (let y = 0; y < NY; y++) for (let z = 0; z < NZ; z++) for (let x = 0; x < NX; x++) refreshVoxel(x, y, z);
+  vox.instanceMatrix.needsUpdate = true; if (vox.instanceColor) vox.instanceColor.needsUpdate = true;
+}
+
+/* ================= target preview (small turning model) ================= */
+const prevR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); prevR.setPixelRatio(Math.min(devicePixelRatio, 2)); prevR.setSize(170, 170);
+$('preview').append(prevR.domElement);
+const pScene = new THREE.Scene(), pCam = new THREE.PerspectiveCamera(35, 1, .1, 50); pCam.position.set(0, 1.5, 6.5); pCam.lookAt(0, 0, 0);
+pScene.add(new THREE.HemisphereLight('#ffffff', '#c9a77f', 1.6)); const pl = new THREE.DirectionalLight('#ffffff', 1.5); pl.position.set(2, 4, 3); pScene.add(pl);
+const pGroup = new THREE.Group(); pScene.add(pGroup);
+function buildPreview() {
+  while (pGroup.children.length) pGroup.remove(pGroup.children[0]);
+  const cnt = target.reduce((a, b) => a + b, 0); if (!cnt) return;
+  const im = new THREE.InstancedMesh(new THREE.BoxGeometry(VS, VS, VS), M('#d9a46c'), cnt); let k = 0;
+  for (let y = 0; y < NY; y++) for (let z = 0; z < NZ; z++) for (let x = 0; x < NX; x++) if (target[idx(x, y, z)]) { mtx.makeTranslation((x - NX / 2 + .5) * VS, (y - NY / 2 + .5) * VS, (z - NZ / 2 + .5) * VS); im.setMatrixAt(k++, mtx); }
+  pGroup.add(im);
+}
+
+/* ================= carving ================= */
+const chips = [];
+function chip(p, color) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(.06, .02, .1), M(color)); m.position.copy(p);
+  m.userData = { v: new THREE.Vector3(rand(-1.5, 1.5), rand(1, 2.5), rand(.5, 2)), w: rand(-10, 10), life: 1.4 }; scene.add(m); chips.push(m);
+  if (chips.length > 160) scene.remove(chips.shift());
+}
+let stroke = null; const history = [];
+let misses = 0, removedTotal = 0;
+function carve(hit, radius) {
+  const [cx, cy, cz] = hit.cell, r = radius, changed = [];
+  let wrong = 0;
+  for (let y = Math.max(0, Math.floor(cy - r)); y <= Math.min(NY - 1, Math.ceil(cy + r)); y++)
+    for (let z = Math.max(0, Math.floor(cz - r)); z <= Math.min(NZ - 1, Math.ceil(cz + r)); z++)
+      for (let x = Math.max(0, Math.floor(cx - r)); x <= Math.min(NX - 1, Math.ceil(cx + r)); x++) {
+        if ((x - cx) ** 2 + (y - cy) ** 2 + (z - cz) ** 2 > r * r) continue;
+        const i = idx(x, y, z); if (!solid[i]) continue;
+        if (y === 0 && gameMode === 'task') continue; // keep the base so the figure stands
+        solid[i] = 0; changed.push(i); refreshVoxel(x, y, z); if (target[i]) wrong++;
+      }
+  if (changed.length) {
+    vox.instanceMatrix.needsUpdate = true; removedTotal += changed.length;
+    if (stroke) stroke.push(...changed.map(i => ({ i, kind: 'cut' })));
+    for (let k = 0; k < Math.min(3, changed.length); k++) chip(hit.point, '#e2b383');
+    if (wrong && gameMode === 'task') { misses += wrong > 2 ? 1 : 0; if (wrong > 2) { flashT = .5; S.vib([60, 20, 40]); S.tone(240, 160, .12, .09, 'square'); } }
+  }
+  return changed.length;
+}
+function paintAt(hit) {
+  const [cx, cy, cz] = hit.cell, r = 1.2, changed = [];
+  for (let y = Math.max(0, Math.floor(cy - r)); y <= Math.min(NY - 1, Math.ceil(cy + r)); y++)
+    for (let z = Math.max(0, Math.floor(cz - r)); z <= Math.min(NZ - 1, Math.ceil(cz + r)); z++)
+      for (let x = Math.max(0, Math.floor(cx - r)); x <= Math.min(NX - 1, Math.ceil(cx + r)); x++) {
+        if ((x - cx) ** 2 + (y - cy) ** 2 + (z - cz) ** 2 > r * r) continue;
+        const i = idx(x, y, z); if (!solid[i] || paint[i] === paintIdx) continue;
+        changed.push({ i, kind: 'paint', was: paint[i] }); paint[i] = paintIdx; refreshVoxel(x, y, z);
+      }
+  if (changed.length) { vox.instanceColor.needsUpdate = true; if (stroke) stroke.push(...changed); }
+  return changed.length;
+}
+function undo() {
+  const s = history.pop(); if (!s) return;
+  for (const c of s) { const x = c.i % NX, z = Math.floor(c.i / NX) % NZ, y = Math.floor(c.i / (NX * NZ)); if (c.kind === 'cut') solid[c.i] = 1; else paint[c.i] = c.was; refreshVoxel(x, y, z); }
+  vox.instanceMatrix.needsUpdate = true; vox.instanceColor.needsUpdate = true; S.tone(500, 350, .08, .07);
+}
+// ray -> first solid voxel (Amanatides-Woo traversal in block space)
+function voxelRay(origin, dir) {
+  const inv = new THREE.Matrix4().copy(block.matrixWorld).invert();
+  const o = origin.clone().applyMatrix4(inv).divideScalar(VS), d = dir.clone().transformDirection(inv).normalize();
+  // enter the grid box
+  let tmin = 0, tmax = 1e9;
+  for (const [a, n] of [['x', NX], ['y', NY], ['z', NZ]]) {
+    if (Math.abs(d[a]) < 1e-9) { if (o[a] < 0 || o[a] > n) return null; continue; }
+    let t1 = (0 - o[a]) / d[a], t2 = (n - o[a]) / d[a]; if (t1 > t2) [t1, t2] = [t2, t1];
+    tmin = Math.max(tmin, t1); tmax = Math.min(tmax, t2);
+  }
+  if (tmin > tmax) return null;
+  const p = o.clone().addScaledVector(d, tmin + 1e-4);
+  let x = clamp(Math.floor(p.x), 0, NX - 1), y = clamp(Math.floor(p.y), 0, NY - 1), z = clamp(Math.floor(p.z), 0, NZ - 1);
+  const sx = Math.sign(d.x), sy = Math.sign(d.y), sz = Math.sign(d.z);
+  const tdx = Math.abs(1 / d.x), tdy = Math.abs(1 / d.y), tdz = Math.abs(1 / d.z);
+  let tx = d.x ? ((sx > 0 ? x + 1 : x) - p.x) / d.x : 1e9, ty = d.y ? ((sy > 0 ? y + 1 : y) - p.y) / d.y : 1e9, tz = d.z ? ((sz > 0 ? z + 1 : z) - p.z) / d.z : 1e9;
+  for (let k = 0; k < 200; k++) {
+    if (x < 0 || y < 0 || z < 0 || x >= NX || y >= NY || z >= NZ) return null;
+    if (solid[idx(x, y, z)]) {
+      const local = new THREE.Vector3((x + .5) * VS, (y + .5) * VS, (z + .5) * VS);
+      return { cell: [x, y, z], point: block.localToWorld(local) };
+    }
+    if (tx < ty && tx < tz) { x += sx; tx += tdx; } else if (ty < tz) { y += sy; ty += tdy; } else { z += sz; tz += tdz; }
+  }
+  return null;
+}
+function matchScore() {
+  let inter = 0, uni = 0;
+  for (let i = 0; i < N; i++) { const a = solid[i], b = target[i]; if (a && b) inter++; if (a || b) uni++; }
+  return uni ? inter / uni : 0;
+}
+
+/* ================= tools ================= */
+const chisel = new THREE.Group();
+{ const blade = new THREE.Mesh(new THREE.BoxGeometry(.16, .5, .04), M('#c9d4dd', { metalness: .6, roughness: .25 })); blade.position.y = .25;
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(.08, .09, .8, 12), M('#ff9fb4')); handle.position.y = .9; chisel.add(blade, handle); scene.add(chisel); }
+const axe = new THREE.Group();
+{ const head = new THREE.Mesh(new THREE.BoxGeometry(.5, .32, .08), M('#c9d4dd', { metalness: .6, roughness: .25 })); head.position.set(.15, .2, 0);
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(.06, .07, 1.3, 10), M('#c98a4b')); handle.position.y = .7; axe.add(head, handle); scene.add(axe); }
+const brush = new THREE.Group();
+const brushTip = new THREE.Mesh(new THREE.ConeGeometry(.08, .25, 12), M(PAINTS[paintIdx])); brushTip.rotation.x = Math.PI; brushTip.position.y = .12;
+{ const handle = new THREE.Mesh(new THREE.CylinderGeometry(.04, .05, 1, 10), M('#7fd8be')); handle.position.y = .7; brush.add(brushTip, handle); scene.add(brush); }
+let tool = 0;
+function setTool(t) {
+  if (t === 2 && gameMode === 'task' && false) return;
+  tool = t; [...$('tools').children].forEach((b, i) => b.classList.toggle('on', i === t));
+  $('palette').hidden = t !== 2; S.tone(800, 1000, .05, .05);
+}
+$('tools').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTool(+b.dataset.t); });
+$('swatches').innerHTML = PAINTS.map((c, i) => `<i data-i="${i}" style="background:${c}" class="${i === paintIdx ? 'on' : ''}"></i>`).join('');
+$('swatches').addEventListener('click', e => { const i = e.target.dataset.i; if (i === undefined) return; paintIdx = +i; brushTip.material.color.set(PAINTS[paintIdx]); [...$('swatches').children].forEach((s, k) => s.classList.toggle('on', k === paintIdx)); });
+function nextPaint() { paintIdx = (paintIdx + 1) % PAINTS.length; brushTip.material.color.set(PAINTS[paintIdx]); [...$('swatches').children].forEach((s, k) => s.classList.toggle('on', k === paintIdx)); S.toast('สี ' + (paintIdx + 1), .8); }
+
+/* ================= flow ================= */
+let count = 0, jobT = 0, flashT = 0, mode = 'work';
+function newJob(sameMode = true) {
+  fillBlock(); refreshAll(); history.length = 0; misses = 0; removedTotal = 0; jobT = 0; mode = 'work'; $('result').hidden = true;
+  pivot.rotation.set(0, 0, 0); spinV.set(0, 0);
+  $('preview').hidden = gameMode !== 'task'; $('matchBarBox').hidden = gameMode !== 'task';
+  $('guideBtn').hidden = gameMode !== 'task';
+  $('jobTitle').textContent = gameMode === 'task' ? `โจทย์: ${SHAPES[shapeIdx].name}` : 'โหมดสร้างสรรค์ · แกะอะไรก็ได้';
+  buildPreview();
+}
+$('modeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; gameMode = b.dataset.m;
+  [...$('modeSeg').children].forEach(x => x.classList.toggle('on', x === b)); newJob();
+});
+$('undoBtn').onclick = undo;
+$('guideBtn').onclick = () => { guideOn = !guideOn; $('guideBtn').textContent = 'เส้นนำ: ' + (guideOn ? 'เปิด' : 'ปิด'); $('guideBtn').classList.toggle('on', guideOn); refreshAll(); };
+$('newBtn').onclick = () => newJob();
+$('doneBtn').onclick = submit;
+function submit() {
+  if (mode !== 'work') return;
+  mode = 'done'; count++; $('count').textContent = count;
+  if (gameMode === 'task') {
+    const m = matchScore(), stars = m > .82 ? 3 : m > .68 ? 2 : m > .5 ? 1 : 0;
+    $('resSub').textContent = 'โจทย์: ' + SHAPES[shapeIdx].name; $('resTitle').textContent = `เหมือนโจทย์ ${Math.round(m * 100)}%`;
+    $('stars').innerHTML = '★'.repeat(stars) + `<span>${'★'.repeat(3 - stars)}</span>`;
+    $('scores').innerHTML = `<span>ใช้เวลา</span><b>${Math.round(jobT)} วิ</b><span>แกะเกินเส้น</span><b>${misses} ครั้ง</b>`;
+  } else {
+    $('resSub').textContent = 'โหมดสร้างสรรค์'; $('resTitle').textContent = 'ผลงานชิ้นเอก!';
+    $('stars').innerHTML = '★★★';
+    $('scores').innerHTML = `<span>ใช้เวลา</span><b>${Math.round(jobT)} วิ</b><span>เศษไม้ที่แกะออก</span><b>${removedTotal} ชิ้น</b>`;
+  }
+  $('result').hidden = false; S.jingle(); S.vib([40, 40, 40, 40, 160]); showcase = 3;
+}
+$('keep').onclick = () => { $('result').hidden = true; mode = 'work'; };
+$('nextJob').onclick = () => { if (gameMode === 'task') shapeIdx = (shapeIdx + 1) % SHAPES.length; newJob(); };
+
+/* ================= input ================= */
+let mouse = { x: 0, y: 0, down: false, rdrag: null };
+addEventListener('mousemove', e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = -(e.clientY / innerHeight * 2 - 1); if (mouse.rdrag) { spinV.x += (e.clientX - mouse.rdrag[0]) * .01; spinV.y += (e.clientY - mouse.rdrag[1]) * .006; mouse.rdrag = [e.clientX, e.clientY]; } });
+renderer.domElement.addEventListener('mousedown', e => { if (e.button === 0) mouse.down = true; if (e.button === 2) mouse.rdrag = [e.clientX, e.clientY]; });
+addEventListener('mouseup', e => { if (e.button === 0) mouse.down = false; if (e.button === 2) mouse.rdrag = null; });
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+addEventListener('wheel', e => { spinV.x += e.deltaY * .003; }, { passive: true });
+const keys = {};
+addEventListener('keydown', e => { const k = e.key.toLowerCase(); keys[k] = true; if ('123'.includes(k)) setTool(+k - 1); if (k === 'z') undo(); if (k === 'x' && tool === 2) nextPaint(); });
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+const spinV = new THREE.Vector2();
+function pointerNdc() {
+  if (S.pad.live) { const a = S.pad.aim(), c = new THREE.Vector3(0, 2.2, 0).project(camera); return { x: clamp(c.x + a.yaw / .45, -1, 1), y: clamp(c.y + a.pitch / .34, -1, 1) }; }
+  return { x: mouse.x, y: mouse.y };
+}
+const carving = () => S.pad.live ? !!S.pad.btn.carve : mouse.down;
+
+/* ================= loop ================= */
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+const ray = new THREE.Raycaster();
+let last = performance.now(), time = 0, wasCarving = false, hitT = 0, prevRoll = null, showcase = 0;
+function frame(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now; time += dt;
+  S.tick(dt);
+  if (S.pad.tap('tool')) setTool((tool + 1) % 3);
+  if (S.pad.tap('undo')) undo();
+  if (S.pad.tap('color')) { if (tool !== 2) setTool(2); else nextPaint(); }
+  if (S.pad.tap('done')) { if (mode === 'work') submit(); else $('nextJob').onclick(); }
+
+  // turn the block: twist the phone, swipe pad, right-drag / wheel / A D
+  const lk = S.pad.takeLook(); spinV.x += lk[0] * .012; spinV.y += lk[1] * .006;
+  if (S.pad.live) { const r = S.pad.aim().roll; if (prevRoll !== null) spinV.x += (r - prevRoll) * 2; prevRoll = r; } else prevRoll = null;
+  spinV.x += ((keys['d'] ? 1 : 0) - (keys['a'] ? 1 : 0)) * 2 * dt;
+  if (showcase > 0) { showcase -= dt; spinV.x += dt * 1.2; }
+  const step = spinV.clone().multiplyScalar(Math.min(1, dt * 10)); spinV.sub(step);
+  pivot.rotation.y += step.x; pivot.rotation.x = clamp(pivot.rotation.x + step.y, -.5, .5);
+  pivot.updateMatrixWorld(true);
+
+  const ndc = pointerNdc();
+  ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+  const hit = voxelRay(ray.ray.origin, ray.ray.direction);
+  const toolObj = [chisel, axe, brush][tool];
+  for (const t of [chisel, axe, brush]) t.visible = t === toolObj && !S.pairing();
+  const at = hit ? hit.point.clone().addScaledVector(ray.ray.direction, -.25) : ray.ray.origin.clone().addScaledVector(ray.ray.direction, 8.5);
+  const active = carving() && mode === 'work' && !S.pairing();
+  toolObj.position.lerp(at, .5);
+  toolObj.rotation.set(-.4 + (active ? Math.sin(time * 30) * .15 : 0), 0, .5);
+  if (active && !wasCarving) { stroke = []; }
+  if (!active && wasCarving) { if (stroke && stroke.length) history.push(stroke); if (history.length > 40) history.shift(); stroke = null; }
+  wasCarving = active;
+  if (active && hit) {
+    hitT -= dt;
+    if (hitT <= 0) {
+      hitT = tool === 1 ? .16 : .07;
+      const n = tool === 2 ? paintAt(hit) : carve(hit, tool === 1 ? 2.3 : 1.15);
+      if (n) { if (tool === 2) S.noise(.05, 1200, .05, 'bandpass'); else { S.noise(.06, tool === 1 ? 900 : 2800, tool === 1 ? .3 : .15, tool === 1 ? 'lowpass' : 'highpass'); S.vib(tool === 1 ? 25 : 10); } }
+    }
+  }
+  for (const c of chips) { c.userData.v.y -= 9 * dt; c.position.addScaledVector(c.userData.v, dt); c.rotation.x += c.userData.w * dt; if (c.position.y < .02) { c.position.y = .02; c.userData.v.set(0, 0, 0); } }
+  flashT = Math.max(0, flashT - dt);
+  vox.material.emissive.set(flashT > 0 ? '#ff4040' : '#000000'); vox.material.emissiveIntensity = flashT * .6;
+
+  pGroup.rotation.y += dt * .8; prevR.render(pScene, pCam);
+  if (mode === 'work' && !S.pairing()) {
+    jobT += dt;
+    $('timeTxt').textContent = Math.round(jobT) + ' วิ';
+    if (gameMode === 'task') {
+      if (Math.floor(time * 4) !== Math.floor((time - dt) * 4)) { const m = matchScore(); $('matchTxt').textContent = `เหมือนโจทย์ ${Math.round(m * 100)}%`; $('matchBar').style.width = m * 100 + '%'; }
+      $('missTxt').textContent = `แกะเกินเส้น ${misses}`;
+    } else { $('matchTxt').textContent = 'ไม่มีถูกผิด แกะได้ตามใจ'; $('missTxt').textContent = ''; }
+  }
+  const P = S.pad.live;
+  if (S.pairing() || !$('result').hidden) S.hint('');
+  else if (tool === 2) S.hint(P ? 'กดค้างแกะเพื่อระบายสี · ปุ่มสีบนมือถือ = เปลี่ยนสี' : 'กดเมาส์ค้างเพื่อระบาย · คลิกวงสีด้านขวา หรือกด X เปลี่ยนสี');
+  else if (gameMode === 'task') S.hint(P ? 'แกะส่วนที่เป็นสีแดงออก ให้เหลือรูปตามโจทย์ · บิดข้อมือหมุนไม้' : 'กดเมาส์ค้างแกะส่วนสีแดงออก · คลิกขวาลาก/A D หมุนไม้ · Z ย้อนกลับ');
+  else S.hint(P ? 'กดค้างแกะแล้วขยับ · บิดข้อมือหมุนไม้' : 'กดเมาส์ค้างแกะ · คลิกขวาลาก/A D หมุนไม้ · Z ย้อนกลับ');
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+window.__carve = { feed: d => S.pad.feed(d), get match() { return matchScore(); }, get removed() { return removedTotal; }, get misses() { return misses; }, submit, setTool,
+  mode: m => { gameMode = m; newJob(); }, blockScreen(u, v) { const p = block.localToWorld(new THREE.Vector3((u * .5 + .5) * NX * VS, (v * .5 + .5) * NY * VS, NZ * VS)).project(camera); return p; } };
+newJob();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

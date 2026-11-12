@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ต่อตัวต่อตามใจ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: big baseplate + small assembly plate on a table; brick picker panel on the left under the counter */
+:root{--bg:#e9f4ff;--card:#ffffff;--ink:#2f3a4f;--soft:#7d8aa3;--accent:#ff8a5c;--accent-deep:#e9653a;--good:#6cc79a;--warn:#f2b24a;--line:#dde7f3;--bad:#ff5f6d;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+.tray{position:fixed;left:20px;top:116px;width:212px;display:flex;flex-direction:column;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:12px 14px;box-shadow:0 14px 30px -18px #3a5070;z-index:3;max-height:calc(100vh - 210px);overflow:auto}
+.grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.grp .lbl{font-size:12px;color:var(--soft);width:100%}
+.tray button{font:inherit;font-size:13px;border:2px solid var(--line);background:#f7faff;color:var(--ink);border-radius:12px;padding:6px 9px;cursor:pointer;min-width:40px}
+.tray button.on{border-color:var(--ink);background:#fff}
+.tray button:focus-visible{outline:3px solid var(--accent-deep);outline-offset:2px}
+.sw{width:28px;height:28px;min-width:0!important;padding:0!important;border-radius:50%!important}
+.sw.on{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--ink)}
+.tray .mode button{flex:1}
+.tray .mode button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tray .mode button.del.on{background:var(--bad);border-color:var(--bad)}
+.tray .mode button.lift.on{background:#4fb3ff;border-color:#4fb3ff}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+<script type="importmap">{ "imports": { "three": "../lib/three.module.js" } }</script>
+</head>
+<body>
+<div class="hud"><span class="lbl">ตัวต่อที่วาง</span><b id="count">0</b><span class="lbl">บันทึกอัตโนมัติ</span></div>
+<div class="tray" id="tray">
+  <div class="grp mode"><span class="lbl">โหมด</span><button data-m="place" class="on" title="1">วาง</button><button data-m="del" class="del" title="X">ลบ</button><button data-m="lift" class="lift" title="G">ยกทั้งชิ้น</button></div>
+  <div class="grp" id="sizes"><span class="lbl">ขนาด</span></div>
+  <div class="grp" id="colors"><span class="lbl">สี</span></div>
+  <div class="grp"><button id="rotBtn" title="R">หมุน ⟳</button><button id="focusBtn" title="Tab">มองโต๊ะเล็ก</button><button id="undoBtn" title="Z">ย้อน</button><button id="clearBtn">ล้างทั้งหมด</button></div>
+</div>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { setupShell, shellMarkup } from '../lib/shell.js?v=4';
+
+shellMarkup({
+  title: 'ต่อตัวต่อตามใจ',
+  blurb: 'ต่อตัวต่อแบบมีแรงโน้มถ่วง ตัวต่อจะตกลงมาจนชนของข้างล่างเสมอ ต่อชิ้นเล็กบนแผ่นฟ้าก่อน แล้วยกทั้งชิ้นไปประกอบบนแผ่นใหญ่ได้',
+  steps: ['ถือหงายจอ หัวเครื่องชี้จอ กด <b>ตั้งศูนย์</b>', 'ชี้ตำแหน่งแล้วแตะ <b>วาง</b> · บิดข้อมือ = หมุน · <b>ยกทั้งชิ้น</b> = ยกงานที่ต่อเสร็จไปวางที่อื่น'],
+});
+const S = setupShell({ game: 'lego', minCutoff: .7, beta: 1.4 });
+const pad = S.pad, $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ================= scene ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.domElement.className = 'scene';
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#e9f4ff');
+const camera = new THREE.PerspectiveCamera(42, 1, .1, 200);
+scene.add(new THREE.HemisphereLight('#ffffff', '#b8c9e0', 1.4));
+const sun = new THREE.DirectionalLight('#fff4e6', 2.2); sun.position.set(-8, 18, 10); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 14, bottom: -14, far: 70 }); sun.shadow.bias = -.0005; scene.add(sun);
+
+const P = .5, BH = .6, MAXY = 40; // stud pitch, brick height, height limit (levels)
+const studGeo = new THREE.CylinderGeometry(P * .3, P * .3, P * .18, 18);
+// two baseplates: the big one for the main build, a small blue one for sub-assemblies
+const PLATES = [
+  { id: 'main', N: 28, ox: -4, oz: 0, color: '#7ccf8a', label: 'แผ่นใหญ่' },
+  { id: 'mini', N: 10, ox: 9.6, oz: -2, color: '#8ec9ff', label: 'พื้นที่ประกอบชิ้นเล็ก' },
+];
+const plateOf = id => PLATES.find(p => p.id === id);
+const table = new THREE.Mesh(new THREE.BoxGeometry(34, .4, 20), new THREE.MeshStandardMaterial({ color: '#f6e7d2', roughness: .8 })); table.position.set(1, -.4, 0); table.receiveShadow = true; scene.add(table);
+const plateMeshes = [];
+for (const pl of PLATES) {
+  const mat = new THREE.MeshStandardMaterial({ color: pl.color, roughness: .6 }), sz = pl.N * P;
+  const m = new THREE.Mesh(new THREE.BoxGeometry(sz, .2, sz), mat); m.position.set(pl.ox, -.1, pl.oz); m.receiveShadow = true; m.userData.plate = pl.id; scene.add(m); plateMeshes.push(m);
+  const st = new THREE.InstancedMesh(studGeo, mat, pl.N * pl.N), mx = new THREE.Matrix4(); let i = 0;
+  for (let x = 0; x < pl.N; x++) for (let z = 0; z < pl.N; z++) { mx.makeTranslation(pl.ox - sz / 2 + (x + .5) * P, P * .09, pl.oz - sz / 2 + (z + .5) * P); st.setMatrixAt(i++, mx); }
+  st.receiveShadow = true; st.userData.plate = pl.id; scene.add(st); plateMeshes.push(st);
+  // label in front of the plate
+  const c = document.createElement('canvas'); c.width = 512; c.height = 96; const g = c.getContext('2d'); g.fillStyle = '#6b7a93'; g.font = '500 54px Mitr, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(pl.label, 256, 50);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const lab = new THREE.Mesh(new THREE.PlaneGeometry(4.2, .8), new THREE.MeshBasicMaterial({ map: tex, transparent: true })); lab.rotation.x = -Math.PI / 2; lab.position.set(pl.ox, -.18, pl.oz + sz / 2 + .7); scene.add(lab);
+}
+const cellWorld = (pl, x, z) => [pl.ox - pl.N * P / 2 + x * P, pl.oz - pl.N * P / 2 + z * P];
+
+/* ================= brick geometry ================= */
+const SIZES = [[1, 1], [1, 2], [1, 3], [1, 4], [2, 2], [2, 3], [2, 4], [1, 6], [2, 6]];
+const COLORS = ['#ff5f6d', '#ff9f43', '#ffd84d', '#6cc79a', '#4fb3ff', '#8c7bff', '#ff8fc8', '#ffffff', '#9aa5b8', '#3a3f4b', '#a8714a'];
+const geoCache = new Map();
+function brickGeo(w, d) {
+  const k = w + 'x' + d; if (geoCache.has(k)) return geoCache.get(k);
+  const parts = [], body = new THREE.BoxGeometry(w * P - .02, BH - .01, d * P - .02); body.translate(0, BH / 2, 0); parts.push(body);
+  for (let x = 0; x < w; x++) for (let z = 0; z < d; z++) { const s = studGeo.clone(); s.translate((x + .5) * P - w * P / 2, BH + P * .09, (z + .5) * P - d * P / 2); parts.push(s); }
+  const g = mergeGeos(parts); geoCache.set(k, g); return g;
+}
+function mergeGeos(list) {
+  const pos = [], nor = [], idx = []; let off = 0;
+  for (const g of list) { const p = g.attributes.position, n = g.attributes.normal;
+    for (let i = 0; i < p.count; i++) { pos.push(p.getX(i), p.getY(i), p.getZ(i)); nor.push(n.getX(i), n.getY(i), n.getZ(i)); }
+    if (g.index) for (let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + off); else for (let i = 0; i < p.count; i++) idx.push(i + off);
+    off += p.count; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setIndex(idx); return g;
+}
+const matCache = new Map();
+const brickMat = c => { if (!matCache.has(c)) matCache.set(c, new THREE.MeshStandardMaterial({ color: c, roughness: .35 })); return matCache.get(c); };
+
+/* ================= world state ================= */
+// brick: {pl, x, z, y, w, d, c, mesh, vy(visual y), vel}
+let bricks = [];
+const occ = new Map();
+const K = (pl, x, y, z) => pl + ':' + x + ',' + y + ',' + z;
+const cellsOf = b => { const o = []; for (let i = 0; i < b.w; i++) for (let j = 0; j < b.d; j++) o.push([b.x + i, b.z + j]); return o; };
+const occupy = b => { for (const [x, z] of cellsOf(b)) occ.set(K(b.pl, x, b.y, z), b); };
+const vacate = b => { for (const [x, z] of cellsOf(b)) occ.delete(K(b.pl, x, b.y, z)); };
+const freeRect = (pl, x, y, z, w, d) => { const p = plateOf(pl); if (x < 0 || z < 0 || x + w > p.N || z + d > p.N || y < 0 || y >= MAXY) return false; for (let i = 0; i < w; i++) for (let j = 0; j < d; j++) if (occ.has(K(pl, x + i, y, z + j))) return false; return true; };
+function makeMesh(b) {
+  const m = new THREE.Mesh(brickGeo(b.w, b.d), brickMat(b.c)); m.castShadow = m.receiveShadow = true; m.userData.brick = b; scene.add(m); b.mesh = m; syncMesh(b);
+}
+function syncMesh(b) { const pl = plateOf(b.pl), [wx, wz] = cellWorld(pl, b.x, b.z); b.mesh.position.set(wx + b.w * P / 2, (b.vy ?? b.y) * BH, wz + b.d * P / 2); }
+function addBrick(b, pop = true) { b.vy = b.vy ?? b.y; b.vel = 0; makeMesh(b); occupy(b); bricks.push(b); if (pop) { b.pop = 0; b.mesh.scale.set(1, .01, 1); } $('count').textContent = bricks.length; }
+function dropBrick(b) { vacate(b); scene.remove(b.mesh); bricks = bricks.filter(x => x !== b); $('count').textContent = bricks.length; }
+// studs connect two bricks when one sits directly on the other with overlapping footprint
+function neighbours(b) {
+  const out = new Set();
+  for (const dy of [-1, 1]) for (const [x, z] of cellsOf(b)) { const o = occ.get(K(b.pl, x, b.y + dy, z)); if (o) out.add(o); }
+  return out;
+}
+function component(b) { const seen = new Set([b]), st = [b]; while (st.length) for (const n of neighbours(st.pop())) if (!seen.has(n)) { seen.add(n); st.push(n); } return [...seen]; }
+// gravity: any group not resting on a plate (through its studs) falls straight down until it lands
+function settle() {
+  let moved = false;
+  for (let guard = 0; guard < 200; guard++) {
+    const grounded = new Set(), st = bricks.filter(b => b.y === 0);
+    st.forEach(b => grounded.add(b));
+    while (st.length) for (const n of neighbours(st.pop())) if (!grounded.has(n)) { grounded.add(n); st.push(n); }
+    const loose = bricks.filter(b => !grounded.has(b)); if (!loose.length) break;
+    // take the lowest loose group and drop it
+    loose.sort((a, b) => a.y - b.y);
+    const grp = component(loose[0]); grp.forEach(vacate);
+    let k = 0; while (grp.every(b => freeRect(b.pl, b.x, b.y - k - 1, b.z, b.w, b.d))) k++;
+    grp.forEach(b => { b.y -= k; occupy(b); });
+    moved = true; if (k === 0) break; // safety: should not happen
+  }
+  if (moved) { S.noise(.18, 500, .12); S.vib([30, 20, 50]); }
+  return moved;
+}
+
+/* ================= undo + save (snapshots) ================= */
+const snap = () => JSON.stringify(bricks.map(({ pl, x, y, z, w, d, c }) => ({ pl, x, y, z, w, d, c })));
+let undoStack = [];
+function checkpoint() { undoStack.push(snap()); if (undoStack.length > 60) undoStack.shift(); }
+function restore(json, pop = false) { for (const b of [...bricks]) dropBrick(b); for (const b of JSON.parse(json)) addBrick({ ...b, vy: b.y }, pop); }
+function undo() { if (held && held.lifted) { cancelLift(); return; } const s = undoStack.pop(); if (!s) { S.toast('ย้อนไม่ได้แล้ว'); return; } restore(s); save(); S.tone(500, 380, .08, .08); }
+function save() { try { localStorage.setItem('cute-lego-v2', snap()); } catch (e) {} }
+function load() { try { const s = localStorage.getItem('cute-lego-v2'); if (s) restore(s); } catch (e) {} }
+
+/* ================= what's in hand ================= */
+// held = { rects:[{dx,dy,dz,w,d,c}], lifted?:{json} } relative to the aimed stud
+let mode = 'place', sizeI = 6, colorI = 0, held = null;
+function brickHeld() {
+  const [w, d] = SIZES[sizeI];
+  held = { rects: [{ dx: -Math.floor((w - 1) / 2), dy: 0, dz: -Math.floor((d - 1) / 2), w, d, c: COLORS[colorI] }] };
+  for (let i = 0; i < rotN; i++) rotRects(held.rects);
+  buildGhost();
+}
+let rotN = 0;
+function rotRects(rs) { for (const r of rs) { const ndx = -(r.dz + r.d), ndz = r.dx; r.dx = ndx; r.dz = ndz; [r.w, r.d] = [r.d, r.w]; } }
+function rotate() { if (!held) return; rotRects(held.rects); if (!held.lifted) rotN = (rotN + 1) % 4; buildGhost(); S.tone(700, 900, .05, .06); }
+const ghost = new THREE.Group(); scene.add(ghost);
+const ghostMats = new Map();
+function buildGhost() {
+  ghost.clear(); if (!held) return;
+  for (const r of held.rects) {
+    if (!ghostMats.has(r.c)) ghostMats.set(r.c, new THREE.MeshStandardMaterial({ color: r.c, transparent: true, opacity: .55, roughness: .4 }));
+    const m = new THREE.Mesh(brickGeo(r.w, r.d), ghostMats.get(r.c)); m.userData.r = r; ghost.add(m);
+  }
+}
+function setMode(m) {
+  if (held && held.lifted && m !== 'lift') cancelLift();
+  mode = m; document.querySelectorAll('.mode button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  if (m === 'place') brickHeld(); else if (!(held && held.lifted)) { held = null; ghost.clear(); }
+}
+// lift a whole connected build (on either plate) and carry it around
+function lift(b) {
+  checkpoint();
+  const grp = component(b), before = snap();
+  const minY = Math.min(...grp.map(g => g.y));
+  held = { rects: grp.map(g => ({ dx: g.x - b.x, dy: g.y - minY, dz: g.z - b.z, w: g.w, d: g.d, c: g.c })), lifted: { json: before } };
+  grp.forEach(dropBrick); settle(); buildGhost();
+  S.tone(500, 900, .15, .1, 'triangle'); S.vib(30);
+  S.toast(`ยกขึ้นมา ${grp.length} ชิ้น · ชี้ที่ใหม่แล้ววาง · หมุนได้`, 2.4);
+}
+function cancelLift() { if (!held || !held.lifted) return; restore(held.lifted.json); undoStack.pop(); held = null; ghost.clear(); setMode('lift'); save(); }
+
+/* ================= picker UI ================= */
+SIZES.forEach(([w, d], i) => { const b = document.createElement('button'); b.textContent = `${w}×${d}`; b.onclick = () => setSize(i); $('sizes').append(b); });
+COLORS.forEach((c, i) => { const b = document.createElement('button'); b.className = 'sw'; b.style.background = c; b.setAttribute('aria-label', 'สี ' + (i + 1)); b.onclick = () => setColor(i); $('colors').append(b); });
+function setSize(i) { sizeI = (i + SIZES.length) % SIZES.length; [...$('sizes').querySelectorAll('button')].forEach((b, k) => b.classList.toggle('on', k === sizeI)); if (!(held && held.lifted)) setMode('place'); }
+function setColor(i) { colorI = (i + COLORS.length) % COLORS.length; [...$('colors').querySelectorAll('button')].forEach((b, k) => b.classList.toggle('on', k === colorI)); if (!(held && held.lifted)) setMode('place'); }
+document.querySelectorAll('.mode button').forEach(b => b.onclick = () => setMode(b.dataset.m));
+$('rotBtn').onclick = rotate; $('undoBtn').onclick = undo; $('focusBtn').onclick = () => toggleFocus();
+$('clearBtn').onclick = () => { if (!bricks.length) return; checkpoint(); restore('[]'); save(); S.toast('ล้างแล้ว กดย้อนเพื่อเอากลับมาได้', 2.4); };
+$('tray').addEventListener('mousedown', e => e.stopPropagation());
+
+/* ================= camera ================= */
+let yaw = .45, pitch = .78, dist = 21, focus = 'all';
+const target = new THREE.Vector3(1, 1, 0), FOCI = { all: [1, 0, 0, 21], mini: [9.6, 0, -2, 12], main: [-4, 0, 0, 16] };
+function toggleFocus() { focus = focus === 'mini' ? 'all' : 'mini'; $('focusBtn').textContent = focus === 'mini' ? 'มองทั้งโต๊ะ' : 'มองโต๊ะเล็ก'; dist = FOCI[focus][3]; }
+function placeCamera(dt) {
+  const f = FOCI[focus], top = bricks.reduce((m, b) => Math.max(m, b.y), 0);
+  target.x += (f[0] - target.x) * Math.min(1, dt * 3); target.z += (f[2] - target.z) * Math.min(1, dt * 3);
+  target.y += ((1 + top * BH * .45) - target.y) * Math.min(1, dt * 2);
+  camera.position.set(target.x + Math.sin(yaw) * Math.cos(pitch) * dist, target.y + Math.sin(pitch) * dist, target.z + Math.cos(yaw) * Math.cos(pitch) * dist);
+  camera.lookAt(target);
+}
+
+/* ================= input ================= */
+const mouse = { x: 0, y: 0, moved: false, rdrag: null }; let clicks = 0;
+addEventListener('mousemove', e => {
+  mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = -(e.clientY / innerHeight * 2 - 1); mouse.moved = true;
+  if (mouse.rdrag) { yaw -= (e.clientX - mouse.rdrag[0]) * .008; pitch = clamp(pitch + (e.clientY - mouse.rdrag[1]) * .006, .15, 1.45); mouse.rdrag = [e.clientX, e.clientY]; }
+});
+renderer.domElement.addEventListener('mousedown', e => { if (e.button === 0) clicks++; if (e.button === 2) mouse.rdrag = [e.clientX, e.clientY]; });
+addEventListener('mouseup', e => { if (e.button === 2) mouse.rdrag = null; });
+addEventListener('contextmenu', e => e.preventDefault());
+renderer.domElement.addEventListener('wheel', e => { dist = clamp(dist + e.deltaY * .01, 6, 34); e.preventDefault(); }, { passive: false });
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'r') rotate(); if (k === 'x') setMode(mode === 'del' ? 'place' : 'del'); if (k === 'g') setMode(mode === 'lift' ? 'place' : 'lift'); if (k === 'z') undo();
+  if (k === 'escape' && held && held.lifted) cancelLift();
+  if (k === 'tab') { e.preventDefault(); toggleFocus(); }
+  if (k === 'q') yaw += .25; if (k === 'e') yaw -= .25;
+  if (k === '[' || k === ',') setSize(sizeI - 1); if (k === ']' || k === '.') setSize(sizeI + 1);
+  if (k >= '1' && k <= '9') setColor(+k - 1);
+});
+const ray = new THREE.Raycaster();
+function pointer() {
+  if (pad.live) { const a = pad.aim(); return { x: clamp(a.yaw / .5, -1, 1), y: clamp(a.pitch / .36, -1, 1), phone: true }; }
+  return { x: mouse.x, y: mouse.y, phone: false };
+}
+// figure out what the pointer means right now
+function aimAt(pt) {
+  ray.setFromCamera(new THREE.Vector2(pt.x, pt.y), camera);
+  const h = ray.intersectObjects([...plateMeshes, ...bricks.map(b => b.mesh)], false)[0]; if (!h) return null;
+  const hb = h.object.userData.brick;
+  if (mode === 'del' || (mode === 'lift' && !held)) return hb ? { brick: hb } : null;
+  if (!held) return null;
+  const plId = hb ? hb.pl : h.object.userData.plate, pl = plateOf(plId);
+  const n = h.face ? h.face.normal.clone().transformDirection(h.object.matrixWorld) : new THREE.Vector3(0, 1, 0);
+  const p = h.point.clone().addScaledVector(n, .05);
+  let ax = Math.floor((p.x - (pl.ox - pl.N * P / 2)) / P), az = Math.floor((p.z - (pl.oz - pl.N * P / 2)) / P);
+  // keep the whole held piece on this plate
+  const minX = Math.min(...held.rects.map(r => r.dx)), maxX = Math.max(...held.rects.map(r => r.dx + r.w)), minZ = Math.min(...held.rects.map(r => r.dz)), maxZ = Math.max(...held.rects.map(r => r.dz + r.d));
+  if (maxX - minX > pl.N || maxZ - minZ > pl.N) return { tooBig: true };
+  ax = clamp(ax, -minX, pl.N - maxX); az = clamp(az, -minZ, pl.N - maxZ);
+  // gravity: start above everything and fall until something is in the way
+  const fitsAt = y => held.rects.every(r => freeRect(plId, ax + r.dx, y + r.dy, az + r.dz, r.w, r.d));
+  const maxDy = Math.max(...held.rects.map(r => r.dy));
+  let y = MAXY - 1 - maxDy; if (!fitsAt(y)) return null;
+  while (y > 0 && fitsAt(y - 1)) y--;
+  return { pl: plId, ax, az, y };
+}
+
+/* ================= loop ================= */
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+load(); setSize(sizeI); setColor(colorI); setMode('place');
+let last = performance.now(), time = 0, aim = null, rollState = 0;
+const delBox = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: '#ff5f6d', transparent: true, opacity: .4, depthTest: false })); delBox.visible = false; scene.add(delBox);
+const hiMat = new THREE.MeshBasicMaterial({ color: '#4fb3ff', transparent: true, opacity: .35, depthTest: false });
+const liftBoxes = new THREE.Group(); scene.add(liftBoxes);
+function loop(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now; time += dt;
+  S.tick(dt); pad.update(dt);
+  const lk = pad.takeLook(); yaw -= lk[0] * .01; pitch = clamp(pitch + lk[1] * .007, .15, 1.45);
+  placeCamera(dt);
+  let act = clicks; clicks = 0;
+  act += pad.tap('place');
+  if (pad.tap('brick')) setSize(sizeI + 1);
+  if (pad.tap('color')) setColor(colorI + 1);
+  if (pad.tap('rot')) rotate();
+  if (pad.tap('del')) { setMode(mode === 'del' ? 'place' : 'del'); S.toast(mode === 'del' ? 'โหมดลบ: ชี้ตัวต่อแล้วแตะ' : 'กลับมาโหมดวาง'); }
+  if (pad.tap('lift')) { if (held && held.lifted) cancelLift(); else { setMode(mode === 'lift' ? 'place' : 'lift'); S.toast(mode === 'lift' ? 'โหมดยก: ชี้ชิ้นงานแล้วแตะ' : 'กลับมาโหมดวาง'); } }
+  if (pad.tap('focus')) toggleFocus();
+  if (pad.tap('undo')) undo();
+  if (pad.live) { const r = pad.aim().roll; if (rollState === 0 && Math.abs(r) > .6) { rollState = Math.sign(r); rotate(); } else if (rollState && Math.abs(r) < .3) rollState = 0; }
+  const pt = pointer(), active = !S.pairing() && (pt.phone || mouse.moved) && !mouse.rdrag;
+  aim = active ? aimAt(pt) : null;
+  // ghost / highlights
+  ghost.visible = !!(aim && aim.pl);
+  if (ghost.visible) { const pl = plateOf(aim.pl); for (const m of ghost.children) { const r = m.userData.r, [wx, wz] = cellWorld(pl, aim.ax + r.dx, aim.az + r.dz); m.position.set(wx + r.w * P / 2, (aim.y + r.dy) * BH + .04 + Math.sin(time * 5) * .03, wz + r.d * P / 2); } }
+  delBox.visible = !!(aim && aim.brick && mode === 'del');
+  if (delBox.visible) { const b = aim.brick; delBox.scale.set(b.w * P + .06, BH + .2, b.d * P + .06); delBox.position.set(b.mesh.position.x, b.mesh.position.y + BH / 2 + .05, b.mesh.position.z); }
+  liftBoxes.clear();
+  if (aim && aim.brick && mode === 'lift') for (const b of component(aim.brick)) { const m = new THREE.Mesh(delBox.geometry, hiMat); m.scale.set(b.w * P + .06, BH + .1, b.d * P + .06); m.position.set(b.mesh.position.x, b.mesh.position.y + BH / 2, b.mesh.position.z); liftBoxes.add(m); }
+  if (act && !S.pairing()) {
+    if (aim && aim.tooBig) S.toast('ชิ้นนี้ใหญ่เกินแผ่นนี้ ลองวางบนแผ่นใหญ่', 2);
+    else if (aim && aim.brick && mode === 'del') { checkpoint(); dropBrick(aim.brick); settle(); save(); S.tone(320, 200, .1, .1, 'triangle'); S.vib(30); }
+    else if (aim && aim.brick && mode === 'lift') lift(aim.brick);
+    else if (aim && aim.pl) {
+      if (!held.lifted) checkpoint();
+      for (const r of held.rects) addBrick({ pl: aim.pl, x: aim.ax + r.dx, y: aim.y + r.dy, z: aim.az + r.dz, w: r.w, d: r.d, c: r.c, vy: aim.y + r.dy + (held.lifted ? 1.5 : 0) }, !held.lifted);
+      S.tone(880 - aim.y * 15, 1200, .06, .1, 'square'); S.noise(.05, 2400, .1); S.vib(18);
+      if (held.lifted) { S.toast('ประกอบเข้าที่แล้ว!', 1.4); held = null; ghost.clear(); setMode('lift'); }
+      save();
+    }
+  }
+  // animation: pop-in for new bricks, falling with gravity for everything else
+  for (const b of bricks) {
+    if (b.pop !== undefined && b.pop < 1) { b.pop = Math.min(1, b.pop + dt * 6); const s = 1 + Math.sin(b.pop * Math.PI) * .15; b.mesh.scale.set(s, Math.max(.01, b.pop) * s, s); }
+    if (b.vy > b.y) { b.vel += 30 * dt; b.vy = Math.max(b.y, b.vy - b.vel * dt / BH); if (b.vy === b.y) { b.vel = 0; S.tone(220, 160, .05, .05, 'triangle'); } syncMesh(b); }
+    else if (b.vy !== b.y) { b.vy = b.y; syncMesh(b); }
+  }
+  const P2 = pt.phone;
+  if (S.pairing()) S.hint('');
+  else if (held && held.lifted) S.hint(P2 ? 'ชี้ที่ใหม่แล้วแตะวาง · บิดข้อมือ = หมุนทั้งชิ้น · แตะ "ยกทั้งชิ้น" อีกครั้ง = ยกเลิก' : 'คลิกที่ใหม่เพื่อวางทั้งชิ้น · R หมุน · Esc ยกเลิก');
+  else if (mode === 'del') S.hint(P2 ? 'โหมดลบ: ชี้ตัวต่อแล้วแตะ · ของที่ลอยจะตกลงมา' : 'โหมดลบ: คลิกตัวต่อที่จะลบ · ของที่ไม่มีอะไรรองจะตกลงมา');
+  else if (mode === 'lift') S.hint(P2 ? 'โหมดยก: ชี้ชิ้นงานที่ต่อไว้แล้วแตะ เพื่อยกทั้งชิ้น' : 'โหมดยก: คลิกชิ้นงานเพื่อยกทั้งชิ้น (สีฟ้า = ส่วนที่จะติดมาด้วย)');
+  else S.hint(P2 ? 'ชี้แล้วแตะวาง · ตัวต่อจะตกลงไปจนชนของข้างล่าง · บิดข้อมือ = หมุน' : 'คลิกวาง (ตกลงตามแรงโน้มถ่วง) · R หมุน · X ลบ · G ยกทั้งชิ้น · Z ย้อน · Tab มองโต๊ะเล็ก · คลิกขวาลากหมุนกล้อง');
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+window.__lego = {
+  get count() { return bricks.length; }, get bricks() { return bricks.map(({ pl, x, y, z, w, d }) => ({ pl, x, y, z, w, d })); },
+  cellScreen: (pl, x, y, z) => { const p = plateOf(pl), [wx, wz] = cellWorld(p, x, z); return new THREE.Vector3(wx + P / 2, y * BH + BH, wz + P / 2).project(camera); },
+  setSize, setColor, setMode, rotate, undo, toggleFocus, delAt: (pl, x, y, z) => { const b = occ.get(K(pl, x, y, z)); if (b) { checkpoint(); dropBrick(b); settle(); save(); } return !!b; }, get aim() { return aim && { ...aim, brick: !!aim.brick }; }, get held() { return held && held.rects.length; },
+};
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

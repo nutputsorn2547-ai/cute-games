@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>หมากรุกน้องขนม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: 3D board in the middle; turn card top-centre, move list + captured pieces on the right, start menu centred */
+:root{--bg:#f3eefb;--card:#ffffff;--ink:#3e3550;--soft:#8f86a6;--accent:#a68cf0;--accent-deep:#8467e0;--good:#7fd1a0;--warn:#f2b24a;--line:#e5ddf5;--bad:#ff7a8a;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+.turn{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 24px -16px #6a5a90}
+.turn i{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink)}
+.turn b{font-size:18px;font-weight:600}
+.turn span{font-size:13px;color:var(--soft)}
+.turn .check{color:var(--bad);font-weight:600}
+.side{position:fixed;right:20px;top:90px;bottom:20px;width:200px;display:flex;flex-direction:column;gap:12px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px;min-height:0}
+.panel .lbl{font-size:12px;color:var(--soft)}
+.moves{overflow:auto;font-variant-numeric:tabular-nums;font-size:13px;line-height:1.7;display:grid;grid-template-columns:28px 1fr 1fr;align-content:start;flex:1;min-height:0}
+.moves span:nth-child(3n+1){color:var(--soft)}
+.caps{font-size:20px;letter-spacing:2px;min-height:26px}
+.btnrow{display:flex;flex-direction:column;gap:6px}
+.btnrow button{font:inherit;font-size:14px;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:7px 10px;cursor:pointer}
+.btnrow button:focus-visible,.choice button:focus-visible{outline:3px solid var(--accent-deep);outline-offset:2px}
+.menu{flex-direction:column;align-items:stretch;gap:14px;min-width:min(520px,90vw)}
+.menu h1{margin:0}
+.choice{display:flex;gap:8px;flex-wrap:wrap}
+.choice button{flex:1;font:inherit;font-size:15px;border:2px solid var(--line);background:#faf8ff;color:var(--ink);border-radius:14px;padding:10px;cursor:pointer;min-width:90px}
+.choice button.on{border-color:var(--accent);background:var(--accent);color:#fff}
+.menu .lbl{font-size:13px;color:var(--soft)}
+.result{flex-direction:column;text-align:center;gap:8px}
+.big-res{font-size:40px;font-weight:600}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+<script type="importmap">{ "imports": { "three": "../lib/three.module.js" } }</script>
+</head>
+<body>
+<div class="turn" id="turnCard"><i id="turnDot"></i><div><b id="turnTxt">ตาฝั่งขาว</b><br><span id="turnSub"></span></div></div>
+<div class="side" id="side">
+  <div class="panel" style="flex:1"><span class="lbl">การเดิน</span><div class="moves" id="moves"></div></div>
+  <div class="panel"><span class="lbl">กินได้ (ขาว)</span><div class="caps" id="capW"></div><span class="lbl">กินได้ (ดำ)</span><div class="caps" id="capB"></div></div>
+  <div class="panel btnrow"><button id="undoBtn">ย้อนตา (U)</button><button id="hintBtn">ขอคำใบ้ (H)</button><button id="menuBtn">เกมใหม่ / เปลี่ยนโหมด</button></div>
+</div>
+<div class="overlay" id="menu" hidden>
+  <div class="card menu">
+    <h1>หมากรุกน้องขนม</h1>
+    <span class="lbl">เล่นกับใคร</span>
+    <div class="choice" id="modeC"><button data-v="ai" class="on">เล่นกับ AI</button><button data-v="friend">เล่นกับเพื่อน</button></div>
+    <div id="aiOpts" style="display:flex;flex-direction:column;gap:10px">
+      <span class="lbl">ความยาก</span>
+      <div class="choice" id="levelC"><button data-v="0">ง่าย</button><button data-v="1" class="on">ปานกลาง</button><button data-v="2">ยาก</button></div>
+      <span class="lbl">เราเล่นฝั่ง</span>
+      <div class="choice" id="colorC"><button data-v="w" class="on">ขาว (เดินก่อน)</button><button data-v="b">ดำ</button><button data-v="r">สุ่ม</button></div>
+    </div>
+    <p class="lbl" id="friendNote" hidden>เพื่อนสแกน QR เดียวกันอีกเครื่อง: มือถือเครื่องแรกเป็นฝั่งขาว เครื่องที่สองเป็นฝั่งดำ ถ้ามีเครื่องเดียวก็ผลัดกันใช้ได้ หรือใช้เมาส์บนคอมผลัดกันเดิน</p>
+    <div class="btns"><button class="btn" id="startBtn">เริ่มเล่น</button></div>
+  </div>
+</div>
+<div class="overlay" id="result" hidden>
+  <div class="card result">
+    <div class="big-res" id="resTitle"></div>
+    <p id="resSub" style="margin:0"></p>
+    <div class="btns" style="justify-content:center"><button class="btn ghost" id="viewBoard">ดูกระดาน</button><button class="btn" id="again">เล่นอีกตา</button></div>
+  </div>
+</div>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
+import { setupShell, shellMarkup } from '../lib/shell.js?v=4';
+import { PadInput } from '../lib/padinput.js?v=4';
+import { fromFEN, START, legalMoves, makeMove, inCheck, outcome, san, key } from '../lib/chess.js?v=2';
+
+shellMarkup({
+  title: 'หมากรุกน้องขนม',
+  blurb: 'หมากรุกกติกาเต็ม เล่นกับ AI สามระดับ หรือเล่นกับเพื่อนโดยใช้มือถือคนละเครื่อง',
+  steps: ['ถือหงายจอ หัวเครื่องชี้จอ กด <b>ตั้งศูนย์</b>', 'ชี้ไปที่ตัวหมาก แตะ <b>เลือก</b> แล้วชี้ช่องที่จะไป แตะ <b>วาง</b>'],
+});
+const S = setupShell({ game: 'chess', minCutoff: .8, beta: 1.5 });
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ================= phones: one per player in friend mode ================= */
+const pads = new Map(); let phoneIds = [];
+S.onData = (d, id) => { if (!pads.has(id)) pads.set(id, new PadInput({ minCutoff: .8, beta: 1.5 })); pads.get(id).feed(d); };
+S.onStatus = s => { phoneIds = s.ids || []; for (const k of [...pads.keys()]) if (!phoneIds.includes(k)) pads.delete(k); announce(); };
+function activePad() {
+  const live = phoneIds.filter(id => pads.get(id) && pads.get(id).live);
+  if (!live.length) return null;
+  if (cfg.mode === 'friend' && live.length >= 2) return pads.get(state.turn === 'w' ? phoneIds[0] : phoneIds[1]) || null;
+  return pads.get(live[0]);
+}
+function announce() {
+  if (!S.link) return;
+  phoneIds.forEach((id, i) => {
+    let msg;
+    if (cfg.mode === 'friend' && phoneIds.length >= 2) {
+      const mine = i === 0 ? 'w' : i === 1 ? 'b' : null;
+      msg = mine ? { you: mine === 'w' ? 'ฝั่งขาว' : 'ฝั่งดำ', color: mine === 'w' ? '#ffffff' : '#6b4a3a', turn: state.turn === mine, waitingFor: state.turn === 'w' ? 'ฝั่งขาว' : 'ฝั่งดำ' } : { you: 'ผู้ชม', color: '#cccccc', turn: false, waitingFor: '' };
+    } else msg = { you: cfg.mode === 'ai' ? `ฝั่ง${cfg.human === 'w' ? 'ขาว' : 'ดำ'} vs AI` : 'ผลัดกันเดิน', color: '#a68cf0', turn: true, waitingFor: '' };
+    S.link.sendTo(id, msg);
+  });
+}
+
+/* ================= scene ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.domElement.className = 'scene';
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#efe8fb');
+const camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+scene.add(new THREE.HemisphereLight('#ffffff', '#c9bce8', 1.5));
+const sun = new THREE.DirectionalLight('#fff6ec', 2); sun.position.set(-4, 12, 6); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6 }); scene.add(sun);
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .55, ...o });
+const T = 1; // square size
+const frame3 = new THREE.Mesh(new RoundedBoxGeometry(9.2, .5, 9.2, 4, .2), M('#c9a6f2')); frame3.position.y = -.26; frame3.receiveShadow = true; scene.add(frame3);
+const squares = [];
+for (let s = 0; s < 64; s++) {
+  const r = s >> 3, f = s & 7, light = (r + f) % 2 === 0;
+  const m = new THREE.Mesh(new RoundedBoxGeometry(T * .98, .1, T * .98, 2, .03), M(light ? '#fff4e8' : '#b9a3e8'));
+  m.position.set((f - 3.5) * T, 0, (r - 3.5) * T); m.receiveShadow = true; m.userData.sq = s; scene.add(m); squares.push(m);
+}
+const sqPos = s => new THREE.Vector3(((s & 7) - 3.5) * T, .05, ((s >> 3) - 3.5) * T);
+// file/rank labels
+function label(txt, x, z) {
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.fillStyle = '#6b5a90'; g.font = '600 40px Mitr, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, 32, 34);
+  const t = new THREE.CanvasTexture(c); const m = new THREE.Mesh(new THREE.PlaneGeometry(.4, .4), new THREE.MeshBasicMaterial({ map: t, transparent: true })); m.rotation.x = -Math.PI / 2; m.position.set(x, .01, z); scene.add(m);
+}
+for (let i = 0; i < 8; i++) { label('abcdefgh'[i], (i - 3.5) * T, 4.3); label(String(8 - i), -4.3, (i - 3.5) * T); }
+
+/* ================= cute pieces ================= */
+const faceTex = (() => { const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d');
+  g.fillStyle = '#2e2636'; g.beginPath(); g.arc(42, 26, 7, 0, 6.3); g.arc(86, 26, 7, 0, 6.3); g.fill();
+  g.strokeStyle = '#2e2636'; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath(); g.arc(64, 34, 8, .3, Math.PI - .3); g.stroke();
+  g.fillStyle = '#ff8fab99'; g.beginPath(); g.ellipse(26, 40, 9, 5, 0, 0, 6.3); g.ellipse(102, 40, 9, 5, 0, 0, 6.3); g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+const faceMat = new THREE.MeshBasicMaterial({ map: faceTex, transparent: true });
+function makePiece(p) {
+  const white = p === p.toUpperCase(), P = p.toUpperCase();
+  const base = M(white ? '#fff7ec' : '#7a5240'), accent = M(white ? '#ffd27f' : '#ff9fb4');
+  const g = new THREE.Group(), add = (geo, mat, y, sx = 1, sy = 1, sz = 1) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.scale.set(sx, sy, sz); m.castShadow = true; g.add(m); return m; };
+  add(new THREE.CylinderGeometry(.34, .38, .14, 24), base, .07);
+  let faceY = .45;
+  if (P === 'P') { add(new THREE.CylinderGeometry(.16, .3, .35, 20), base, .3); add(new THREE.SphereGeometry(.22, 20, 14), base, .58); faceY = .58; }
+  if (P === 'R') { add(new THREE.CylinderGeometry(.27, .3, .65, 20), base, .45); for (let i = 0; i < 4; i++) { const b = add(new THREE.BoxGeometry(.13, .14, .13), accent, .84); b.position.x = Math.cos(i * Math.PI / 2) * .2; b.position.z = Math.sin(i * Math.PI / 2) * .2; } faceY = .55; }
+  if (P === 'N') { add(new THREE.CylinderGeometry(.2, .3, .4, 20), base, .33); const h = add(new RoundedBoxGeometry(.32, .5, .3, 3, .1), base, .72); h.rotation.x = -.35; const snout = add(new RoundedBoxGeometry(.26, .2, .3, 3, .08), base, .7); snout.position.z = .2; for (const s of [-1, 1]) { const e = add(new THREE.ConeGeometry(.06, .16, 8), accent, 1.0); e.position.x = s * .1; } faceY = .82; }
+  if (P === 'B') { add(new THREE.CylinderGeometry(.16, .3, .45, 20), base, .35); add(new THREE.SphereGeometry(.24, 20, 14), base, .72, 1, 1.3, 1); add(new THREE.SphereGeometry(.07, 12, 8), accent, 1.06); faceY = .72; }
+  if (P === 'Q') { add(new THREE.CylinderGeometry(.18, .32, .55, 20), base, .4); add(new THREE.SphereGeometry(.25, 20, 14), base, .82); const cr = add(new THREE.TorusGeometry(.17, .05, 8, 20), accent, 1.04); cr.rotation.x = Math.PI / 2; for (let i = 0; i < 5; i++) { const b = add(new THREE.SphereGeometry(.05, 10, 8), accent, 1.12); b.position.x = Math.cos(i * 1.26) * .17; b.position.z = Math.sin(i * 1.26) * .17; } faceY = .82; }
+  if (P === 'K') { add(new THREE.CylinderGeometry(.2, .33, .6, 20), base, .42); add(new THREE.SphereGeometry(.26, 20, 14), base, .88); add(new THREE.BoxGeometry(.07, .3, .07), accent, 1.24); add(new THREE.BoxGeometry(.22, .07, .07), accent, 1.24); faceY = .88; }
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(.36, .18), faceMat); face.position.set(0, faceY, P === 'N' ? .36 : P === 'P' ? .22 : .27); g.add(face);
+  g.rotation.y = white ? 0 : Math.PI; // each side faces its own player
+  return g;
+}
+
+/* ================= game state ================= */
+let state = fromFEN(START), history = [], meshes = new Array(64).fill(null), sel = -1, targets = [], lastMove = null, over = null, thinking = false;
+const cfg = { mode: 'ai', level: 1, human: 'w' };
+const reps = new Map();
+const worker = new Worker(new URL('./ai.js', import.meta.url), { type: 'module' });
+let reqId = 0;
+worker.onmessage = e => { if (e.data.id !== reqId) return; thinking = false; if (e.data.move) doMove(e.data.move, true); };
+function placeAll() {
+  for (const m of meshes) if (m) scene.remove(m);
+  meshes = state.b.map((p, s) => { if (p === '.') return null; const g = makePiece(p); g.position.copy(sqPos(s)); scene.add(g); return g; });
+}
+function newGame() {
+  state = fromFEN(START); history = []; reps.clear(); reps.set(key(state), 1); sel = -1; targets = []; lastMove = null; over = null; thinking = false; reqId++;
+  if (cfg.human === 'r') cfg.human = Math.random() < .5 ? 'w' : 'b';
+  placeAll(); renderMoves(); updateTurn(); $('result').hidden = true; announce();
+  camTarget = viewSide();
+  if (cfg.mode === 'ai' && state.turn !== cfg.human) askAI();
+}
+const anims = [];
+function doMove(m, fromAI = false) {
+  if (over) return;
+  const prev = state, mover = meshes[m.from];
+  history.push({ st: state, meshesSnap: null, m, san: san(state, m) });
+  // captured piece pops away
+  const capSq = m.ep ? m.to + (state.turn === 'w' ? 8 : -8) : m.to;
+  if (meshes[capSq]) { const cm = meshes[capSq]; anims.push({ type: 'cap', mesh: cm, t: 0 }); meshes[capSq] = null; }
+  meshes[m.to] = mover; meshes[m.from] = null;
+  anims.push({ type: 'move', mesh: mover, from: sqPos(m.from), to: sqPos(m.to), t: 0 });
+  if (m.castle) { const rf = m.castle === 'K' ? m.from + 3 : m.from - 4, rt = m.castle === 'K' ? m.from + 1 : m.from - 1; const rm = meshes[rf]; meshes[rt] = rm; meshes[rf] = null; anims.push({ type: 'move', mesh: rm, from: sqPos(rf), to: sqPos(rt), t: -.3 }); }
+  if (m.promo) { const nm = makePiece(m.promo); nm.position.copy(sqPos(m.to)); nm.scale.setScalar(.01); scene.add(nm); anims.push({ type: 'promo', old: mover, mesh: nm, t: -.4 }); meshes[m.to] = nm; }
+  state = makeMove(prev, m); lastMove = m; sel = -1; targets = [];
+  const k = key(state); reps.set(k, (reps.get(k) || 0) + 1);
+  S.tone(m.cap !== '.' || m.ep ? 300 : 520, m.cap !== '.' ? 200 : 700, .1, .12, 'triangle'); S.vib(m.cap !== '.' ? [40, 30, 40] : 25);
+  renderMoves(); updateTurn(); announce();
+  over = outcome(state, reps.get(k));
+  if (over) setTimeout(showResult, 900);
+  else if (inCheck(state)) { S.big('รุก!', 1.2, '#ff5f75'); S.vib([60, 40, 60]); }
+  if (!over && cfg.mode === 'friend') camTarget = viewSide();
+  if (!over && cfg.mode === 'ai' && state.turn !== cfg.human) askAI();
+}
+function askAI() { thinking = true; reqId++; worker.postMessage({ st: { ...state, hist: [] }, level: cfg.level, id: reqId }); updateTurn(); }
+function undo() {
+  if (!history.length) return;
+  reqId++; thinking = false;
+  let n = cfg.mode === 'ai' ? (state.turn === cfg.human ? 2 : 1) : 1; n = Math.min(n, history.length);
+  for (let i = 0; i < n; i++) { const h = history.pop(); const k = key(state); reps.set(k, (reps.get(k) || 1) - 1); state = h.st; }
+  over = null; sel = -1; targets = []; lastMove = history.length ? history[history.length - 1].m : null;
+  placeAll(); renderMoves(); updateTurn(); announce(); $('result').hidden = true;
+  if (cfg.mode === 'ai' && state.turn !== cfg.human) askAI();
+}
+const SYM = { P: '♟', N: '♞', B: '♝', R: '♜', Q: '♛', K: '♚' };
+function renderMoves() {
+  let h = '';
+  for (let i = 0; i < history.length; i += 2) h += `<span>${i / 2 + 1}.</span><span>${history[i].san}</span><span>${history[i + 1] ? history[i + 1].san : ''}</span>`;
+  $('moves').innerHTML = h; $('moves').scrollTop = 1e6;
+  const capW = [], capB = [];
+  for (const x of history) { const c = x.m.ep ? (x.st.turn === 'w' ? 'p' : 'P') : x.m.cap; if (c !== '.') (c === c.toLowerCase() ? capW : capB).push(SYM[c.toUpperCase()]); }
+  $('capW').textContent = capW.join(''); $('capB').textContent = capB.join('');
+}
+function updateTurn() {
+  const w = state.turn === 'w';
+  $('turnDot').style.background = w ? '#fff7ec' : '#7a5240';
+  let txt = `ตาฝั่ง${w ? 'ขาว' : 'ดำ'}`;
+  if (cfg.mode === 'ai') txt = state.turn === cfg.human ? 'ตาของคุณ' : 'AI กำลังคิด…';
+  $('turnTxt').textContent = txt;
+  const lv = ['ง่าย', 'ปานกลาง', 'ยาก'][cfg.level];
+  $('turnSub').innerHTML = (inCheck(state) && !over ? '<span class="check">โดนรุก! </span>' : '') + (cfg.mode === 'ai' ? `AI ระดับ${lv} · เราเล่นฝั่ง${cfg.human === 'w' ? 'ขาว' : 'ดำ'}` : 'เล่นกับเพื่อน');
+}
+function showResult() {
+  const loser = state.turn, msgs = { stalemate: 'เสมอ (อับ)', fifty: 'เสมอ (ครบ 50 ตา)', material: 'เสมอ (หมากไม่พอรุกจน)', repetition: 'เสมอ (ตำแหน่งซ้ำ 3 ครั้ง)' };
+  if (over === 'checkmate') {
+    const winner = loser === 'w' ? 'b' : 'w';
+    $('resTitle').textContent = cfg.mode === 'ai' ? (winner === cfg.human ? 'รุกจน! คุณชนะ' : 'โดนรุกจน AI ชนะ') : `รุกจน! ฝั่ง${winner === 'w' ? 'ขาว' : 'ดำ'}ชนะ`;
+    if (cfg.mode !== 'ai' || winner === cfg.human) S.jingle();
+  } else $('resTitle').textContent = msgs[over];
+  $('resSub').textContent = `เดินไปทั้งหมด ${history.length} ตา`;
+  $('result').hidden = false; S.vib([60, 60, 200]);
+}
+
+/* ================= menu ================= */
+function bindChoice(id, keyName, parse = v => v) {
+  $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cfg[keyName] = parse(b.dataset.v); [...$(id).children].forEach(x => x.classList.toggle('on', x === b)); $('aiOpts').hidden = cfg.mode !== 'ai'; $('aiOpts').style.display = cfg.mode === 'ai' ? 'flex' : 'none'; $('friendNote').hidden = cfg.mode !== 'friend'; });
+}
+bindChoice('modeC', 'mode'); bindChoice('levelC', 'level', Number); bindChoice('colorC', 'human');
+$('startBtn').onclick = () => { $('menu').hidden = true; newGame(); };
+$('menuBtn').onclick = () => { $('menu').hidden = false; };
+$('again').onclick = () => { newGame(); };
+$('viewBoard').onclick = () => { $('result').hidden = true; };
+$('undoBtn').onclick = undo;
+$('hintBtn').onclick = hint;
+let hintMove = null, hintT = 0;
+function hint() {
+  if (over || thinking) return;
+  import('../lib/chess.js?v=2').then(({ search }) => { hintMove = search(state, 1); hintT = 3; S.toast('ลองเดินตามลูกศรดูนะ', 2); });
+}
+
+/* ================= camera ================= */
+const viewSide = () => cfg.mode === 'ai' ? cfg.human : state.turn;
+let camTarget = 'w', camAng = 0;
+function placeCamera(dt) {
+  const want = camTarget === 'w' ? 0 : Math.PI;
+  let d = want - camAng; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+  camAng += d * Math.min(1, dt * 3);
+  camera.position.set(Math.sin(camAng) * 9.4, 9.6, Math.cos(camAng) * 9.4); camera.lookAt(0, 0, Math.cos(camAng) * .6);
+}
+
+/* ================= input ================= */
+let mouse = { x: 0, y: 0, moved: false }, clicks = 0;
+addEventListener('mousemove', e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = -(e.clientY / innerHeight * 2 - 1); mouse.moved = true; });
+renderer.domElement.addEventListener('mousedown', e => { if (e.button === 0) clicks++; });
+addEventListener('keydown', e => { const k = e.key.toLowerCase(); if (k === 'u') undo(); if (k === 'h') hint(); });
+const ray = new THREE.Raycaster();
+function pointer() {
+  const p = activePad();
+  if (p) { const a = p.aim(); return { x: clamp(a.yaw / .5, -1, 1), y: clamp(a.pitch / .36, -1, 1), pad: p }; }
+  return { x: mouse.x, y: mouse.y, pad: null };
+}
+const canMove = () => !over && !thinking && (cfg.mode !== 'ai' || state.turn === cfg.human) && $('menu').hidden && $('result').hidden && !S.pairing();
+function clickSquare(s) {
+  if (!canMove() || s < 0) return;
+  const p = state.b[s], mine = p !== '.' && (p === p.toUpperCase()) === (state.turn === 'w');
+  const t = targets.find(m => m.to === s);
+  if (sel >= 0 && t) { doMove(t); return; }
+  if (mine) { sel = s; targets = legalMoves(state).filter(m => m.from === s); S.tone(880, 990, .05, .06); if (!targets.length) S.toast('ตัวนี้เดินไม่ได้'); return; }
+  if (sel >= 0) { sel = -1; targets = []; S.tone(400, 300, .06, .05); }
+}
+
+/* ================= markers ================= */
+const hover = new THREE.Mesh(new THREE.RingGeometry(.36, .46, 32), new THREE.MeshBasicMaterial({ color: '#8467e0', transparent: true, opacity: .8 })); hover.rotation.x = -Math.PI / 2; scene.add(hover);
+const selRing = new THREE.Mesh(new THREE.RingGeometry(.4, .48, 32), new THREE.MeshBasicMaterial({ color: '#ffb84d' })); selRing.rotation.x = -Math.PI / 2; scene.add(selRing);
+const dotGeo = new THREE.CircleGeometry(.13, 20), dotMat = new THREE.MeshBasicMaterial({ color: '#7fd1a0', transparent: true, opacity: .85 }), capMat = new THREE.MeshBasicMaterial({ color: '#ff8f9f', transparent: true, opacity: .85 });
+const dots = []; for (let i = 0; i < 28; i++) { const d = new THREE.Mesh(dotGeo, dotMat); d.rotation.x = -Math.PI / 2; d.visible = false; scene.add(d); dots.push(d); }
+const lastMk = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.PlaneGeometry(.96, .96), new THREE.MeshBasicMaterial({ color: '#ffe48a', transparent: true, opacity: .5 })); m.rotation.x = -Math.PI / 2; scene.add(m); return m; });
+const checkMk = new THREE.Mesh(new THREE.CircleGeometry(.48, 32), new THREE.MeshBasicMaterial({ color: '#ff6b81', transparent: true, opacity: .55 })); checkMk.rotation.x = -Math.PI / 2; scene.add(checkMk);
+const arrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 1, '#ff9f43', .35, .25); scene.add(arrow);
+
+/* ================= loop ================= */
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+let last = performance.now(), time = 0;
+function loop(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now; time += dt;
+  S.tick(dt);
+  for (const p of pads.values()) p.update(dt);
+  placeCamera(dt);
+  const pt = pointer();
+  ray.setFromCamera(new THREE.Vector2(pt.x, pt.y), camera);
+  const hit = ray.intersectObjects(squares, false)[0], hs = hit ? hit.object.userData.sq : -1;
+  hover.visible = hs >= 0 && canMove() && (pt.pad || mouse.moved);
+  if (hs >= 0) hover.position.copy(sqPos(hs)).setY(.07);
+  // phones: tap the big button (or flick down) to pick / drop; mouse: click
+  let act = clicks; clicks = 0;
+  for (const p of pads.values()) { const n = p.tap('pick'); if (p === pt.pad) act += n; if (p.tap('undo2')) undo(); }
+  for (const p of pads.values()) if (p.tap('clue')) hint();
+  if (act) clickSquare(hs);
+  // markers
+  selRing.visible = sel >= 0; if (sel >= 0) selRing.position.copy(sqPos(sel)).setY(.07);
+  dots.forEach((d, i) => { const m = targets[i]; d.visible = !!m; if (m) { d.position.copy(sqPos(m.to)).setY(.08); d.material = m.cap !== '.' || m.ep ? capMat : dotMat; d.scale.setScalar(m.cap !== '.' ? 2.4 : 1); } });
+  lastMk.forEach((m, i) => { m.visible = !!lastMove; if (lastMove) m.position.copy(sqPos(i ? lastMove.to : lastMove.from)).setY(.06); });
+  const ks = state.b.indexOf(state.turn === 'w' ? 'K' : 'k'); checkMk.visible = inCheck(state); if (checkMk.visible) checkMk.position.copy(sqPos(ks)).setY(.065);
+  hintT -= dt; arrow.visible = hintT > 0 && !!hintMove;
+  if (arrow.visible) { const a = sqPos(hintMove.from).setY(.6), b = sqPos(hintMove.to).setY(.6), dir = b.clone().sub(a); arrow.position.copy(a); arrow.setDirection(dir.clone().normalize()); arrow.setLength(dir.length(), .35, .25); }
+  // animations
+  for (const a of anims) {
+    a.t += dt * 2.6; const t = clamp(a.t, 0, 1);
+    if (a.type === 'move') { a.mesh.position.lerpVectors(a.from, a.to, t * t * (3 - 2 * t)); a.mesh.position.y = .05 + Math.sin(t * Math.PI) * .8; }
+    if (a.type === 'cap') { a.mesh.position.y += dt * 4; a.mesh.rotation.z += dt * 8; a.mesh.scale.setScalar(Math.max(.01, 1 - t)); if (t >= 1) scene.remove(a.mesh); }
+    if (a.type === 'promo') { a.mesh.scale.setScalar(Math.max(.01, t)); a.old.scale.setScalar(Math.max(.01, 1 - t)); if (t >= 1) scene.remove(a.old); }
+  }
+  for (let i = anims.length - 1; i >= 0; i--) if (anims[i].t >= 1) anims.splice(i, 1);
+  // idle bounce of the piece under the cursor
+  meshes.forEach((m, s) => { if (m && !anims.some(a => a.mesh === m)) m.position.y = .05 + (s === sel ? .25 + Math.sin(time * 6) * .06 : 0); });
+  const P = !!pt.pad;
+  if (S.pairing() || !$('menu').hidden || !$('result').hidden) S.hint('');
+  else if (thinking) S.hint('AI กำลังคิด…');
+  else if (sel >= 0) S.hint(P ? 'ชี้ช่องที่จะไป (จุดเขียว) แล้วแตะวาง · ชี้ตัวอื่นเพื่อเปลี่ยน' : 'คลิกช่องที่จะไป (จุดเขียว)');
+  else S.hint(P ? 'ชี้ที่ตัวหมากของเรา แล้วแตะเลือก' : 'คลิกตัวหมากของเราเพื่อเลือก · U ย้อนตา · H คำใบ้');
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+window.__chess = { get state() { return state; }, get over() { return over; }, get thinking() { return thinking; }, clickSquare, newGame, cfg, sqScreen: s => sqPos(s).project(camera), get history() { return history.map(h => h.san); } };
+// show the menu after pairing / mouse choice
+const showMenuWhenReady = setInterval(() => { if (!S.pairing()) { clearInterval(showMenuWhenReady); $('menu').hidden = false; } }, 200);
+placeAll(); updateTurn(); camTarget = 'w';
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

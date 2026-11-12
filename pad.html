@@ -25,7 +25,7 @@ h1{margin:0;font-size:22px;font-weight:600}
 .hint{margin:0;font-size:15px;line-height:1.55;color:var(--soft)}
 .hint b{color:var(--ink);font-weight:500}
 .warn{margin:0;font-size:14px;line-height:1.5;color:var(--warn)}
-.row{display:flex;gap:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row button{flex:1 1 28%}
 button{font:inherit;font-weight:500;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 8px;font-size:16px;flex:1}
 button:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
 button.on{background:var(--line)}
@@ -49,6 +49,11 @@ button.on{background:var(--line)}
 .banner{border-radius:16px;padding:10px 14px;font-weight:500;font-size:17px;background:var(--card);border:3px solid var(--pc,var(--pink));display:flex;align-items:center;gap:10px}
 .banner::before{content:"";width:16px;height:16px;border-radius:50%;background:var(--pc,var(--pink));flex:none}
 body.waiting #controls > *{opacity:.4;pointer-events:none}
+.tpad{flex:1;min-height:200px;border-radius:22px;background:var(--card);border:2px solid var(--line);display:flex;align-items:flex-end;justify-content:center;padding:12px;font-size:12px;color:var(--soft);text-align:center;touch-action:none}
+.tpad.drag{border-color:var(--pink);background:#fff0f4}
+.kbd{display:flex;gap:8px}
+.kbd input{flex:1;min-width:0;font:inherit;font-size:16px;border:2px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--card);color:var(--ink)}
+.kbd button{flex:none;padding:10px 12px}
 .join{display:flex;flex-direction:column;gap:12px;margin:auto 0}
 .join input{font:inherit;font-size:28px;text-align:center;letter-spacing:.3em;border:2px solid var(--line);border-radius:16px;padding:12px;background:var(--card);color:var(--ink);text-transform:lowercase}
 .join button{background:var(--pink);color:#fff;border:0}
@@ -126,6 +131,32 @@ const GAMES = {
     big: { id: 'scoop', label: 'ตัก!', sub: 'แตะ หรือสะบัดมือถือขึ้น', tap: true },
     row: [{ id: 'recal', label: 'ตั้งศูนย์' }, { id: 'skip', label: 'ข้ามคำนี้' }],
   },
+  carving: {
+    title: 'แกะสลักหุ่นไม้',
+    hint: 'ถือหงายจอ หัวเครื่องชี้จอ · <b>ชี้</b>ไปที่ก้อนไม้ กดค้าง<b>แกะ</b> แล้วลากไปเรื่อยๆ · <b>บิดข้อมือ</b>หรือลากนิ้วในช่องด้านล่างเพื่อหมุนก้อนไม้',
+    big: { id: 'carve', label: 'แกะ / ทาสี', sub: 'กดค้างไว้แล้วชี้ลากไปบนเนื้อไม้' },
+    look: 'ลากนิ้วซ้ายขวาเพื่อหมุนก้อนไม้ · ขึ้นลงเพื่อมองบน/ล่าง',
+    row: [{ id: 'tool', label: 'เปลี่ยนเครื่องมือ' }, { id: 'color', label: 'เปลี่ยนสี' }, { id: 'undo', label: 'ย้อน' }, { id: 'recal', label: 'ตั้งศูนย์' }, { id: 'done', label: 'ส่งงาน' }],
+  },
+  chess: {
+    title: 'หมากรุก',
+    hint: 'ถือหงายจอ หัวเครื่องชี้จอ · <b>ชี้</b>ไปที่ตัวหมาก แตะ<b>เลือก/วาง</b> แล้วชี้ช่องปลายทาง แตะอีกครั้ง · เล่นกับเพื่อน: เครื่องแรกเป็นฝั่งขาว เครื่องที่สองเป็นฝั่งดำ',
+    big: { id: 'pick', label: 'เลือก / วาง', sub: 'ชี้แล้วแตะ', tap: true },
+    row: [{ id: 'undo2', label: 'ย้อนตา' }, { id: 'clue', label: 'คำใบ้' }, { id: 'recal', label: 'ตั้งศูนย์' }],
+  },
+  lego: {
+    title: 'ต่อเลโก้',
+    hint: 'ถือหงายจอ หัวเครื่องชี้จอ · <b>ชี้</b>ตำแหน่งแล้วแตะ<b>วาง</b> ตัวต่อจะตกลงตามแรงโน้มถ่วง · ต่อชิ้นเล็กบนแผ่นฟ้า แล้วใช้<b>ยกทั้งชิ้น</b>ไปประกอบบนแผ่นใหญ่ · <b>บิดข้อมือ</b>หรือกดปุ่มหมุนเพื่อหมุนตัวต่อ · ลากนิ้วในช่องด้านล่างเพื่อหมุนมุมกล้อง',
+    big: { id: 'place', label: 'วาง', sub: 'ชี้แล้วแตะ (โหมดลบ = แตะเพื่อลบ)', tap: true },
+    look: 'ลากนิ้วเพื่อหมุนกล้องรอบงาน · ขึ้นลงเพื่อมองจากบน',
+    row: [{ id: 'brick', label: 'ขนาด' }, { id: 'color', label: 'สี' }, { id: 'rot', label: 'หมุน ⟳' }, { id: 'del', label: 'โหมดลบ' }, { id: 'lift', label: 'ยกทั้งชิ้น' }, { id: 'focus', label: 'สลับโต๊ะเล็ก' }, { id: 'undo', label: 'ย้อน' }, { id: 'recal', label: 'ตั้งศูนย์' }],
+  },
+  office: {
+    title: 'ออฟฟิศจำลอง',
+    hint: 'มือถือเป็น<b>ทัชแพด</b>และ<b>คีย์บอร์ด</b> · ลากนิ้ว 1 นิ้วเลื่อนเมาส์ · แตะ = คลิก · แตะค้างแล้วลาก = ลากไฟล์ · 2 นิ้ว = เลื่อนหน้า · พิมพ์ในช่องด้านล่างแล้วข้อความจะไปขึ้นบนคอม',
+    touchpad: true, keyboard: true,
+    row: [{ id: 'view', label: 'สลับ จอคอม ↔ โต๊ะ' }, { id: 'dbl', label: 'ดับเบิลคลิก' }, { id: 'esc', label: 'ปิด / Esc' }],
+  },
   latte: {
     title: 'ลาเต้อาร์ต',
     hint: 'ถือมือถือ<b>หงายจอ</b> เหมือนถือเหยือกนม · <b>หัน/ก้ม/เงย</b> = เลื่อนตำแหน่งเท · <b>เอียงข้าง (บิดข้อมือ)</b> หรือกดค้างปุ่ม = เทนม · ส่ายเบาๆ ตอนเทจะได้ลาย',
@@ -153,7 +184,7 @@ function start() {
   $('hint').innerHTML = cfg.hint;
   $('room').textContent = 'ห้อง ' + room;
 
-  const st = { q: [1, 0, 0, 0], b: {}, taps: {}, look: [0, 0], reel: 0 };
+  const st = { q: [1, 0, 0, 0], b: {}, taps: {}, look: [0, 0], reel: 0, tp: [0, 0], scroll: 0, text: '', textN: 0 };
   let tension = 0;
   const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
 
@@ -196,6 +227,51 @@ function start() {
     const end = () => { lastP = null; lp.classList.remove('on'); };
     lp.addEventListener('pointerup', end); lp.addEventListener('pointercancel', end);
     ctr.append(lp);
+  }
+  if (cfg.touchpad) {
+    // laptop-style touchpad: 1 finger moves the cursor, quick tap = click, press-and-hold then move = drag, 2 fingers = scroll
+    const tp = document.createElement('div'); tp.className = 'tpad'; tp.innerHTML = '<span>ทัชแพด · แตะ = คลิก · แตะค้างแล้วลาก = ลาก · 2 นิ้ว = เลื่อน</span>';
+    const pts = new Map(); let downT = 0, moved = 0, holdTimer = null, dragging = false;
+    st.taps.click = 0; st.taps.dbl = 0; st.b.press = false;
+    tp.addEventListener('pointerdown', e => {
+      e.preventDefault(); tp.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 1) { downT = performance.now(); moved = 0; clearTimeout(holdTimer); holdTimer = setTimeout(() => { if (moved < 12 && pts.size === 1) { dragging = true; st.b.press = true; tp.classList.add('drag'); vib(35); push(); } }, 380); }
+    });
+    tp.addEventListener('pointermove', e => {
+      const p = pts.get(e.pointerId); if (!p) return;
+      const dx = e.clientX - p[0], dy = e.clientY - p[1]; pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size >= 2) { st.scroll += dy / pts.size; return; }
+      moved += Math.abs(dx) + Math.abs(dy);
+      const sp = Math.hypot(dx, dy), gain = 1.6 + Math.min(2.4, sp / 10); // faster swipes travel further, like a real touchpad
+      st.tp[0] += dx * gain; st.tp[1] += dy * gain;
+    });
+    const up = e => {
+      if (!pts.has(e.pointerId)) return;
+      pts.delete(e.pointerId); clearTimeout(holdTimer);
+      if (dragging && pts.size === 0) { dragging = false; st.b.press = false; tp.classList.remove('drag'); push(); return; }
+      if (pts.size === 0 && moved < 12 && performance.now() - downT < 260) { st.taps.click++; vib(12); push(); }
+    };
+    tp.addEventListener('pointerup', up); tp.addEventListener('pointercancel', up);
+    ctr.append(tp);
+  }
+  if (cfg.keyboard) {
+    const kb = document.createElement('div'); kb.className = 'kbd';
+    kb.innerHTML = '<input id="kbIn" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="แตะเพื่อพิมพ์ ข้อความจะไปขึ้นบนคอม"><button id="kbBack" type="button">⌫</button><button id="kbEnter" type="button">Enter</button>';
+    ctr.append(kb);
+    const inp = kb.querySelector('#kbIn'); let prev = '';
+    const addText = t => { if (!t) return; st.textN += t.length; st.text = (st.text + t).slice(-300); push(); };
+    inp.addEventListener('input', () => {
+      const v = inp.value;
+      if (v.startsWith(prev)) addText(v.slice(prev.length));
+      else if (prev.startsWith(v)) addText('\b'.repeat(prev.length - v.length));
+      else addText('\b'.repeat(prev.length) + v);
+      prev = v;
+    });
+    const clear = () => { inp.value = ''; prev = ''; };
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addText('\n'); clear(); } });
+    inp.addEventListener('compositionend', () => { if (inp.value.length > 30) clear(); });
+    kb.querySelector('#kbBack').onclick = () => { addText('\b'); if (prev) { prev = prev.slice(0, -1); inp.value = prev; } };
+    kb.querySelector('#kbEnter').onclick = () => { addText('\n'); clear(); };
   }
   if (big) ctr.append(big);
   ctr.append(row);

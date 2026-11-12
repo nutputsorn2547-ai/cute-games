@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ออฟฟิศจำลอง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Mali:wght@400;600&display=swap">
+<style>
+/* Two views that slide: a computer screen (desktop, folders, spreadsheet, search) and a top-down desk
+   (papers, notebook, pencil, pen, eraser, highlighter). A sticky task list sits at the top-left of both. */
+:root{--bg:#f4efe6;--card:#ffffff;--ink:#3a3245;--soft:#8c8399;--accent:#7c9cff;--accent-deep:#5a78e6;--good:#5fc28e;--warn:#f2b24a;--line:#e8e1d6;--bad:#ff6b7d;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;--hand:"Mali","Mitr",cursive;color-scheme:light}
+html,body{height:100%}
+body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
+.views{position:fixed;inset:0;display:flex;width:200vw;transition:transform .55s cubic-bezier(.6,.05,.3,1)}
+.views.desk{transform:translateX(-100vw)}
+.view{width:100vw;height:100vh;position:relative;flex:none;overflow:hidden}
+/* ---------- monitor ---------- */
+.monitor{position:absolute;left:calc(260px + (100vw - 270px) / 2);top:46%;transform:translate(-50%,-50%);width:min(1120px,calc(100vw - 310px));aspect-ratio:16/10;max-height:calc(100vh - 150px);background:#3b3a48;border-radius:26px;padding:16px;box-shadow:0 30px 60px -30px #4a3a2a}
+.monitor::after{content:"";position:absolute;left:50%;bottom:-46px;width:160px;height:46px;transform:translateX(-50%);background:linear-gradient(#cfc6b8,#b8ad9c);clip-path:polygon(28% 0,72% 0,100% 100%,0 100%);border-radius:0 0 12px 12px}
+.screen{position:relative;width:100%;height:100%;border-radius:12px;overflow:hidden;background:linear-gradient(160deg,#bfe3ff,#ffd7ec 70%,#ffe9c7);font-size:14px}
+.icons{position:absolute;inset:0 0 44px 0}
+.icon{position:absolute;width:92px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;border-radius:10px;text-align:center;font-size:12px;line-height:1.25;color:#2e2a38;cursor:default;touch-action:none}
+.icon.sel{background:#ffffff88;outline:2px solid #ffffffcc}
+.icon span{max-width:88px;word-break:break-word;text-shadow:0 1px 0 #fff}
+.icon.drop{background:#7c9cff55;outline:2px dashed var(--accent-deep)}
+.dragghost{position:fixed;pointer-events:none;opacity:.85;z-index:60;transform:translate(-50%,-50%) rotate(-4deg)}
+.fi{width:42px;height:52px;background:#fff;border-radius:4px 14px 4px 4px;position:relative;box-shadow:0 3px 6px -3px #0006;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;box-sizing:border-box;font:600 10px var(--font);color:#fff}
+.fi b{background:var(--c);border-radius:4px;padding:1px 4px}
+.fi::before{content:"";position:absolute;right:0;top:0;width:12px;height:12px;background:linear-gradient(225deg,transparent 50%,#0001 50%)}
+.fo{width:54px;height:42px;position:relative;margin-top:8px}
+.fo::before{content:"";position:absolute;left:0;top:-7px;width:22px;height:10px;border-radius:4px 4px 0 0;background:var(--c2,#f3b73a)}
+.fo::after{content:"";position:absolute;inset:0;border-radius:3px 8px 8px 8px;background:var(--c,#ffcf5a);box-shadow:0 3px 6px -3px #0006}
+.fo i{position:absolute;right:-6px;top:-10px;z-index:2;background:var(--bad);color:#fff;font:600 11px var(--font);font-style:normal;border-radius:99px;padding:0 6px;min-width:10px}
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:44px;background:#ffffffcc;backdrop-filter:blur(6px);display:flex;align-items:center;gap:6px;padding:0 10px}
+.taskbar button{font:inherit;font-size:13px;border:0;border-radius:10px;background:transparent;padding:6px 10px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:6px}
+.taskbar button.on{background:#fff;box-shadow:0 2px 6px -3px #0005}
+.taskbar .clock{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--soft)}
+.ab{width:18px;height:18px;border-radius:5px;display:inline-block;background:var(--c);color:#fff;font:600 11px/18px var(--font);text-align:center}
+.win{position:absolute;background:#fff;border-radius:12px;box-shadow:0 18px 40px -16px #0006;display:flex;flex-direction:column;overflow:hidden;min-width:260px}
+.win .tb{height:34px;flex:none;display:flex;align-items:center;gap:8px;padding:0 6px 0 12px;background:var(--tc,#eef1ff);font-size:13px;cursor:grab;touch-action:none}
+.win .tb .x{margin-left:auto;font:inherit;border:0;background:#ff8a9a;color:#fff;width:24px;height:24px;border-radius:8px;cursor:pointer;line-height:1}
+.win .body{flex:1;overflow:auto;position:relative}
+.fold{display:flex;flex-wrap:wrap;gap:6px;padding:12px;min-height:100%;box-sizing:border-box;align-content:flex-start}
+.fold .icon{position:static}
+.fold .empty{color:var(--soft);font-size:13px;margin:auto}
+.paper{padding:22px 26px;line-height:1.7;font-size:14px}
+.paper h3{margin:0 0 8px;font-weight:600}
+.paper table{border-collapse:collapse;width:100%;font-size:13px}
+.paper td,.paper th{border-bottom:1px solid #eee;padding:4px 6px;text-align:left}
+.paper td:last-child,.paper th:last-child{text-align:right}
+/* spreadsheet */
+.xl{display:flex;flex-direction:column;height:100%;font-size:13px}
+.xl .fbar{display:flex;gap:6px;align-items:center;padding:6px 8px;border-bottom:1px solid #e3e8e3;background:#f7fbf7}
+.xl .fbar b{min-width:38px;text-align:center;background:#fff;border:1px solid #dfe6df;border-radius:6px;padding:2px 4px}
+.xl .fbar span{flex:1;background:#fff;border:1px solid #dfe6df;border-radius:6px;padding:2px 8px;min-height:20px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
+.xl .grid{flex:1;overflow:auto;position:relative}
+.xl table{border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums}
+.xl th{background:#eef5ee;color:#5f7a62;font-weight:500;font-size:12px;border:1px solid #dde7dd;height:22px;position:sticky;top:0;z-index:1}
+.xl th.rh{position:sticky;left:0;width:34px;z-index:2}
+.xl td{border:1px solid #e6ece6;height:24px;width:92px;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:cell}
+.xl td.num{text-align:right}
+.xl td.sel{outline:2px solid #2f9d5a;outline-offset:-2px;background:#effaf2}
+.xl td.err{color:var(--bad)}
+.xl input.ed{position:absolute;box-sizing:border-box;border:2px solid #2f9d5a;font:inherit;padding:0 4px;outline:none;z-index:3}
+/* search */
+.se{padding:22px;display:flex;flex-direction:column;gap:12px;min-height:100%;box-sizing:border-box}
+.se .logo{font:600 44px var(--font);text-align:center;letter-spacing:1px;margin-top:20px}
+.se .logo i{font-style:normal}
+.se .bar{display:flex;gap:8px;max-width:560px;width:100%;margin:0 auto}
+.se input{flex:1;font:inherit;font-size:15px;border:2px solid #e4e0f0;border-radius:99px;padding:8px 16px;outline:none}
+.se input:focus{border-color:var(--accent)}
+.se button{font:inherit;border:0;background:var(--accent);color:#fff;border-radius:99px;padding:8px 18px;cursor:pointer}
+.res{max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.res a{color:#3348b8;font-size:16px;cursor:pointer;text-decoration:none}
+.res p{margin:2px 0 0;color:#555;font-size:13px;line-height:1.55}
+.res small{color:#3a8a4c;font-size:12px}
+.res .note{color:var(--soft);font-size:12px}
+.res img{float:right;max-width:160px;border-radius:10px;margin:0 0 8px 12px}
+/* ---------- desk ---------- */
+.desk{position:absolute;inset:0;background:repeating-linear-gradient(90deg,#d9a877 0 3px,#d4a171 3px 70px,#dcae7f 70px 74px,#d0a06f 74px 140px);background-color:#d4a171}
+.desk::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 40%,#7a4a2a44)}
+.monedge{position:absolute;left:50%;top:-40px;transform:translateX(-50%);width:46vw;height:90px;border-radius:0 0 30px 30px;background:#3b3a48;box-shadow:0 14px 26px -14px #0008;color:#fff;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px;box-sizing:border-box;font-size:14px;cursor:pointer}
+.item{position:absolute;touch-action:none;cursor:grab;filter:drop-shadow(0 6px 6px #5a341c55);transition:filter .15s}
+.item.lift{filter:drop-shadow(0 16px 12px #5a341c66)}
+.item.inhand{filter:drop-shadow(0 18px 14px #5a341c77) brightness(1.06)}
+.item.inhand::after{content:"อยู่ในมือ";position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:12px;background:#fff;color:var(--ink);border-radius:99px;padding:1px 8px;white-space:nowrap}
+.doc{width:190px;height:250px;background:#fffdf8;border-radius:4px;padding:16px;box-sizing:border-box;font-size:9px;line-height:1.5;color:#555;overflow:hidden}
+.doc h4{margin:0 0 6px;font-size:12px;color:#333;font-weight:600}
+.doc .ln{height:5px;border-radius:3px;background:#e7e2d8;margin:6px 0}
+.nb{width:220px;height:280px;border-radius:8px 14px 14px 8px;background:linear-gradient(90deg,#e97a9a 0 16px,#ff9fbb 16px);display:flex;align-items:center;justify-content:center}
+.nb span{background:#fff;padding:8px 16px;border-radius:8px;font:600 16px var(--hand);color:#b8486e;transform:rotate(-3deg)}
+.mug{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle,#6b3e22 0 52%,#fff 53% 66%,#f1e6d8 67%);cursor:default}
+.plant{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#9be08f,#4fa65a 70%);cursor:default}
+.sticky{position:absolute;width:150px;padding:12px;background:#fff59a;font:14px var(--hand);color:#5c4e1a;transform:rotate(3deg);box-shadow:0 8px 12px -8px #5a341c88}
+/* overlay for reading / writing */
+.ov{position:fixed;inset:0;background:#3a2a1a66;display:flex;align-items:center;justify-content:center;gap:16px;z-index:40}
+.sheet{position:relative;width:min(620px,70vw);height:min(800px,86vh);background:#fffdf8;border-radius:8px;box-shadow:0 30px 60px -20px #000a;overflow:hidden}
+.sheet .content{position:absolute;inset:0;padding:40px 46px;font-size:15px;line-height:1.85;color:#333;overflow:hidden}
+.sheet .content h2{margin:0 0 12px;font-weight:600}
+.sheet.nbp{background:repeating-linear-gradient(#fffdf8 0 33px,#bcd3f0 33px 34px);background-position:0 70px;background-color:#fffdf8}
+.sheet.nbp::before{content:"";position:absolute;left:62px;top:0;bottom:0;width:2px;background:#ff9fb0}
+.sheet textarea{position:absolute;left:76px;right:30px;top:68px;bottom:30px;border:0;background:transparent;resize:none;outline:none;font:20px/34px var(--hand);color:#2b3f8f;padding:0}
+.sheet canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.sheet .pg{position:absolute;right:20px;top:16px;font:14px var(--hand);color:var(--soft)}
+.tools{display:flex;flex-direction:column;gap:8px;background:#fff;border-radius:18px;padding:10px;box-shadow:0 18px 30px -18px #000a}
+.tools button{font:inherit;font-size:13px;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:6px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:76px}
+.tools button.on{border-color:var(--accent-deep);background:#eef2ff}
+.tools button:focus-visible,.taskbar button:focus-visible{outline:3px solid var(--accent-deep);outline-offset:2px}
+.tools hr{border:0;border-top:1px solid var(--line);margin:2px 0}
+/* view switch + tasks */
+.switch{position:fixed;right:20px;bottom:20px;z-index:30;font:inherit;font-size:15px;border:0;border-radius:14px;padding:10px 16px;background:var(--ink);color:#fff;cursor:pointer;box-shadow:0 10px 20px -12px #000a}
+.tasks{position:fixed;left:18px;top:18px;width:230px;padding:14px 16px;background:#fff59a;border-radius:4px;transform:rotate(-1.5deg);box-shadow:0 12px 20px -14px #5a341c;font-size:13px;z-index:30;color:#4f4416}
+.tasks h3{margin:0 0 6px;font:600 17px var(--hand)}
+.tasks ol{margin:0;padding-left:1.2em;line-height:1.55}
+.tasks li.done{text-decoration:line-through;color:#9c9060}
+.vcur{position:fixed;left:0;top:0;width:22px;height:22px;pointer-events:none;z-index:100;margin:-2px 0 0 -2px}
+.vcur.press path{fill:#ffd166}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+</head>
+<body>
+<div class="views" id="views">
+  <section class="view" id="vScreen" aria-label="จอคอม">
+    <div class="monitor"><div class="screen" id="screen">
+      <div class="icons" id="icons"></div>
+      <div class="taskbar" id="taskbar">
+        <button data-app="files"><i class="ab" style="--c:#f3b73a">ไ</i>ไฟล์</button>
+        <button data-app="sheet"><i class="ab" style="--c:#2f9d5a">ต</i>ตารางคำนวณ</button>
+        <button data-app="search"><i class="ab" style="--c:#7c9cff">ค</i>เสิร์ชน้อย</button>
+        <span class="clock" id="clock"></span>
+      </div>
+    </div></div>
+  </section>
+  <section class="view" id="vDesk" aria-label="โต๊ะทำงาน">
+    <div class="desk" id="desk">
+      <div class="monedge" id="monEdge">กลับไปที่จอคอม ↑</div>
+    </div>
+  </section>
+</div>
+<button class="switch" id="switchBtn">ไปที่โต๊ะ ↓</button>
+<div class="tasks" id="tasks"><h3>งานวันนี้</h3><ol id="taskList"></ol></div>
+<svg class="vcur" id="vcur" viewBox="0 0 22 22" hidden><path d="M2 2 L2 18 L6.5 13.8 L9.6 20.4 L12.6 19 L9.6 12.6 L15.6 12.6 Z" fill="#fff" stroke="#3a3245" stroke-width="1.6" stroke-linejoin="round"/></svg>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import { setupShell, shellMarkup } from '../lib/shell.js?v=4';
+
+shellMarkup({
+  title: 'ออฟฟิศจำลอง',
+  blurb: 'ลองทำงานออฟฟิศ: ลากไฟล์เข้าโฟลเดอร์ ทำตารางคำนวณ ค้นหาข้อมูล หยิบเอกสารบนโต๊ะมาอ่าน และจดโน้ตด้วยดินสอ ปากกา ไฮไลท์',
+  steps: ['มือถือจะกลายเป็น <b>ทัชแพด</b> กับ <b>คีย์บอร์ด</b>', 'ลาก 1 นิ้ว = เลื่อนเมาส์ · แตะ = คลิก · แตะค้างแล้วลาก = ลาก · 2 นิ้ว = เลื่อนหน้า'],
+});
+const S = setupShell({ game: 'office' });
+const pad = S.pad, $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const h = (tag, attrs = {}, html = '') => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (html) e.innerHTML = html; return e; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ================= tasks ================= */
+const TASKS = [
+  { id: 'rec', t: 'ย้ายใบเสร็จ 3 ไฟล์ ไปไว้ในโฟลเดอร์ "บัญชี"' },
+  { id: 'pic', t: 'ย้ายรูป 2 รูป ไปไว้ในโฟลเดอร์ "รูปภาพ"' },
+  { id: 'sum', t: 'เปิดตารางคำนวณ แล้วใส่สูตรรวมยอดที่ช่อง B8 (พิมพ์ =SUM(B2:B6))' },
+  { id: 'srch', t: 'ลองค้นหาอะไรก็ได้ในเสิร์ชน้อย' },
+  { id: 'hl', t: 'หยิบเอกสารบนโต๊ะมาอ่าน แล้วไฮไลท์ตรงที่สำคัญ' },
+  { id: 'note', t: 'จดอะไรก็ได้ลงสมุดโน้ต' },
+];
+const done = new Set();
+function renderTasks() { $('taskList').innerHTML = TASKS.map(t => `<li class="${done.has(t.id) ? 'done' : ''}">${esc(t.t)}</li>`).join(''); }
+function complete(id) {
+  if (done.has(id)) return; done.add(id); renderTasks(); S.tone(660, 990, .12, .1, 'triangle'); S.vib([20, 40, 20]);
+  if (done.size === TASKS.length) { S.big('เสร็จงานแล้ว เลิกงานได้!', 3, '#5a78e6'); S.jingle(); } else S.toast('เยี่ยม! ทำเสร็จไปอีกข้อ', 1.6);
+}
+renderTasks();
+
+/* ================= files & folders ================= */
+const TYPES = { pdf: ['PDF', '#ff6b6b'], png: ['PNG', '#4fb3ff'], xls: ['XLS', '#2f9d5a'], doc: ['DOC', '#7c6cff'] };
+const FOLDERS = [{ id: 'acc', name: 'บัญชี', c: '#ffcf5a' }, { id: 'pics', name: 'รูปภาพ', c: '#8fd3ff', c2: '#5fb6ea' }, { id: 'work', name: 'งานด่วน', c: '#ffb0c8', c2: '#f08aa8' }, { id: 'trash', name: 'ถังขยะ', c: '#c9c3d6', c2: '#a9a1ba' }];
+const FILES = [
+  { id: 'r1', name: 'ใบเสร็จ-ค่าไฟ.pdf', type: 'pdf', kind: 'rec', lines: [['ค่าไฟฟ้า เดือนนี้', '1,240.00'], ['ภาษีมูลค่าเพิ่ม (รวมแล้ว)', '—']] },
+  { id: 'r2', name: 'ใบเสร็จ-กาแฟ.pdf', type: 'pdf', kind: 'rec', lines: [['ลาเต้เย็น ×2', '120.00']] },
+  { id: 'r3', name: 'ใบเสร็จ-แท็กซี่.pdf', type: 'pdf', kind: 'rec', lines: [['ค่าโดยสาร ไป-กลับ ลูกค้า', '260.00']] },
+  { id: 'p1', name: 'แมวส้ม.png', type: 'png', kind: 'pic', art: 'cat' },
+  { id: 'p2', name: 'ทะเลวันหยุด.png', type: 'png', kind: 'pic', art: 'sea' },
+  { id: 'x1', name: 'ค่าใช้จ่าย.xlsx', type: 'xls', kind: 'sheet' },
+  { id: 'd1', name: 'บันทึกประชุม.doc', type: 'doc', kind: 'doc' },
+];
+const icons = $('icons');
+let deskPos = {}; // id -> [col,row] on the desktop
+FOLDERS.forEach((f, i) => deskPos[f.id] = [0, i]);
+FILES.forEach((f, i) => { f.loc = 'desk'; deskPos[f.id] = [1 + (i >> 2), i % 4]; });
+const CELLW = 100, CELLH = 104;
+function fileIcon(f) {
+  const [lab, c] = TYPES[f.type];
+  const el = h('div', { class: 'icon', 'data-id': f.id }, `<div class="fi" style="--c:${c}"><b>${lab}</b></div><span>${esc(f.name)}</span>`);
+  return el;
+}
+function folderIcon(fo) {
+  const n = FILES.filter(f => f.loc === fo.id).length;
+  return h('div', { class: 'icon', 'data-id': fo.id, 'data-folder': fo.id }, `<div class="fo" style="--c:${fo.c};--c2:${fo.c2 || '#f3b73a'}">${n ? `<i>${n}</i>` : ''}</div><span>${esc(fo.name)}</span>`);
+}
+function renderDesktop() {
+  icons.innerHTML = '';
+  for (const fo of FOLDERS) { const el = folderIcon(fo); place(el, fo.id); icons.append(el); }
+  for (const f of FILES) if (f.loc === 'desk') { const el = fileIcon(f); place(el, f.id); icons.append(el); }
+  for (const w of wins.values()) if (w.folder) renderFolder(w);
+  checkFiles();
+}
+function place(el, id) { const [c, r] = deskPos[id]; el.style.left = (14 + c * CELLW) + 'px'; el.style.top = (12 + r * CELLH) + 'px'; }
+function checkFiles() {
+  if (FILES.filter(f => f.kind === 'rec').every(f => f.loc === 'acc')) complete('rec');
+  if (FILES.filter(f => f.kind === 'pic').every(f => f.loc === 'pics')) complete('pic');
+}
+// icon interaction: select, drag to folder / around desktop, double click to open
+let drag = null;
+document.addEventListener('pointerdown', e => {
+  const ic = e.target.closest('.icon'); if (!ic || !e.target.closest('#screen')) { if (e.target.closest('#screen')) selectIcon(null); return; }
+  selectIcon(ic); drag = { id: ic.dataset.id, x0: e.clientX, y0: e.clientY, el: ic, ghost: null };
+});
+addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.ghost && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 5) { drag.ghost = drag.el.cloneNode(true); drag.ghost.classList.add('dragghost'); drag.ghost.style.position = 'fixed'; document.body.append(drag.ghost); drag.el.style.opacity = .35; }
+  if (drag.ghost) {
+    drag.ghost.style.left = e.clientX + 'px'; drag.ghost.style.top = e.clientY + 'px';
+    document.querySelectorAll('.icon.drop').forEach(x => x.classList.remove('drop'));
+    const t = dropTarget(e.clientX, e.clientY); if (t && t.el) t.el.classList.add('drop');
+  }
+});
+addEventListener('pointerup', e => {
+  if (!drag) return; const d = drag; drag = null;
+  document.querySelectorAll('.icon.drop').forEach(x => x.classList.remove('drop'));
+  if (!d.ghost) return; d.ghost.remove(); d.el.style.opacity = '';
+  const t = dropTarget(e.clientX, e.clientY), f = FILES.find(x => x.id === d.id);
+  if (t && t.folder && f && t.folder !== d.id) {
+    f.loc = t.folder; S.tone(520, 780, .1, .1, 'triangle'); S.vib(20);
+    S.toast(`ย้าย "${f.name}" ไปที่ ${FOLDERS.find(x => x.id === t.folder).name} แล้ว`, 1.8);
+  } else if (t && t.desk) {
+    const r = icons.getBoundingClientRect();
+    const c = clamp(Math.round((e.clientX - r.left - 14 - 46) / CELLW), 0, Math.floor((r.width - 100) / CELLW)), row = clamp(Math.round((e.clientY - r.top - 12 - 40) / CELLH), 0, Math.floor((r.height - 100) / CELLH));
+    if (f) f.loc = 'desk';
+    const taken = Object.entries(deskPos).find(([id, p]) => id !== d.id && p[0] === c && p[1] === row && (FOLDERS.some(x => x.id === id) || FILES.find(x => x.id === id)?.loc === 'desk'));
+    if (!taken) deskPos[d.id] = [c, row];
+  }
+  renderDesktop();
+});
+function dropTarget(x, y) {
+  const el = document.elementFromPoint(x, y); if (!el) return null;
+  const ic = el.closest('.icon[data-folder]'); if (ic) return { folder: ic.dataset.folder, el: ic };
+  const fw = el.closest('.win'); if (fw && wins.get(fw.dataset.id)?.folder) return { folder: wins.get(fw.dataset.id).folder };
+  if (el.closest('#icons')) return { desk: true };
+  return null;
+}
+function selectIcon(ic) { document.querySelectorAll('.icon.sel').forEach(x => x.classList.remove('sel')); if (ic) ic.classList.add('sel'); }
+document.addEventListener('dblclick', e => {
+  const ic = e.target.closest('.icon'); if (!ic) return;
+  const id = ic.dataset.id, fo = FOLDERS.find(x => x.id === id), f = FILES.find(x => x.id === id);
+  if (fo) openFolder(fo); else if (f) openFile(f);
+});
+
+/* ================= windows ================= */
+const wins = new Map(); let zTop = 10;
+const screen = $('screen');
+function openWin(id, title, body, w = 520, hgt = 360, tc = '#eef1ff') {
+  if (wins.has(id)) { focusWin(wins.get(id)); return wins.get(id); }
+  const sr = screen.getBoundingClientRect(), n = wins.size;
+  const el = h('div', { class: 'win', 'data-id': id });
+  el.style.cssText = `width:${Math.min(w, sr.width - 40)}px;height:${Math.min(hgt, sr.height - 70)}px;left:${clamp(120 + n * 28, 10, sr.width - w - 10)}px;top:${clamp(30 + n * 24, 6, sr.height - hgt - 50)}px;--tc:${tc}`;
+  el.innerHTML = `<div class="tb"><span>${esc(title)}</span><button class="x" aria-label="ปิด">×</button></div><div class="body"></div>`;
+  el.querySelector('.body').append(body); screen.append(el);
+  const W = { id, el, body: el.querySelector('.body') }; wins.set(id, W); focusWin(W);
+  el.addEventListener('pointerdown', () => focusWin(W));
+  el.querySelector('.x').addEventListener('click', () => closeWin(id));
+  const tb = el.querySelector('.tb');
+  tb.addEventListener('pointerdown', e => { if (e.target.closest('.x')) return; const o = { x: e.clientX, y: e.clientY, l: el.offsetLeft, t: el.offsetTop }; winDrag = { el, o }; });
+  syncTaskbar(); return W;
+}
+let winDrag = null;
+addEventListener('pointermove', e => { if (!winDrag) return; const { el, o } = winDrag, sr = screen.getBoundingClientRect(); el.style.left = clamp(o.l + e.clientX - o.x, -el.offsetWidth + 80, sr.width - 80) + 'px'; el.style.top = clamp(o.t + e.clientY - o.y, 0, sr.height - 80) + 'px'; });
+addEventListener('pointerup', () => { winDrag = null; });
+function focusWin(W) { W.el.style.zIndex = ++zTop; }
+function closeWin(id) { const W = wins.get(id); if (!W) return; W.el.remove(); wins.delete(id); syncTaskbar(); S.tone(500, 350, .06, .06); }
+function topWin() { let best = null; for (const W of wins.values()) if (!best || +W.el.style.zIndex > +best.el.style.zIndex) best = W; return best; }
+function syncTaskbar() { $('taskbar').querySelectorAll('button').forEach(b => b.classList.toggle('on', [...wins.keys()].some(k => k.startsWith(b.dataset.app)))); }
+$('taskbar').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.app === 'files') openFolder(FOLDERS[2]);
+  if (b.dataset.app === 'sheet') openSheet();
+  if (b.dataset.app === 'search') openSearch();
+});
+function openFolder(fo) { const body = h('div', { class: 'fold' }); const W = openWin('files-' + fo.id, 'โฟลเดอร์ ' + fo.name, body, 460, 300, '#fff4d6'); W.folder = fo.id; renderFolder(W); }
+function renderFolder(W) {
+  const box = W.body.querySelector('.fold'); box.innerHTML = '';
+  const list = FILES.filter(f => f.loc === W.folder);
+  if (!list.length) box.append(h('div', { class: 'empty' }, 'ยังว่างอยู่ ลากไฟล์มาวางในหน้าต่างนี้ได้เลย'));
+  for (const f of list) box.append(fileIcon(f));
+}
+function openFile(f) {
+  if (f.kind === 'sheet') { openSheet(); return; }
+  let html = '';
+  if (f.kind === 'rec') { const tot = f.lines.reduce((s, l) => s + (parseFloat(l[1].replace(/,/g, '')) || 0), 0); html = `<div class="paper"><h3>ใบเสร็จรับเงิน</h3><p style="color:#888;margin:0 0 8px">ร้านน่ารัก จำกัด · เลขที่ RC-${f.id.toUpperCase()}-0425</p><table><tr><th>รายการ</th><th>จำนวนเงิน</th></tr>${f.lines.map(l => `<tr><td>${esc(l[0])}</td><td>${esc(l[1])}</td></tr>`).join('')}<tr><th>รวม</th><th>${tot.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</th></tr></table></div>`; }
+  if (f.kind === 'pic') html = f.art === 'cat' ? `<svg viewBox="0 0 400 260" style="display:block;width:100%;height:100%;background:#ffe9c7"><circle cx="200" cy="150" r="80" fill="#ffa64d"/><path d="M135 105 L150 40 L185 85 Z M265 105 L250 40 L215 85 Z" fill="#ffa64d"/><circle cx="172" cy="145" r="9" fill="#3a3245"/><circle cx="228" cy="145" r="9" fill="#3a3245"/><path d="M190 170 Q200 180 210 170" stroke="#3a3245" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="150" cy="172" rx="13" ry="7" fill="#ff8fab88"/><ellipse cx="250" cy="172" rx="13" ry="7" fill="#ff8fab88"/></svg>`
+    : `<svg viewBox="0 0 400 260" style="display:block;width:100%;height:100%"><rect width="400" height="260" fill="#9fd8ff"/><circle cx="320" cy="60" r="30" fill="#ffe27a"/><path d="M0 150 Q50 135 100 150 T200 150 T300 150 T400 150 V260 H0 Z" fill="#3fa4e8"/><path d="M0 185 Q50 170 100 185 T200 185 T300 185 T400 185 V260 H0 Z" fill="#2b86cc"/><path d="M0 225 Q120 205 260 225 T400 220 V260 H0 Z" fill="#ffe0a8"/></svg>`;
+  if (f.kind === 'doc') html = `<div class="paper"><h3>บันทึกการประชุมทีม</h3><p>วาระที่ 1: ปิดงบประจำเดือนให้ทันวันที่ 5<br>วาระที่ 2: รวบรวมใบเสร็จทั้งหมดเข้าโฟลเดอร์บัญชี<br>วาระที่ 3: ซื้อขนมให้ทีมทุกวันศุกร์ (ทุกคนเห็นด้วย)</p><p style="color:#888">ผู้จดบันทึก: น้องหมีฝ่ายบัญชี</p></div>`;
+  openWin('view-' + f.id, f.name, h('div', { style: 'height:100%' }, html), f.kind === 'pic' ? 420 : 460, f.kind === 'pic' ? 310 : 330, '#f4f0ff');
+}
+
+/* ================= spreadsheet ================= */
+const COLS = 'ABCDEFGH', ROWS = 20;
+const cells = { A1: 'รายการ', B1: 'จำนวนเงิน', A2: 'ค่ากาแฟ', B2: '120', A3: 'ค่ากระดาษ A4', B3: '350', A4: 'ค่าไฟฟ้า', B4: '1240', A5: 'ค่าขนมทีม', B5: '89', A6: 'ค่าแท็กซี่', B6: '260', A8: 'รวม', D1: 'ลองพิมพ์สูตรเองได้ เช่น =B2*2 หรือ =AVERAGE(B2:B6)' };
+let selCell = 'B8', editor = null, sheetW = null;
+const num = v => { const n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? null : n; };
+function rangeVals(a, b, seen) {
+  const c0 = COLS.indexOf(a[0]), c1 = COLS.indexOf(b[0]), r0 = +a.slice(1), r1 = +b.slice(1), out = [];
+  for (let c = Math.min(c0, c1); c <= Math.max(c0, c1); c++) for (let r = Math.min(r0, r1); r <= Math.max(r0, r1); r++) { const v = value(COLS[c] + r, seen); if (typeof v === 'number') out.push(v); }
+  return out;
+}
+function value(ref, seen = new Set()) {
+  const raw = cells[ref]; if (raw === undefined || raw === '') return '';
+  if (raw[0] !== '=') { const n = num(raw); return n === null ? raw : n; }
+  if (seen.has(ref)) return '#วนซ้ำ'; seen = new Set(seen); seen.add(ref);
+  try {
+    let ex = raw.slice(1).toUpperCase().replace(/\s+/g, '');
+    ex = ex.replace(/(SUM|AVERAGE|MIN|MAX|COUNT)\(([A-H]\d+):([A-H]\d+)\)/g, (_, fn, a, b) => {
+      const v = rangeVals(a, b, seen);
+      if (fn === 'SUM') return v.reduce((s, x) => s + x, 0); if (fn === 'COUNT') return v.length;
+      if (!v.length) return 0; if (fn === 'AVERAGE') return v.reduce((s, x) => s + x, 0) / v.length;
+      return fn === 'MIN' ? Math.min(...v) : Math.max(...v);
+    });
+    ex = ex.replace(/([A-H])(\d+)/g, (_, c, r) => { const v = value(c + r, seen); return '(' + (typeof v === 'number' ? v : 0) + ')'; });
+    if (!/^[\d+\-*/().]+$/.test(ex)) return '#ผิดสูตร';
+    const r = Function('"use strict";return (' + ex + ')')();
+    return typeof r === 'number' && isFinite(r) ? r : '#ผิดสูตร';
+  } catch (e) { return '#ผิดสูตร'; }
+}
+const show = v => typeof v === 'number' ? v.toLocaleString('th-TH', { maximumFractionDigits: 2 }) : v;
+function openSheet() {
+  const root = h('div', { class: 'xl' }, `<div class="fbar"><b id="xlRef"></b><span id="xlRaw"></span></div><div class="grid"><table id="xlT"></table></div>`);
+  sheetW = openWin('sheet', 'ค่าใช้จ่าย.xlsx — ตารางคำนวณ', root, 640, 400, '#e3f4e7');
+  renderSheet();
+}
+function renderSheet() {
+  const t = document.getElementById('xlT'); if (!t) return;
+  let html = '<tr><th class="rh"></th>' + [...COLS].map(c => `<th>${c}</th>`).join('') + '</tr>';
+  for (let r = 1; r <= ROWS; r++) {
+    html += `<tr><th class="rh">${r}</th>`;
+    for (const c of COLS) { const ref = c + r, v = value(ref); html += `<td data-ref="${ref}" class="${typeof v === 'number' ? 'num' : ''} ${ref === selCell ? 'sel' : ''} ${String(v).startsWith('#') ? 'err' : ''}" ${r === 1 || r === 8 && c === 'A' ? 'style="font-weight:600"' : ''}>${esc(show(v))}</td>`; }
+    html += '</tr>';
+  }
+  t.innerHTML = html;
+  $('xlRef').textContent = selCell; $('xlRaw').textContent = cells[selCell] || '';
+  if (/^=\s*SUM\(\s*B2\s*:\s*B6\s*\)/i.test(cells.B8 || '') || (typeof value('B8') === 'number' && value('B8') === 2059 && (cells.B8 || '')[0] === '=')) complete('sum');
+}
+document.addEventListener('pointerdown', e => {
+  const td = e.target.closest('#xlT td'); if (!td) return;
+  if (editor && editor.ref !== td.dataset.ref) commitEdit();
+  selCell = td.dataset.ref; renderSheet();
+});
+document.addEventListener('dblclick', e => { const td = e.target.closest('#xlT td'); if (td) startEdit(cells[td.dataset.ref] || ''); });
+function startEdit(initial) {
+  if (!document.getElementById('xlT')) return;
+  if (editor) commitEdit(false);
+  const td = document.querySelector(`#xlT td[data-ref="${selCell}"]`), grid = td.closest('.grid');
+  const inp = h('input', { class: 'ed', type: 'text', spellcheck: 'false' }); inp.value = initial;
+  inp.style.left = td.offsetLeft + 'px'; inp.style.top = td.offsetTop + 'px'; inp.style.width = Math.max(td.offsetWidth, 200) + 'px'; inp.style.height = td.offsetHeight + 'px';
+  grid.append(inp); inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
+  editor = { ref: selCell, inp };
+  inp.addEventListener('input', () => { $('xlRaw').textContent = inp.value; });
+}
+function commitEdit(move = true, dc = 0, dr = 1) {
+  if (!editor) return; const { ref, inp } = editor; editor = null;
+  const v = inp.value.trim(); if (v) cells[ref] = v; else delete cells[ref];
+  inp.remove(); if (move) moveSel(dc, dr); else renderSheet();
+  S.tone(760, 760, .03, .05);
+}
+function moveSel(dc, dr) { const c = clamp(COLS.indexOf(selCell[0]) + dc, 0, COLS.length - 1), r = clamp(+selCell.slice(1) + dr, 1, ROWS); selCell = COLS[c] + r; renderSheet(); }
+document.addEventListener('keydown', e => {
+  if (!sheetW || !wins.has('sheet') || topWin() !== sheetW || currentView !== 'screen') return;
+  if (editor) {
+    if (e.key === 'Enter') { e.preventDefault(); commitEdit(true, 0, 1); }
+    else if (e.key === 'Tab') { e.preventDefault(); commitEdit(true, 1, 0); }
+    else if (e.key === 'Escape') { e.preventDefault(); editor.inp.remove(); editor = null; renderSheet(); }
+    return;
+  }
+  if (e.target.closest && e.target.closest('input,textarea')) return;
+  const mv = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], Enter: [0, 1], Tab: [1, 0] }[e.key];
+  if (mv) { e.preventDefault(); moveSel(...mv); return; }
+  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); delete cells[selCell]; renderSheet(); return; }
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) { e.preventDefault(); startEdit(e.key); }
+});
+
+/* ================= search ================= */
+let searchW = null;
+function openSearch() {
+  const root = h('div', { class: 'se' }, `<div class="logo"><i style="color:#7c9cff">เสิร์ช</i><i style="color:#ff8fab">น้</i><i style="color:#f2b24a">อ</i><i style="color:#5fc28e">ย</i></div>
+    <div class="bar"><input id="q" type="text" placeholder="พิมพ์คำที่อยากค้นหา เช่น แมว, กาแฟ, ภาษี" autocomplete="off"><button id="go">ค้นหา</button></div><div class="res" id="res"></div>`);
+  searchW = openWin('search', 'เสิร์ชน้อย — เบราว์เซอร์', root, 660, 430, '#eef1ff');
+  root.querySelector('#go').addEventListener('click', () => runSearch(root.querySelector('#q').value));
+  root.querySelector('#q').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runSearch(e.target.value); } });
+  setTimeout(() => root.querySelector('#q').focus(), 50);
+}
+async function runSearch(q) {
+  q = q.trim(); const res = document.getElementById('res'); if (!q || !res) return;
+  res.closest('.se').querySelector('.logo').style.cssText = 'font-size:26px;margin-top:0';
+  res.innerHTML = '<p class="note">กำลังค้นหา…</p>';
+  complete('srch');
+  for (const lang of ['th', 'en']) {
+    try {
+      const r = await fetch(`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*&srlimit=6`);
+      const j = await r.json(), list = j.query?.search || [];
+      if (!list.length) continue;
+      res.innerHTML = `<p class="note">ผลการค้นหา "${esc(q)}" · ข้อมูลจากวิกิพีเดีย${lang === 'en' ? ' (ภาษาอังกฤษ)' : ''}</p>` + list.map(x => `<div><small>${lang}.wikipedia.org › ${esc(x.title)}</small><br><a data-lang="${lang}" data-title="${esc(x.title)}">${esc(x.title)}</a><p>${esc(x.snippet.replace(/<[^>]+>/g, ''))}…</p></div>`).join('');
+      return;
+    } catch (e) { break; }
+  }
+  res.innerHTML = `<p class="note">ตอนนี้ต่ออินเทอร์เน็ตไม่ได้ หรือไม่พบผลลัพธ์ของ "${esc(q)}" ลองคำอื่นดูนะ</p>`;
+}
+document.addEventListener('click', async e => {
+  const a = e.target.closest('#res a[data-title]'); if (!a) return;
+  const res = document.getElementById('res'), lang = a.dataset.lang, title = a.dataset.title;
+  res.innerHTML = '<p class="note">กำลังเปิดหน้า…</p>';
+  try {
+    const j = await (await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}`)).json();
+    res.innerHTML = `<p class="note"><a id="back">← กลับไปผลการค้นหา</a></p><div>${j.thumbnail ? `<img src="${esc(j.thumbnail.source)}" alt="">` : ''}<h3 style="margin:0 0 6px">${esc(j.title)}</h3><p style="font-size:14px;color:#333">${esc(j.extract || 'ไม่มีบทสรุปของหน้านี้')}</p><p class="note">ที่มา: วิกิพีเดีย</p></div>`;
+    res.querySelector('#back').addEventListener('click', () => runSearch(document.getElementById('q').value));
+  } catch (err) { res.innerHTML = '<p class="note">เปิดหน้านี้ไม่ได้ ลองใหม่อีกครั้ง</p>'; }
+});
+
+/* ================= desk ================= */
+const desk = $('desk');
+const DOCS = [
+  { id: 'inv', title: 'ใบแจ้งหนี้ INV-0425', mini: 'ใบแจ้งหนี้', html: `<h2>ใบแจ้งหนี้ เลขที่ INV-0425</h2><p>ถึง: บริษัท ขนมอร่อย จำกัด<br>ครบกำหนดชำระ: ภายใน 30 วันนับจากวันที่ออกเอกสาร</p><table style="width:100%;border-collapse:collapse;margin:12px 0"><tr><td>ค่าบริการทำบัญชี</td><td style="text-align:right">8,000.00</td></tr><tr><td>ค่ายื่นแบบภาษี</td><td style="text-align:right">1,500.00</td></tr><tr><td>ภาษีมูลค่าเพิ่ม 7%</td><td style="text-align:right">665.00</td></tr><tr><td><b>รวมทั้งสิ้น</b></td><td style="text-align:right"><b>10,165.00</b></td></tr></table><p>โอนเข้าบัญชีบริษัท แล้วส่งหลักฐานกลับมาทางอีเมล ขอบคุณที่ใช้บริการค่ะ</p>`, x: 22, y: 30, r: -6 },
+  { id: 'memo', title: 'บันทึกถึงทีม', mini: 'บันทึกถึงทีม', html: `<h2>บันทึกถึงทีมบัญชี</h2><p>ทุกคนคะ เดือนนี้ขอให้ส่งใบเสร็จ<b>ก่อนวันที่ 3</b> นะคะ จะได้ปิดงบทัน</p><p>ใครเบิกค่าเดินทาง แนบใบเสร็จแท็กซี่หรือรูปแอปเรียกรถมาด้วย</p><p>วันศุกร์นี้มีขนมเลี้ยง หัวหน้าเลี้ยงเองค่ะ</p><p style="text-align:right">— หัวหน้าแมว</p>`, x: 30, y: 52, r: 4 },
+  { id: 'rep', title: 'รายงานยอดขาย', mini: 'รายงานยอดขาย', html: `<h2>รายงานยอดขายรายเดือน</h2><div style="display:flex;align-items:flex-end;gap:16px;height:180px;margin:18px 0;border-bottom:2px solid #ccc">${[40, 62, 55, 80, 95, 70].map((v, i) => `<div style="flex:1;height:${v}%;background:${['#ffb3c1', '#ffd27f', '#9fd8ff', '#b8e6a0', '#c7b8ff', '#ffcf9f'][i]};border-radius:8px 8px 0 0"></div>`).join('')}</div><p>ยอดขายสูงสุดอยู่ในเดือนที่ 5 เพราะมีโปรโมชันขนมกลางปี</p><p>ข้อเสนอ: เพิ่มโปรโมชันช่วงปลายปีเพื่อดันยอดขายเดือนที่ 6 ให้กลับขึ้นมา</p>`, x: 64, y: 34, r: -3 },
+];
+const TOOL_ART = {
+  pencil: '<svg width="170" height="26" viewBox="0 0 170 26"><path d="M0 13 L24 4 V22 Z" fill="#f1cf9c"/><path d="M0 13 L9 9.6 V16.4 Z" fill="#444"/><rect x="24" y="4" width="114" height="18" fill="#ffd34d"/><rect x="24" y="10" width="114" height="6" fill="#ffe27f"/><rect x="138" y="4" width="12" height="18" fill="#c9c9d1"/><rect x="150" y="4" width="18" height="18" rx="5" fill="#ff9fb0"/></svg>',
+  pen: '<svg width="170" height="26" viewBox="0 0 170 26"><path d="M0 13 L16 8 V18 Z" fill="#2b5bd7"/><rect x="16" y="6" width="22" height="14" rx="3" fill="#cfd6e6"/><rect x="38" y="5" width="128" height="16" rx="8" fill="#3d6fe8"/><rect x="100" y="2" width="56" height="5" rx="2" fill="#b9c6e6"/></svg>',
+  hl: '<svg width="160" height="34" viewBox="0 0 160 34"><path d="M0 10 L14 6 V28 L0 24 Z" fill="#ffe600"/><rect x="14" y="4" width="34" height="26" rx="3" fill="#fff17a"/><rect x="48" y="2" width="110" height="30" rx="10" fill="#ffd400"/><rect x="60" y="11" width="80" height="12" rx="6" fill="#ffe866"/></svg>',
+  eraser: '<svg width="86" height="44" viewBox="0 0 86 44"><rect x="2" y="2" width="82" height="40" rx="8" fill="#fff"/><rect x="2" y="2" width="30" height="40" rx="8" fill="#fff"/><rect x="26" y="2" width="58" height="40" rx="6" fill="#7cc6ff"/><text x="55" y="27" font-size="11" text-anchor="middle" fill="#fff" font-family="Mitr">ยางลบ</text></svg>',
+};
+const TOOLS = { pencil: { n: 'ดินสอ', c: '#4a4a4a', w: 2.2, a: .92 }, pen: { n: 'ปากกา', c: '#2350c8', w: 2.8, a: 1 }, hl: { n: 'ไฮไลท์', c: '#ffe100', w: 20, a: .38 }, eraser: { n: 'ยางลบ', w: 26 } };
+let tool = 'pen';
+function deskItem(cls, x, y, r, html, id) { const el = h('div', { class: 'item ' + cls, 'data-id': id }, html); el.style.left = x + '%'; el.style.top = y + '%'; el.style.transform = `rotate(${r}deg)`; desk.append(el); return el; }
+for (const d of DOCS) deskItem('', d.x, d.y, d.r, `<div class="doc"><h4>${esc(d.title)}</h4>${'<div class="ln"></div>'.repeat(3)}<div class="ln" style="width:60%"></div>${'<div class="ln"></div>'.repeat(5)}<div class="ln" style="width:40%"></div></div>`, 'doc:' + d.id);
+deskItem('', 49, 24, 2, '<div class="nb"><span>สมุดโน้ต</span></div>', 'nb');
+deskItem('', 74, 70, -18, TOOL_ART.pencil, 'tool:pencil');
+deskItem('', 72, 79, -8, TOOL_ART.pen, 'tool:pen');
+deskItem('', 52, 78, 6, TOOL_ART.hl, 'tool:hl');
+deskItem('', 88, 58, 12, TOOL_ART.eraser, 'tool:eraser');
+deskItem('', 86, 20, 0, '<div class="mug"></div>', 'deco');
+deskItem('', 3, 74, 0, '<div class="plant"></div>', 'deco');
+{ const s = h('div', { class: 'sticky' }, 'อย่าลืม!<br>ส่งใบแจ้งหนี้ก่อนบ่ายสาม'); s.style.left = '60%'; s.style.top = '14%'; desk.append(s); }
+function markInHand() { desk.querySelectorAll('.item').forEach(el => el.classList.toggle('inhand', el.dataset.id === 'tool:' + tool)); }
+markInHand();
+// desk items: drag to move, click to use
+let dItem = null;
+desk.addEventListener('pointerdown', e => {
+  const it = e.target.closest('.item'); if (!it || it.dataset.id === 'deco') return;
+  const r = desk.getBoundingClientRect();
+  dItem = { el: it, x0: e.clientX, y0: e.clientY, l: parseFloat(it.style.left) / 100 * r.width, t: parseFloat(it.style.top) / 100 * r.height, moved: false };
+  it.classList.add('lift'); it.style.zIndex = ++zTop;
+});
+addEventListener('pointermove', e => {
+  if (!dItem) return; const r = desk.getBoundingClientRect(), dx = e.clientX - dItem.x0, dy = e.clientY - dItem.y0;
+  if (Math.hypot(dx, dy) > 5) dItem.moved = true;
+  if (dItem.moved) { dItem.el.style.left = clamp((dItem.l + dx) / r.width * 100, -5, 92) + '%'; dItem.el.style.top = clamp((dItem.t + dy) / r.height * 100, 4, 90) + '%'; }
+});
+addEventListener('pointerup', () => {
+  if (!dItem) return; const d = dItem; dItem = null; d.el.classList.remove('lift');
+  if (d.moved) { S.noise(.08, 900, .05); return; }
+  const id = d.el.dataset.id;
+  if (id.startsWith('tool:')) { tool = id.slice(5); markInHand(); S.tone(880, 1100, .05, .07); S.toast(`หยิบ${TOOLS[tool].n}แล้ว · กดที่เอกสารหรือสมุดเพื่อใช้`, 2); }
+  else if (id.startsWith('doc:')) openPaper(DOCS.find(x => x.id === id.slice(4)));
+  else if (id === 'nb') openNotebook();
+});
+$('monEdge').addEventListener('click', () => setView('screen'));
+
+/* ---- paper / notebook overlay with real drawing ---- */
+const canvases = new Map(); // key -> offscreen canvas holding the marks
+let ov = null, nbPage = 0;
+const NB_PAGES = 4, nbText = Array(NB_PAGES).fill('');
+function overlay(sheetCls, inner, key, isNb) {
+  closeOverlay();
+  ov = h('div', { class: 'ov' });
+  const sheet = h('div', { class: 'sheet ' + sheetCls }, inner);
+  const cv = h('canvas'); sheet.append(cv);
+  const tools = h('div', { class: 'tools' });
+  for (const k of ['pencil', 'pen', 'hl', 'eraser']) { const b = h('button', { 'data-tool': k }, `<span>${TOOLS[k].n}</span>`); tools.append(b); }
+  if (isNb) tools.append(h('button', { 'data-tool': 'type' }, '<span>พิมพ์</span><small>คีย์บอร์ด</small>'));
+  tools.append(h('hr'));
+  if (isNb) { tools.append(h('button', { 'data-act': 'prev' }, '◀ หน้าก่อน')); tools.append(h('button', { 'data-act': 'next' }, 'หน้าถัดไป ▶')); }
+  tools.append(h('button', { 'data-act': 'close' }, 'วางคืนโต๊ะ'));
+  ov.append(sheet, tools); document.body.append(ov);
+  // size canvas to the sheet and restore marks
+  const r = sheet.getBoundingClientRect(), dpr = Math.min(devicePixelRatio, 2);
+  cv.width = r.width * dpr; cv.height = r.height * dpr;
+  const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  if (canvases.has(key)) g.drawImage(canvases.get(key), 0, 0, r.width, r.height);
+  ov.state = { key, cv, g, sheet, isNb, dpr };
+  const ta = sheet.querySelector('textarea');
+  if (ta) { ta.value = nbText[nbPage]; ta.addEventListener('input', () => { nbText[nbPage] = ta.value; if (ta.value.trim()) complete('note'); }); }
+  tools.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.tool) { tool = b.dataset.tool; syncTools(); markInHand(); if (tool === 'type' && ta) ta.focus(); }
+    if (b.dataset.act === 'close') closeOverlay();
+    if (b.dataset.act === 'prev' || b.dataset.act === 'next') { nbPage = clamp(nbPage + (b.dataset.act === 'next' ? 1 : -1), 0, NB_PAGES - 1); openNotebook(); S.noise(.12, 3000, .06, 'highpass'); }
+  });
+  syncTools(); S.noise(.15, 2500, .07, 'highpass');
+}
+function syncTools() {
+  if (!ov) return; const st = ov.state;
+  ov.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === tool));
+  st.cv.style.pointerEvents = tool === 'type' ? 'none' : 'auto';
+  st.cv.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
+}
+function closeOverlay() {
+  if (!ov) return; const st = ov.state;
+  // keep marks in an offscreen canvas at css-pixel size
+  const r = st.sheet.getBoundingClientRect(), keep = document.createElement('canvas'); keep.width = st.cv.width; keep.height = st.cv.height;
+  keep.getContext('2d').drawImage(st.cv, 0, 0); canvases.set(st.key, keep);
+  ov.remove(); ov = null; if (tool === 'type') tool = 'pen'; markInHand();
+}
+function openPaper(d) { overlay('', `<div class="content">${d.html}</div>`, 'doc:' + d.id, false); }
+function openNotebook() { overlay('nbp', `<div class="pg">หน้า ${nbPage + 1}/${NB_PAGES}</div><textarea spellcheck="false" placeholder="เลือก 'พิมพ์' แล้วพิมพ์จากมือถือหรือคีย์บอร์ดได้เลย"></textarea>`, 'nb:' + nbPage, true); }
+let stroke = null;
+document.addEventListener('pointerdown', e => {
+  if (!ov || e.target !== ov.state.cv || tool === 'type') return;
+  const st = ov.state, r = st.cv.getBoundingClientRect();
+  stroke = { pts: [[e.clientX - r.left, e.clientY - r.top]], snap: st.g.getImageData(0, 0, st.cv.width, st.cv.height), r };
+  drawStroke();
+});
+addEventListener('pointermove', e => { if (!stroke || !ov) return; stroke.pts.push([e.clientX - stroke.r.left, e.clientY - stroke.r.top]); drawStroke(); });
+addEventListener('pointerup', () => {
+  if (!stroke || !ov) { stroke = null; return; }
+  const len = stroke.pts.length; stroke = null;
+  if (len > 2) { if (ov.state.isNb && tool !== 'eraser') complete('note'); if (!ov.state.isNb && tool === 'hl') complete('hl'); }
+});
+function drawStroke() {
+  const st = ov.state, g = st.g, t = TOOLS[tool], p = stroke.pts;
+  g.putImageData(stroke.snap, 0, 0);
+  g.save(); g.lineCap = g.lineJoin = 'round'; g.lineWidth = t.w;
+  if (tool === 'eraser') { g.globalCompositeOperation = 'destination-out'; g.strokeStyle = '#000'; }
+  else { g.globalCompositeOperation = tool === 'hl' ? 'multiply' : 'source-over'; g.strokeStyle = t.c; g.globalAlpha = t.a; }
+  g.beginPath(); g.moveTo(p[0][0], p[0][1]);
+  if (p.length === 1) g.lineTo(p[0][0] + .1, p[0][1]);
+  for (let i = 1; i < p.length; i++) { const m = [(p[i - 1][0] + p[i][0]) / 2, (p[i - 1][1] + p[i][1]) / 2]; g.quadraticCurveTo(p[i - 1][0], p[i - 1][1], m[0], m[1]); }
+  g.stroke(); g.restore();
+  if (tool !== 'hl' && tool !== 'eraser' && p.length % 3 === 0) S.noise(.03, tool === 'pencil' ? 4200 : 2600, .025, 'highpass');
+}
+
+/* ================= views ================= */
+let currentView = 'screen';
+function setView(v) {
+  currentView = v; $('views').classList.toggle('desk', v === 'desk');
+  $('switchBtn').textContent = v === 'desk' ? 'กลับไปที่จอคอม ↑' : 'ไปที่โต๊ะ ↓';
+  if (v === 'screen') closeOverlay(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  S.noise(.2, 600, .05);
+}
+$('switchBtn').addEventListener('click', () => setView(currentView === 'desk' ? 'screen' : 'desk'));
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') escape();
+  if (e.key === 'F2') { e.preventDefault(); setView(currentView === 'desk' ? 'screen' : 'desk'); }
+});
+function escape() {
+  if (ov) { closeOverlay(); return; }
+  if (currentView === 'screen') { const W = topWin(); if (W) closeWin(W.id); }
+}
+
+/* ================= phone touchpad → virtual cursor ================= */
+const vcur = $('vcur'); const cur = { x: innerWidth / 2, y: innerHeight / 2, down: false };
+let lastClickT = 0, phoneSeen = false;
+const fire = (type, el, extra = {}) => el && el.dispatchEvent(new (type.startsWith('pointer') ? PointerEvent : MouseEvent)(type, { bubbles: true, cancelable: true, composed: true, clientX: cur.x, clientY: cur.y, button: 0, buttons: cur.down ? 1 : 0, pointerId: 77, pointerType: 'mouse', isPrimary: true, view: window, ...extra }));
+const under = () => document.elementFromPoint(cur.x, cur.y);
+function syntheticClick(dbl) {
+  const el = under(); if (!el) return;
+  cur.down = true; fire('pointerdown', el); fire('mousedown', el);
+  cur.down = false; fire('pointerup', el); fire('mouseup', el); fire('click', el, { detail: 1 });
+  const field = el.closest('input,textarea');
+  if (field) field.focus(); else if (document.activeElement && document.activeElement.matches && document.activeElement.matches('input,textarea') && !document.activeElement.classList.contains('ed')) document.activeElement.blur();
+  if (dbl) fire('dblclick', el, { detail: 2 });
+}
+function typeText(str) {
+  for (const ch of str) {
+    const el = document.activeElement, field = el && el.matches && el.matches('input,textarea') ? el : null;
+    if (ch === '\b') {
+      if (field) { const s = field.selectionStart, e2 = field.selectionEnd; if (s !== e2) field.setRangeText('', s, e2, 'end'); else if (s > 0) field.setRangeText('', s - 1, s, 'end'); field.dispatchEvent(new Event('input', { bubbles: true })); }
+      else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
+    } else if (ch === '\n') {
+      const ev = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+      (field || document.body).dispatchEvent(ev);
+      if (field && field.tagName === 'TEXTAREA' && !ev.defaultPrevented) { field.setRangeText('\n', field.selectionStart, field.selectionEnd, 'end'); field.dispatchEvent(new Event('input', { bubbles: true })); }
+    } else {
+      if (field) { field.setRangeText(ch, field.selectionStart, field.selectionEnd, 'end'); field.dispatchEvent(new Event('input', { bubbles: true })); }
+      else document.body.dispatchEvent(new KeyboardEvent('keydown', { key: ch, bubbles: true, cancelable: true }));
+    }
+  }
+}
+function scrollAt(dy) {
+  let el = under();
+  while (el && el !== document.body) { const cs = getComputedStyle(el); if (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 2) { el.scrollTop += dy; return; } el = el.parentElement; }
+}
+const CURSOR_GAIN = 1.25;
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now;
+  S.tick(dt); pad.update(dt);
+  if (pad.live) {
+    if (!phoneSeen) { phoneSeen = true; vcur.hidden = false; }
+    const [dx, dy] = pad.takeTouch();
+    if (dx || dy) { cur.x = clamp(cur.x + dx * CURSOR_GAIN, 0, innerWidth - 2); cur.y = clamp(cur.y + dy * CURSOR_GAIN, 0, innerHeight - 2); fire('pointermove', under()); fire('mousemove', under()); }
+    const press = !!pad.btn.press;
+    if (press && !cur.down) { cur.down = true; const el = under(); fire('pointerdown', el); fire('mousedown', el); S.vib(20); }
+    if (!press && cur.down) { cur.down = false; const el = under(); fire('pointerup', el); fire('mouseup', el); }
+    const c = pad.tap('click');
+    for (let i = 0; i < c; i++) { const t = performance.now(), dbl = t - lastClickT < 450; lastClickT = dbl ? 0 : t; syntheticClick(dbl); }
+    if (pad.tap('dbl')) { syntheticClick(false); syntheticClick(true); }
+    const sc = pad.takeScroll(); if (sc) scrollAt(-sc * 1.6);
+    const txt = pad.takeText(); if (txt) typeText(txt);
+    if (pad.tap('view')) setView(currentView === 'desk' ? 'screen' : 'desk');
+    if (pad.tap('esc')) escape();
+    vcur.style.transform = `translate(${cur.x}px,${cur.y}px)`; vcur.classList.toggle('press', cur.down);
+  }
+  $('clock').textContent = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  if (S.pairing()) S.hint('');
+  else if (pad.live) S.hint(currentView === 'desk' ? 'แตะของบนโต๊ะเพื่อหยิบ/เปิด · แตะค้างแล้วลาก = ย้ายของ · ปุ่มสลับบนมือถือ = กลับไปที่จอ' : 'ดับเบิลแตะ = เปิด · แตะค้างแล้วลากไฟล์ใส่โฟลเดอร์ · พิมพ์ในช่องคีย์บอร์ดบนมือถือ');
+  else S.hint(currentView === 'desk' ? 'คลิกของบนโต๊ะเพื่อหยิบ/เปิด · ลากเพื่อย้าย · Esc ปิด · F2 สลับมุมมอง' : 'ดับเบิลคลิกเพื่อเปิด · ลากไฟล์ใส่โฟลเดอร์ · Esc ปิดหน้าต่าง · F2 ไปที่โต๊ะ');
+  requestAnimationFrame(loop);
+}
+renderDesktop();
+window.__office = { feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, cells, value, done, setView, openSheet, openSearch, typeText, get tool() { return tool; } };
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
