@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>คลินิกฟันน้องฮิปโป</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: patient's open mouth fills the centre; job card top-centre, tool + pain gauge on the right, patient count top-left */
+:root{--bg:#e9f7f5;--card:#ffffff;--ink:#344a52;--soft:#7f9aa2;--accent:#5cc7c0;--accent-deep:#33a8a0;--good:#7fd1a0;--warn:#f2b24a;--line:#d3ece8;--hurt:#ff7a8a;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+.job{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 18px;display:flex;flex-direction:column;gap:6px;min-width:320px;text-align:center;box-shadow:0 10px 24px -16px #3a7a74}
+.job b{font-size:19px;font-weight:600}
+.job .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums}
+.side{position:fixed;right:24px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;width:180px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.panel .lbl{font-size:12px;color:var(--soft)}
+.tool{display:flex;gap:8px}
+.tool span{flex:1;text-align:center;border-radius:12px;padding:8px 4px;border:2px solid var(--line);color:var(--soft);font-size:13px}
+.tool span.on{border-color:var(--accent);color:var(--ink);background:#e9f7f5}
+.pain i{background:var(--hurt)!important}
+.result{flex-direction:column;text-align:center;gap:8px}
+.stars{font-size:52px;letter-spacing:.1em;color:var(--warn)}.stars span{color:var(--line)}
+.scores{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-variant-numeric:tabular-nums;text-align:left;margin:0 auto}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+<script type="importmap">{ "imports": { "three": "../lib/three.module.js" } }</script>
+</head>
+<body>
+<div class="hud"><span class="lbl">คนไข้ที่รักษาแล้ว</span><b id="count">0</b></div>
+<div class="job"><b id="patient"></b>
+  <div class="row"><span id="plaqueTxt">หินปู 100%</span><span id="cavTxt">ฟันผุ 0/0</span><span id="timeTxt">0 วิ</span></div>
+  <div class="bar"><i id="jobBar"></i></div>
+</div>
+<div class="side">
+  <div class="panel"><span class="lbl">เครื่องมือ (กดเปลี่ยน / ปุ่ม T)</span><div class="tool"><span id="t0" class="on">ที่ขูดหินปู</span><span id="t1">ที่อุดฟัน</span></div></div>
+  <div class="panel"><span class="lbl">ความเจ็บของคนไข้</span><div class="bar pain"><i id="painBar"></i></div><span id="painTxt" class="lbl">สบายดี</span></div>
+</div>
+<div class="overlay" id="result" hidden>
+  <div class="card result">
+    <p style="margin:0" id="resSub"></p>
+    <h1>ฟันสะอาดวิ้งแล้ว!</h1>
+    <div class="stars" id="stars"></div>
+    <div class="scores" id="scores"></div>
+    <div class="btns" style="justify-content:center;margin-top:8px"><button class="btn" id="nextPt">คนไข้ถัดไป</button></div>
+  </div>
+</div>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
+import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
+
+shellMarkup({
+  title: 'คลินิกฟันน้องฮิปโป',
+  blurb: 'มือถือคือเครื่องมือหมอฟัน ขูดหินปูให้เกลี้ยง อุดฟันผุ ระวังอย่าโดนเหงือกหรือขยับแรง คนไข้จะเจ็บ',
+  steps: ['ถือหงายจอ หัวเครื่องชี้จอ กด <b>ตั้งศูนย์</b>', 'ชี้ที่ฟัน กดค้าง <b>ใช้เครื่องมือ</b> แล้วถูไปมาช้าๆ · กด <b>เปลี่ยนเครื่องมือ</b> เพื่ออุดฟัน'],
+});
+const S = setupShell({ game: 'dental', minCutoff: .9, beta: 1.6 });
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+
+/* ================= scene ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.domElement.className = 'scene';
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#dff3f0');
+const camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+camera.position.set(0, 2.6, 10.2); camera.lookAt(0, 2.1, 0);
+scene.add(new THREE.HemisphereLight('#ffffff', '#b7d9d4', 1.4));
+const lamp = new THREE.SpotLight('#fffbe8', 40, 20, .5, .5); lamp.position.set(1.5, 5, 7); lamp.target.position.set(0, 1.5, 0); lamp.castShadow = true; scene.add(lamp, lamp.target);
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .6, ...o });
+// dentist lamp ring + chair back for context
+const ringLamp = new THREE.Mesh(new THREE.TorusGeometry(.7, .12, 12, 32), M('#ffffff', { emissive: '#fff6c9', emissiveIntensity: .6 })); ringLamp.position.set(3.4, 4.2, 1); ringLamp.rotation.x = 1.1; scene.add(ringLamp);
+const chair = new THREE.Mesh(new RoundedBoxGeometry(7, 6, .6, 4, .3), M('#9fd8f0')); chair.position.set(0, 1.5, -2.4); scene.add(chair);
+
+/* ================= patient ================= */
+const head = new THREE.Group(); scene.add(head);
+const KINDS = [
+  { name: 'น้องฮิปโปชมพู', skin: '#f7b6c8', dark: '#e48aa4' },
+  { name: 'น้องฮิปโปม่วง', skin: '#cdb8ff', dark: '#a98ee8' },
+  { name: 'น้องฮิปโปฟ้า', skin: '#a9dcf5', dark: '#7dbde0' },
+];
+let kind = KINDS[0], teeth = [], gums = [], eyes = [], lowerJaw = null, mouthOpen = 1;
+const PW = 48, PH = 64, MW = 12, MH = 16; // plaque canvas + scoring grid per tooth
+
+function buildPatient() {
+  while (head.children.length) head.remove(head.children[0]);
+  teeth = []; gums = []; eyes = [];
+  const skin = M(kind.skin), dark = M(kind.dark), gumM = M('#ff8fa6', { roughness: .45 }), inside = M('#8c2f4a', { roughness: .9 });
+  const snout = new THREE.Mesh(new RoundedBoxGeometry(5.6, 4.6, 2.2, 6, .9), skin); snout.position.set(0, 1.55, -.8); head.add(snout);
+  const cranium = new THREE.Mesh(new THREE.SphereGeometry(2.2, 32, 24), skin); cranium.scale.set(1.25, .8, 1); cranium.position.set(0, 3.8, -1.4); head.add(cranium);
+  for (const s of [-1, 1]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(.45, 16, 12), dark); ear.scale.set(1, 1.2, .6); ear.position.set(s * 2.2, 5.05, -1.6); head.add(ear);
+    const ew = new THREE.Mesh(new THREE.SphereGeometry(.5, 20, 14), M('#ffffff')); ew.position.set(s * 1.05, 4.25, .72); head.add(ew);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(.26, 16, 12), M('#2e2a3a')); pupil.position.set(s * 1.05, 4.25, 1.12); head.add(pupil); eyes.push(pupil);
+    const nost = new THREE.Mesh(new THREE.SphereGeometry(.16, 12, 8), dark); nost.scale.set(1.3, .7, .5); nost.position.set(s * .7, 3.7, .32); head.add(nost);
+    const blush = new THREE.Mesh(new THREE.CircleGeometry(.36, 20), M('#ff8fab', { transparent: true, opacity: .6 })); blush.position.set(s * 2.3, 2.6, .33); head.add(blush);
+  }
+  // open mouth
+  const cave = new THREE.Mesh(new RoundedBoxGeometry(4.4, 2.7, .1, 4, .05), inside); cave.position.set(0, 1.5, .32); head.add(cave);
+  const tongue = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), M('#ff7f9a', { roughness: .5 })); tongue.scale.set(1.5, .45, .5); tongue.position.set(0, .7, .45); head.add(tongue);
+  lowerJaw = new THREE.Group(); head.add(lowerJaw);
+  const upperGum = new THREE.Mesh(new RoundedBoxGeometry(4.3, .55, .5, 4, .2), gumM); upperGum.position.set(0, 2.62, .55); head.add(upperGum); gums.push(upperGum);
+  const lowerGum = new THREE.Mesh(new RoundedBoxGeometry(4.3, .55, .5, 4, .2), gumM); lowerGum.position.set(0, .38, .55); lowerJaw.add(lowerGum); gums.push(lowerGum);
+  // teeth
+  const tGeo = new RoundedBoxGeometry(.44, .62, .34, 3, .12);
+  const nCav = 2 + Math.floor(Math.random() * 2), cavIdx = new Set(); while (cavIdx.size < nCav) cavIdx.add(Math.floor(rand(0, 16)));
+  for (let row = 0; row < 2; row++) for (let i = 0; i < 8; i++) {
+    const idx = row * 8 + i, x = -1.75 + i * .5, up = row === 0;
+    const tooth = new THREE.Mesh(tGeo, M('#fffdf6', { roughness: .3, emissive: '#fffaf0', emissiveIntensity: .25 }));
+    tooth.position.set(x, up ? 2.12 : .88, .7 + (1 - Math.abs(x) / 2) * .08); tooth.rotation.y = -x * .06; tooth.castShadow = true;
+    (up ? head : lowerJaw).add(tooth);
+    // plaque layer (yellow, thickest near the gum line)
+    const cv = document.createElement('canvas'); cv.width = PW; cv.height = PH; const g = cv.getContext('2d');
+    const heavy = Math.random() < .6, mask = new Float32Array(MW * MH);
+    for (let k = 0; k < (heavy ? 14 : 7); k++) {
+      const gy = up ? rand(0, PH * .55) : rand(PH * .45, PH), gx = rand(0, PW);
+      const gr = g.createRadialGradient(gx, gy, 1, gx, gy, rand(8, 16)); gr.addColorStop(0, '#d9b45acc'); gr.addColorStop(1, '#e8cf7a00');
+      g.fillStyle = gr; g.fillRect(0, 0, PW, PH);
+    }
+    const gl = up ? 0 : PH - 10; g.fillStyle = '#cfa64fdd'; for (let x2 = 0; x2 < PW; x2 += 4) g.fillRect(x2, gl + rand(-2, 2), 5, rand(6, 10));
+    const data = g.getImageData(0, 0, PW, PH).data;
+    let total = 0;
+    for (let j = 0; j < MH; j++) for (let k = 0; k < MW; k++) { const a = data[((j * PH / MH | 0) * PW + (k * PW / MW | 0)) * 4 + 3] / 255; mask[j * MW + k] = a > .15 ? a : 0; total += mask[j * MW + k]; }
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+    const decal = new THREE.Mesh(new THREE.PlaneGeometry(.42, .6), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
+    decal.position.z = .175; tooth.add(decal);
+    let cav = null;
+    if (cavIdx.has(idx)) {
+      cav = new THREE.Mesh(new THREE.CircleGeometry(.085, 20), new THREE.MeshBasicMaterial({ color: '#5a3a2a' }));
+      cav.position.set(rand(-.08, .08), up ? -.08 : .08, .172); tooth.add(cav);
+    }
+    teeth.push({ tooth, decal, cv, g, tex, mask, total, cav, fill: 0, up });
+  }
+  head.position.set(0, 0, 0);
+}
+
+/* ================= tools ================= */
+const scaler = new THREE.Group();
+{
+  const h = new THREE.Mesh(new THREE.CylinderGeometry(.05, .06, 1.6, 10), M('#b7c6d2', { metalness: .6, roughness: .25 })); h.position.y = .85; h.rotation.z = -.25;
+  const tip = new THREE.Mesh(new THREE.TorusGeometry(.08, .018, 6, 12, Math.PI), M('#dfe8ef', { metalness: .7, roughness: .2 })); tip.position.set(.02, .02, 0);
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, .5, 10), M('#7fd8be')); grip.position.set(-.33, 1.35, 0); grip.rotation.z = -.25;
+  scaler.add(h, tip, grip); scene.add(scaler);
+}
+const filler = new THREE.Group();
+{
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(.09, .07, 1.5, 12), M('#ffffff')); body.position.y = .8; body.rotation.z = -.25;
+  const light = new THREE.Mesh(new THREE.SphereGeometry(.07, 12, 8), new THREE.MeshBasicMaterial({ color: '#7fb6ff' }));
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(.1, .1, .2, 12), M('#7fb6ff')); band.position.set(-.18, .65, 0); band.rotation.z = -.25;
+  filler.add(body, light, band); scene.add(filler); filler.visible = false;
+}
+const glow = new THREE.PointLight('#7fb6ff', 0, 1.5); scene.add(glow);
+let tool = 0;
+function setTool(t) { tool = t; $('t0').classList.toggle('on', t === 0); $('t1').classList.toggle('on', t === 1); scaler.visible = t === 0; filler.visible = t === 1; S.tone(900, 1200, .05, .06); }
+
+/* ================= flow ================= */
+let pain = 0, ouchT = 0, ouches = 0, jobT = 0, count = 0, mode = 'work', ptIdx = 0;
+function newPatient() {
+  kind = KINDS[ptIdx % KINDS.length]; ptIdx++;
+  buildPatient(); pain = 0; ouchT = 0; ouches = 0; jobT = 0; mode = 'work'; mouthOpen = 1;
+  $('patient').textContent = kind.name; $('result').hidden = true; setTool(0);
+  S.big('อ้าปากกว้างๆ นะ', 1.2);
+}
+const plaqueLeft = () => { let a = 0, t = 0; for (const th of teeth) { t += th.total; for (const v of th.mask) a += v; } return t ? a / t : 0; };
+const cavLeft = () => teeth.filter(t => t.cav && t.fill < 1).length, cavAll = () => teeth.filter(t => t.cav).length;
+function finishPatient() {
+  mode = 'done'; count++; $('count').textContent = count;
+  const stars = ouches === 0 ? 3 : ouches <= 2 ? 2 : 1;
+  $('resSub').textContent = kind.name;
+  $('stars').innerHTML = '★'.repeat(stars) + `<span>${'★'.repeat(3 - stars)}</span>`;
+  $('scores').innerHTML = `<span>ใช้เวลา</span><b>${Math.round(jobT)} วิ</b><span>คนไข้เจ็บ</span><b>${ouches} ครั้ง</b><span>อุดฟัน</span><b>${cavAll()} ซี่</b>`;
+  $('result').hidden = false; S.jingle(); S.vib([40, 40, 40, 40, 160]);
+}
+$('nextPt').onclick = newPatient;
+function ouch(why) {
+  ouches++; ouchT = 1.6; pain = 55;
+  S.big(why, 1.2, '#ff5f75'); S.vib([150, 50, 150]); S.tone(700, 300, .3, .12, 'sawtooth');
+}
+
+/* ================= scraping ================= */
+const chips = [];
+function chip(p) {
+  const m = new THREE.Mesh(new THREE.DodecahedronGeometry(rand(.025, .05), 0), M('#e0c06a'));
+  m.position.copy(p); m.userData = { v: new THREE.Vector3(rand(-.6, .6), rand(.2, 1), rand(.3, .8)), life: 1 }; scene.add(m); chips.push(m);
+}
+function scrapeAt(th, uv, strength) {
+  const g = th.g, x = uv.x * PW, y = (1 - uv.y) * PH, r = 7;
+  g.save(); g.globalCompositeOperation = 'destination-out'; g.globalAlpha = .28 * strength;
+  g.beginPath(); g.arc(x, y, r, 0, 6.3); g.fill(); g.restore(); th.tex.needsUpdate = true;
+  let gone = 0;
+  const mx = uv.x * MW, my = (1 - uv.y) * MH, mr = r / PW * MW;
+  for (let j = Math.max(0, Math.floor(my - mr)); j <= Math.min(MH - 1, Math.ceil(my + mr)); j++)
+    for (let k = Math.max(0, Math.floor(mx - mr)); k <= Math.min(MW - 1, Math.ceil(mx + mr)); k++) {
+      if ((k + .5 - mx) ** 2 + (j + .5 - my) ** 2 > mr * mr) continue;
+      const i = j * MW + k, before = th.mask[i]; th.mask[i] = Math.max(0, before - .28 * strength); gone += before - th.mask[i];
+    }
+  return gone;
+}
+
+/* ================= input ================= */
+let mouse = { x: 0, y: 0, down: false };
+addEventListener('mousemove', e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = -(e.clientY / innerHeight * 2 - 1); });
+renderer.domElement.addEventListener('mousedown', e => { if (e.button === 0) mouse.down = true; if (e.button === 2) setTool(1 - tool); });
+addEventListener('mouseup', e => { if (e.button === 0) mouse.down = false; });
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+addEventListener('keydown', e => { if (e.key.toLowerCase() === 't') setTool(1 - tool); if (e.key.toLowerCase() === 'n' && mode === 'done') newPatient(); });
+function pointerNdc() {
+  if (S.pad.live) { const a = S.pad.aim(), c = new THREE.Vector3(0, 1.5, .7).project(camera); return { x: clamp(c.x + a.yaw / .55, -1, 1), y: clamp(c.y + a.pitch / .4, -1, 1) }; }
+  return { x: mouse.x, y: mouse.y };
+}
+const using = () => S.pad.live ? !!S.pad.btn.use : mouse.down;
+
+/* ================= loop ================= */
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+const ray = new THREE.Raycaster();
+let last = performance.now(), time = 0, prevPt = null, scrT = 0, hum = 0;
+function frame(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now; time += dt;
+  S.tick(dt);
+  if (S.pad.tap('tool')) setTool(1 - tool);
+  if (S.pad.tap('next') && mode === 'done') newPatient();
+
+  const ndc = pointerNdc();
+  ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+  const targets = [...teeth.map(t => t.decal), ...gums];
+  const hit = ray.intersectObjects(targets, false)[0];
+  const toolObj = tool === 0 ? scaler : filler;
+  const at = hit ? hit.point.clone().add(new THREE.Vector3(0, 0, .06)) : ray.ray.origin.clone().addScaledVector(ray.ray.direction, 9.2);
+  toolObj.position.lerp(at, .5);
+  const active = using() && mode === 'work' && ouchT <= 0 && !S.pairing();
+  toolObj.rotation.z = active ? Math.sin(time * 40) * .05 : 0;
+
+  // speed of the tool tip
+  let speed = 0;
+  if (hit && prevPt) speed = hit.point.distanceTo(prevPt) / Math.max(dt, 1e-3);
+  prevPt = hit ? hit.point.clone() : null;
+
+  let working = false;
+  glow.intensity = 0;
+  if (active && hit) {
+    const th = teeth.find(t => t.decal === hit.object);
+    if (!th) { pain += dt * 70; if (pain > 30 && Math.random() < dt * 4) S.toast('โดนเหงือก! เลื่อนขึ้นไปที่ตัวฟัน', 1.2); }
+    else if (tool === 0) {
+      if (speed > 5.5) pain += dt * (speed - 5.5) * 14; // jabbing hurts
+      const gone = scrapeAt(th, hit.uv, 1);
+      if (gone > .01) { working = true; if (Math.random() < .35) chip(hit.point); }
+    } else if (th.cav && th.fill < 1) {
+      const local = th.tooth.worldToLocal(hit.point.clone());
+      if (local.distanceTo(th.cav.position.clone().setZ(local.z)) < .16) {
+        th.fill = Math.min(1, th.fill + dt / 1.3); working = true; glow.position.copy(hit.point); glow.intensity = 3;
+        th.cav.material.color.lerpColors(new THREE.Color('#5a3a2a'), new THREE.Color('#fffdf6'), th.fill);
+        if (th.fill >= 1) { S.tone(1046, 1568, .15, .1, 'triangle'); S.vib([30, 30]); S.toast('อุดเรียบร้อย!', 1); }
+      }
+    }
+  }
+  if (working) { scrT -= dt; if (scrT <= 0) { S.noise(.06, tool === 0 ? 5000 : 1800, .1, tool === 0 ? 'highpass' : 'bandpass'); scrT = .06; } hum -= dt; if (hum <= 0) { S.vib(10); hum = .1; } }
+
+  // pain
+  pain = Math.max(0, pain - dt * 14);
+  if (pain >= 100 && ouchT <= 0) ouch('โอ๊ย! เจ็บนะ');
+  ouchT = Math.max(0, ouchT - dt);
+  mouthOpen += ((ouchT > 0 ? .35 : 1) - mouthOpen) * Math.min(1, dt * 8);
+  if (lowerJaw) lowerJaw.position.y = (1 - mouthOpen) * 1.1;
+  head.position.x = ouchT > 0 ? Math.sin(time * 50) * .06 : 0;
+  for (const e of eyes) e.scale.y = pain > 60 || ouchT > 0 ? .3 : 1;
+  $('painBar').style.width = Math.min(100, pain) + '%';
+  $('painTxt').textContent = ouchT > 0 ? 'เจ็บมาก!' : pain > 60 ? 'เริ่มเจ็บแล้ว ช้าลงหน่อย' : pain > 25 ? 'เสียวนิดหน่อย' : 'สบายดี';
+
+  for (const c of chips) { c.userData.v.y -= 6 * dt; c.position.addScaledVector(c.userData.v, dt); c.userData.life -= dt; }
+  for (let i = chips.length - 1; i >= 0; i--) if (chips[i].userData.life <= 0) { scene.remove(chips[i]); chips.splice(i, 1); }
+
+  if (mode === 'work' && !S.pairing()) {
+    jobT += dt;
+    const pl = plaqueLeft(), cl = cavLeft(), ca = cavAll();
+    $('plaqueTxt').textContent = `หินปูเหลือ ${Math.round(pl * 100)}%`;
+    $('cavTxt').textContent = `อุดแล้ว ${ca - cl}/${ca} ซี่`;
+    $('timeTxt').textContent = Math.round(jobT) + ' วิ';
+    $('jobBar').style.width = ((1 - pl) * .7 + (ca ? (ca - cl) / ca : 1) * .3) * 100 + '%';
+    if (pl < .04 && cl === 0) finishPatient();
+  }
+  const P = S.pad.live;
+  if (S.pairing() || !$('result').hidden) S.hint('');
+  else if (tool === 0) S.hint(P ? 'ชี้ที่ฟัน กดค้างแล้วถูไปมาช้าๆ · ห้ามโดนเหงือกสีชมพู' : 'กดเมาส์ค้างถูที่คราบเหลือง · คลิกขวา/T เปลี่ยนเครื่องมือ');
+  else S.hint('ชี้ที่จุดดำบนฟัน แล้วกดค้างจนกลายเป็นสีขาว');
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+window.__dent = { dbg() { return { using: using(), mode, ouchT, pair: S.pairing(), tool }; }, feed: d => S.pad.feed(d), get plaque() { return plaqueLeft(); }, get cav() { return [cavLeft(), cavAll()]; }, get pain() { return pain; }, get ouches() { return ouches; }, get mode() { return mode; }, setTool,
+  toothScreen(i) { const p = teeth[i].decal.getWorldPosition(new THREE.Vector3()).project(camera); return p; },
+  cavScreen() { return teeth.filter(t => t.cav).map(t => t.cav.getWorldPosition(new THREE.Vector3()).project(camera)); } };
+newPatient();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

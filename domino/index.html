@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เรียงโดมิโน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: play table seen from above-front; level card top-centre, domino count top-left, steadiness dot follows the ghost */
+:root{--bg:#eef3ff;--card:#ffffff;--ink:#3b3f5c;--soft:#8c90ad;--accent:#7f9cff;--accent-deep:#5a78f0;--good:#7fd1a0;--warn:#f2b24a;--line:#dde4f7;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+.level{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 18px;display:flex;flex-direction:column;gap:4px;min-width:300px;text-align:center;box-shadow:0 10px 24px -16px #5a6aa0}
+.level b{font-size:19px;font-weight:600}
+.level span{font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums}
+.steady{position:fixed;right:24px;bottom:24px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;width:170px;font-size:13px;color:var(--soft)}
+.steady .bar i{transition:width .1s}
+.result{flex-direction:column;text-align:center;gap:8px}
+.stars{font-size:52px;letter-spacing:.1em;color:var(--warn)}.stars span{color:var(--line)}
+.scores{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-variant-numeric:tabular-nums;text-align:left;margin:0 auto}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+<script type="importmap">{ "imports": { "three": "../lib/three.module.js" } }</script>
+</head>
+<body>
+<div class="hud"><span class="lbl">โดมิโนที่วาง</span><b id="count">0</b><span class="lbl" id="maxTxt"></span></div>
+<div class="level" id="levelCard"><b id="lvTitle"></b><span id="lvGoal"></span></div>
+<div class="steady" id="steadyBox"><span id="steadyTxt">ความนิ่งของมือ</span><div class="bar"><i id="steadyBar"></i></div></div>
+<div class="overlay" id="result" hidden>
+  <div class="card result">
+    <p style="margin:0" id="resSub"></p>
+    <h1 id="resTitle"></h1>
+    <div class="stars" id="stars"></div>
+    <div class="scores" id="scores"></div>
+    <div class="btns" style="justify-content:center;margin-top:8px">
+      <button class="btn ghost" id="retry">ตั้งโดมิโนเดิมใหม่</button>
+      <button class="btn ghost" id="clear">เริ่มด่านนี้ใหม่</button>
+      <button class="btn" id="nextLv">ด่านถัดไป</button>
+    </div>
+  </div>
+</div>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
+import RAPIER from '../lib/rapier.es.js';
+import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
+
+await RAPIER.init();
+shellMarkup({
+  title: 'เรียงโดมิโน',
+  blurb: 'วางโดมิโนทีละตัวจากจุดเริ่มไปให้ถึงกระดิ่ง มือต้องนิ่งตอนวาง แล้วผลักให้ล้มต่อกันทั้งแถว',
+  steps: ['ถือหงายจอ หัวเครื่องชี้จอ กด <b>ตั้งศูนย์</b>', 'ชี้ตำแหน่ง บิดข้อมือหมุนตัว แล้วแตะ <b>วาง</b> · ครบแล้วกด <b>ผลัก!</b>'],
+});
+const S = setupShell({ game: 'domino', minCutoff: .8, beta: 1.5 });
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+const D2R = Math.PI / 180;
+
+/* ================= constants ================= */
+const DW = .6, DH = 1.15, DT = .17;        // domino width (across the path), height, thickness
+const GOOD_MIN = .42, GOOD_MAX = .95;       // centre-to-centre spacing that reliably topples the next one
+const MAX_DOM = 45;
+const LEVELS = [
+  { name: 'ด่าน 1 · ทางตรง', start: [-6, 1.5], startYaw: 90, bell: [6, 1.5], blocks: [] },
+  { name: 'ด่าน 2 · อ้อมก้อนเมฆ', start: [-6, 2.2], startYaw: 90, bell: [6, 2.2], blocks: [[0, 2.2, 2.2, 1.6]] },
+  { name: 'ด่าน 3 · ทางโค้งตัว S', start: [-6.5, 3], startYaw: 90, bell: [6.5, -.5], blocks: [[-2.2, 1.6, 1.6, 3.4], [2.2, .9, 1.6, 3.4]] },
+  { name: 'ด่าน 4 · วงรอบโต๊ะ', start: [-3, 3.4], startYaw: 90, bell: [-3, .2], blocks: [[0, 1.8, 7, 1.4]] },
+];
+let lvIdx = 0;
+
+/* ================= scene ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.domElement.className = 'scene';
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#e8eeff');
+const camera = new THREE.PerspectiveCamera(42, 1, .1, 100);
+camera.position.set(0, 10.5, 10.8); camera.lookAt(0, 0, 1.2);
+scene.add(new THREE.HemisphereLight('#ffffff', '#b9c4ef', 1.5));
+const sun = new THREE.DirectionalLight('#fff6ea', 2.1); sun.position.set(-6, 14, 8); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -11, right: 11, top: 9, bottom: -9 }); sun.shadow.bias = -.0004; scene.add(sun);
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .6, ...o });
+const table = new THREE.Mesh(new RoundedBoxGeometry(17, .6, 11, 4, .25), M('#ffe2c6')); table.position.set(0, -.3, 1.5); table.receiveShadow = true; scene.add(table);
+// gingham table cloth texture
+{
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  g.fillStyle = '#fff6ee'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#ffd3dc88'; g.fillRect(0, 0, 32, 64); g.fillRect(0, 0, 64, 32);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(16, 10); t.colorSpace = THREE.SRGBColorSpace;
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(16, 10), new THREE.MeshStandardMaterial({ map: t, roughness: .9 }));
+  cloth.rotation.x = -Math.PI / 2; cloth.position.set(0, .005, 1.5); cloth.receiveShadow = true; scene.add(cloth);
+}
+const TABLE = { x0: -7.8, x1: 7.8, z0: -3.3, z1: 6.3 };
+
+/* ================= physics ================= */
+let world = null, dominoes = [], placed = [], levelMeshes = [];
+const pipTex = [];
+for (let i = 0; i < 6; i++) {
+  const c = document.createElement('canvas'); c.width = 96; c.height = 192; const g = c.getContext('2d');
+  const cols = ['#ffb3c6', '#a9e8f5', '#fff1a8', '#c8f2c2', '#cdb8ff', '#ffd6a5'];
+  g.fillStyle = cols[i]; g.fillRect(0, 0, 96, 192);
+  g.fillStyle = '#ffffff88'; g.fillRect(8, 94, 80, 4);
+  g.fillStyle = '#3b3f5c';
+  g.beginPath(); g.arc(34, 44, 6, 0, 6.3); g.arc(62, 44, 6, 0, 6.3); g.fill();
+  g.strokeStyle = '#3b3f5c'; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath(); g.arc(48, 56, 8, .3, Math.PI - .3); g.stroke();
+  g.fillStyle = '#ff8fab99'; g.beginPath(); g.ellipse(22, 62, 7, 4, 0, 0, 6.3); g.ellipse(74, 62, 7, 4, 0, 0, 6.3); g.fill();
+  g.fillStyle = '#3b3f5c'; const n = (i % 6) + 1, pts = [[48, 150], [30, 128, 66, 172], [30, 128, 48, 150, 66, 172], [30, 128, 66, 128, 30, 172, 66, 172], [30, 128, 66, 128, 48, 150, 30, 172, 66, 172], [30, 120, 66, 120, 30, 150, 66, 150, 30, 180, 66, 180]][n - 1];
+  for (let k = 0; k < pts.length; k += 2) { g.beginPath(); g.arc(pts[k], pts[k + 1], 7, 0, 6.3); g.fill(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; pipTex.push(t);
+}
+const domGeo = new RoundedBoxGeometry(DW, DH, DT, 2, .05);
+const faceGeo = new THREE.PlaneGeometry(DW * .92, DH * .92);
+
+function buildWorld() {
+  if (world) world.free();
+  world = new RAPIER.World({ x: 0, y: -22, z: 0 });
+  world.timestep = 1 / 120;
+  world.createCollider(RAPIER.ColliderDesc.cuboid(8.5, .3, 5.5).setTranslation(0, -.3, 1.5).setFriction(.8));
+  for (const b of LEVELS[lvIdx].blocks) world.createCollider(RAPIER.ColliderDesc.cuboid(b[2] / 2, .6, b[3] / 2).setTranslation(b[0], .6, b[1]).setFriction(.5));
+}
+function makeDomino(p, i) {
+  const rb = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(p.x, DH / 2 + .002 + p.lift, p.z).setRotation(p.q).setLinearDamping(.05).setAngularDamping(.1).setCcdEnabled(true));
+  world.createCollider(RAPIER.ColliderDesc.cuboid(DW / 2, DH / 2, DT / 2).setFriction(.55).setRestitution(.05).setDensity(2), rb);
+  const mesh = new THREE.Mesh(domGeo, M('#ffffff', { roughness: .4 })); mesh.castShadow = true; mesh.receiveShadow = true;
+  for (const s of [1, -1]) { const f = new THREE.Mesh(faceGeo, new THREE.MeshBasicMaterial({ map: pipTex[p.col] })); f.position.z = s * (DT / 2 + .003); if (s < 0) f.rotation.y = Math.PI; mesh.add(f); }
+  scene.add(mesh);
+  const d = { rb, mesh, i, fallen: false, start: !!p.start };
+  dominoes.push(d); return d;
+}
+function syncMeshes() {
+  for (const d of dominoes) {
+    const t = d.rb.translation(), r = d.rb.rotation();
+    d.mesh.position.set(t.x, t.y, t.z); d.mesh.quaternion.set(r.x, r.y, r.z, r.w);
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(d.mesh.quaternion);
+    d.fallen = up.y < .7;
+  }
+}
+
+/* ================= level decor ================= */
+let bell = null, bellRing = 0;
+function buildLevel() {
+  for (const m of levelMeshes) scene.remove(m); levelMeshes = [];
+  for (const d of dominoes) scene.remove(d.mesh); dominoes = []; placed = [];
+  const L = LEVELS[lvIdx];
+  buildWorld();
+  // cloud-shaped blocks
+  for (const b of L.blocks) {
+    const g = new THREE.Group();
+    const base = new THREE.Mesh(new RoundedBoxGeometry(b[2], 1.2, b[3], 4, .45), M('#ffffff')); base.position.y = .6; base.castShadow = true; base.receiveShadow = true; g.add(base);
+    for (let k = 0; k < 4; k++) { const puff = new THREE.Mesh(new THREE.SphereGeometry(rand(.45, .7), 16, 12), M('#ffffff')); puff.position.set(rand(-b[2] / 2 + .4, b[2] / 2 - .4), 1.15, rand(-b[3] / 2 + .4, b[3] / 2 - .4)); puff.castShadow = true; g.add(puff); }
+    g.position.set(b[0], 0, b[1]); scene.add(g); levelMeshes.push(g);
+  }
+  // start pad + bell
+  const pad = new THREE.Mesh(new THREE.CylinderGeometry(.7, .7, .04, 32), M('#b9e9c8')); pad.position.set(L.start[0], .02, L.start[1]); scene.add(pad); levelMeshes.push(pad);
+  bell = new THREE.Group();
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 1.8, 10), M('#c9a27a')); post.position.y = .9; bell.add(post);
+  const bellM = new THREE.Mesh(new THREE.SphereGeometry(.42, 24, 16, 0, Math.PI * 2, 0, Math.PI * .62), M('#ffd166', { metalness: .4, roughness: .3, side: THREE.DoubleSide }));
+  bellM.position.y = 1.9; bellM.castShadow = true; bell.add(bellM); bell.userData.cup = bellM;
+  const ring = new THREE.Mesh(new THREE.CylinderGeometry(.75, .75, .03, 32), new THREE.MeshBasicMaterial({ color: '#ffd166', transparent: true, opacity: .45 })); ring.position.y = .02; bell.add(ring);
+  bell.position.set(L.bell[0], 0, L.bell[1]); scene.add(bell); levelMeshes.push(bell);
+  // the first domino stands on the start pad
+  const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), L.startYaw * D2R);
+  placed.push({ x: L.start[0], z: L.start[1], q: { x: q.x, y: q.y, z: q.z, w: q.w }, lift: 0, col: 0, start: true, yaw: L.startYaw * D2R });
+  for (const p of placed) makeDomino(p);
+  mode = 'build'; bellRing = 0; rang = false;
+  $('lvTitle').textContent = L.name; updateCount();
+}
+function rebuildFromPlaced() { // put every placed domino back upright where it was
+  for (const d of dominoes) scene.remove(d.mesh); dominoes = [];
+  buildWorld(); for (const p of placed) makeDomino(p);
+  mode = 'build'; rang = false; $('result').hidden = true;
+}
+function updateCount() {
+  $('count').textContent = placed.length - 1;
+  $('maxTxt').textContent = `จากสูงสุด ${MAX_DOM} ตัว`;
+  $('lvGoal').textContent = mode === 'build' ? 'วางโดมิโนจากจุดสีเขียวไปให้ถึงกระดิ่ง แล้วกดผลัก' : 'กำลังล้ม…';
+}
+
+/* ================= ghost / placement ================= */
+const ghost = new THREE.Mesh(domGeo, new THREE.MeshStandardMaterial({ color: '#7fd1a0', transparent: true, opacity: .45 }));
+scene.add(ghost);
+const guide = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineDashedMaterial({ color: '#7f9cff', dashSize: .15, gapSize: .1 }));
+scene.add(guide);
+let twist = 0, mode = 'build', rang = false, runT = 0;
+const ray = new THREE.Raycaster(), tablePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+let mouse = { x: 0, y: 0, vx: 0, vy: 0, t: 0 }, mouseClick = 0;
+addEventListener('mousemove', e => {
+  const now = performance.now(), nx = e.clientX / innerWidth * 2 - 1, ny = -(e.clientY / innerHeight * 2 - 1), dt = Math.max(1, now - mouse.t) / 1000;
+  mouse.vx = mouse.vx * .7 + (e.clientX - (mouse.px ?? e.clientX)) / dt * .3; mouse.vy = mouse.vy * .7 + (e.clientY - (mouse.py ?? e.clientY)) / dt * .3;
+  Object.assign(mouse, { x: nx, y: ny, t: now, px: e.clientX, py: e.clientY });
+});
+renderer.domElement.addEventListener('mousedown', e => { if (e.button === 0) mouseClick++; });
+addEventListener('wheel', e => { twist += Math.sign(e.deltaY) * 8 * D2R; }, { passive: true });
+const keys = {};
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase(); keys[k] = true;
+  if (k === ' ') { e.preventDefault(); push(); }
+  if (k === 'backspace' || k === 'z') undo();
+  if (k === 'q') twist -= 10 * D2R; if (k === 'e') twist += 10 * D2R;
+});
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+const aimHist = [];
+function pointerNdc() {
+  if (S.pad.live) { const a = S.pad.aim(); return { x: clamp(a.yaw / .5, -1, 1), y: clamp(a.pitch / .36, -1, 1) }; }
+  return { x: mouse.x, y: mouse.y };
+}
+// how shaky the hand is right now, in degrees (spread of the raw aim over the last ~0.3 s)
+function shakiness(now) {
+  if (S.pad.live) {
+    aimHist.push({ t: now, y: S.pad.raw.yaw, p: S.pad.raw.pitch }); while (aimHist.length && now - aimHist[0].t > 300) aimHist.shift();
+    if (aimHist.length < 4) return 0;
+    const my = aimHist.reduce((a, h) => a + h.y, 0) / aimHist.length, mp = aimHist.reduce((a, h) => a + h.p, 0) / aimHist.length;
+    const sd = Math.sqrt(aimHist.reduce((a, h) => a + (h.y - my) ** 2 + (h.p - mp) ** 2, 0) / aimHist.length);
+    return sd / D2R;
+  }
+  const sp = Math.hypot(mouse.vx, mouse.vy) * (performance.now() - mouse.t < 120 ? 1 : 0);
+  return sp / 220; // mouse: moving fast while clicking counts as a shaky hand
+}
+let ghostPos = new THREE.Vector3(), ghostYaw = 0, ghostOk = false, shake = 0;
+function placeDomino() {
+  if (mode !== 'build') return;
+  if (placed.length - 1 >= MAX_DOM) { S.toast('ครบจำนวนแล้ว กดผลักได้เลย'); return; }
+  if (!ghostOk) { S.toast('วางตรงนี้ไม่ได้'); S.tone(220, 160, .1, .08, 'square'); return; }
+  // a shaky hand leaves the domino leaning: past ~8° it tips over on its own
+  const lean = Math.max(0, shake - .6) * 3.2 * D2R, dir = rand(0, Math.PI * 2);
+  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.cos(dir) * lean, ghostYaw, Math.sin(dir) * lean, 'YXZ'));
+  const p = { x: ghostPos.x, z: ghostPos.z, q: { x: q.x, y: q.y, z: q.z, w: q.w }, lift: lean > 0 ? .02 : 0, col: placed.length % 6, yaw: ghostYaw };
+  placed.push(p); makeDomino(p);
+  S.tone(660 + placed.length * 6, 900, .06, .08, 'triangle'); S.vib(20);
+  if (lean > 6 * D2R) S.toast('มือสั่น ตัวนี้เอียงนะ!', 1.2);
+  updateCount(); twist = 0;
+}
+function undo() {
+  if (mode !== 'build' || placed.length <= 1) return;
+  placed.pop(); const d = dominoes.pop(); if (d) { world.removeRigidBody(d.rb); scene.remove(d.mesh); }
+  updateCount(); S.tone(500, 350, .07, .06);
+}
+function push() {
+  if (mode !== 'build') return;
+  if (dominoes.some(d => d.fallen)) { S.toast('มีตัวล้มอยู่ กดเก็บตัวล่าสุด หรือรอให้ตั้งใหม่'); }
+  const d0 = dominoes[0], f = new THREE.Vector3(0, 0, 1).applyQuaternion(d0.mesh.quaternion);
+  if (placed.length > 1) { const p1 = placed[1], dirTo = new THREE.Vector3(p1.x - placed[0].x, 0, p1.z - placed[0].z); if (f.dot(dirTo) < 0) f.negate(); }
+  d0.rb.applyImpulseAtPoint({ x: f.x * .35, y: 0, z: f.z * .35 }, { x: placed[0].x, y: DH * .95, z: placed[0].z }, true);
+  mode = 'run'; runT = 0; updateCount(); S.big('ผลัก!', .8); S.vib(40);
+}
+$('retry').onclick = rebuildFromPlaced;
+$('clear').onclick = () => { $('result').hidden = true; buildLevel(); };
+$('nextLv').onclick = () => { $('result').hidden = true; lvIdx = (lvIdx + 1) % LEVELS.length; buildLevel(); };
+
+function finishRun() {
+  mode = 'done';
+  const total = dominoes.length, fallen = dominoes.filter(d => d.fallen).length;
+  const pct = fallen / total, stars = rang ? (pct > .95 ? 3 : 2) : pct > .6 ? 1 : 0;
+  $('resSub').textContent = LEVELS[lvIdx].name;
+  $('resTitle').textContent = rang ? 'กริ๊ง! ถึงกระดิ่งแล้ว' : 'ยังไม่ถึงกระดิ่ง';
+  $('stars').innerHTML = '★'.repeat(stars) + `<span>${'★'.repeat(3 - stars)}</span>`;
+  $('scores').innerHTML = `<span>ล้มต่อกัน</span><b>${fallen}/${total} ตัว</b><span>ใช้โดมิโน</span><b>${placed.length - 1} ตัว</b>`;
+  $('nextLv').hidden = !rang;
+  $('result').hidden = false; S.vib(rang ? [60, 60, 60, 60, 200] : [120]);
+  if (rang) S.jingle();
+}
+
+/* ================= loop ================= */
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+let last = performance.now(), acc = 0, clackT = 0, prevFallen = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  S.tick(dt);
+  const placeTap = S.pad.tap('place') + mouseClick; mouseClick = 0;
+  if (S.pad.tap('push')) push();
+  if (S.pad.tap('undo')) undo();
+
+  // ghost follows the pointer on the table
+  const ndc = pointerNdc(); shake = shakiness(now);
+  ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+  const hit = new THREE.Vector3(); ray.ray.intersectPlane(tablePlane, hit);
+  if (S.pad.live) twist = S.pad.aim().roll * 1.2; // twisting the wrist turns the domino
+  const prev = placed[placed.length - 1];
+  let gap = 0;
+  if (hit) {
+    hit.x = clamp(hit.x, TABLE.x0, TABLE.x1); hit.z = clamp(hit.z, TABLE.z0, TABLE.z1);
+    ghostPos.lerp(hit, .5);
+    const dx = ghostPos.x - prev.x, dz = ghostPos.z - prev.z; gap = Math.hypot(dx, dz);
+    const autoYaw = gap > .15 ? Math.atan2(dx, dz) : prev.yaw;
+    ghostYaw = autoYaw + twist;
+    const inBlock = LEVELS[lvIdx].blocks.some(b => Math.abs(ghostPos.x - b[0]) < b[2] / 2 + .3 && Math.abs(ghostPos.z - b[1]) < b[3] / 2 + .3);
+    const nearBell = Math.hypot(ghostPos.x - bell.position.x, ghostPos.z - bell.position.z) < .45;
+    ghostOk = !inBlock && !nearBell && gap > .2;
+    const good = gap >= GOOD_MIN && gap <= GOOD_MAX;
+    ghost.material.color.set(!ghostOk ? '#ff8f8f' : good ? '#7fd1a0' : '#f2b24a');
+  }
+  ghost.visible = mode === 'build' && !S.pairing();
+  ghost.position.set(ghostPos.x, DH / 2, ghostPos.z); ghost.rotation.set(0, ghostYaw, 0);
+  guide.visible = ghost.visible;
+  if (guide.visible) { guide.geometry.setFromPoints([new THREE.Vector3(prev.x, .03, prev.z), new THREE.Vector3(ghostPos.x, .03, ghostPos.z)]); guide.computeLineDistances(); }
+  const steadyPct = clamp(1 - Math.max(0, shake - .6) / 2.5, 0, 1);
+  $('steadyBar').style.width = steadyPct * 100 + '%'; $('steadyBar').style.background = steadyPct > .7 ? '#7fd1a0' : steadyPct > .4 ? '#f2b24a' : '#ff8f8f';
+  $('steadyTxt').textContent = steadyPct > .7 ? 'มือนิ่งดี วางได้' : steadyPct > .4 ? 'มือสั่นนิดหน่อย' : 'มือสั่น! ตัวจะเอียง';
+  if (placeTap) placeDomino();
+
+  // physics
+  acc += dt; let steps = 0;
+  while (acc >= 1 / 120 && steps < 8) { world.step(); acc -= 1 / 120; steps++; }
+  syncMeshes();
+  const fallen = dominoes.filter(d => d.fallen).length;
+  if (fallen > prevFallen) { clackT -= dt; if (clackT <= 0) { S.tone(1400 + Math.random() * 400, 900, .03, .07, 'square'); clackT = .04; } if (fallen % 3 === 0) S.vib(10); }
+  prevFallen = fallen;
+  if (mode === 'build' && fallen > 0 && dominoes.some(d => d.fallen && !d.counted)) {
+    for (const d of dominoes) if (d.fallen && !d.counted) { d.counted = true; if (d !== dominoes[0]) S.toast('มีตัวล้มเอง! กดเก็บตัวล่าสุด แล้ววางใหม่ให้ห่างกว่านี้', 2.4); }
+  }
+  // the bell rings when a domino lands next to it
+  if (!rang && (mode === 'run' || mode === 'build')) for (const d of dominoes) {
+    const t = d.rb.translation();
+    if (d.fallen && Math.hypot(t.x - bell.position.x, t.z - bell.position.z) < 1.0) { rang = true; bellRing = 1.6; [1568, 2093, 1568, 2093].forEach((f, i) => S.tone(f, f, .25, .09, 'sine', i * .12)); S.vib([40, 40, 40]); break; }
+  }
+  bellRing = Math.max(0, bellRing - dt);
+  bell.userData.cup.rotation.z = Math.sin(performance.now() / 50) * .35 * bellRing;
+  if (mode === 'run') {
+    runT += dt;
+    const moving = dominoes.some(d => { const v = d.rb.linvel(), w = d.rb.angvel(); return Math.hypot(v.x, v.y, v.z) + Math.hypot(w.x, w.y, w.z) > .15; });
+    if ((runT > 1.5 && !moving) || runT > 14) finishRun();
+  }
+
+  const P = S.pad.live;
+  if (S.pairing() || !$('result').hidden) S.hint('');
+  else if (mode === 'build') S.hint(gap > GOOD_MAX ? 'ห่างไป ตัวหน้าจะล้มไม่ถึง' : gap < GOOD_MIN && gap > .2 ? 'ชิดไป ระวังชนตัวก่อนหน้า' : P ? 'ชี้ บิดข้อมือหมุน แล้วแตะวาง · ครบแล้วกดผลัก' : 'คลิกวาง · ลูกกลิ้ง/Q E หมุน · Z เก็บคืน · Space ผลัก');
+  else if (mode === 'run') S.hint('กำลังล้ม…');
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+window.__dom = { feed: d => S.pad.feed(d), place: placeDomino, push, get mode() { return mode; }, get placed() { return placed.length - 1; }, get fallen() { return dominoes.filter(d => d.fallen).length; }, get rang() { return rang; },
+  aimAt(x, z) { const v = new THREE.Vector3(x, 0, z).project(camera); return v; }, level: i => { lvIdx = i; buildLevel(); } };
+buildLevel();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

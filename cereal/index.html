@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ซีเรียลตัวอักษร</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Fredoka:wght@600&display=swap">
+<style>
+/* Layout: bowl of milk fills the view from above; the word being spelled sits in a card at the top, score and timer top-left */
+:root{--bg:#fff6e0;--card:#fffdf7;--ink:#4a3a2a;--soft:#9b8a74;--accent:#f0a24a;--accent-deep:#d9822a;--good:#8fcf7c;--warn:#f2b24a;--line:#f2e2c2;--bad:#ff7a7a;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;--letter:"Fredoka","Mitr",system-ui,sans-serif;color-scheme:light}
+.word{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:12px 20px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 12px 26px -16px #a07a40}
+.slots{display:flex;gap:8px}
+.slots span{width:48px;height:56px;border-radius:12px;border:3px dashed var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--letter);font-size:34px;font-weight:600;color:var(--ink);background:#fffaf0}
+.slots span.next{border-color:var(--accent);border-style:solid;animation:pulse 1s infinite}
+.slots span.ok{border-style:solid;border-color:var(--good);background:#f1fbe9}
+@keyframes pulse{50%{transform:scale(1.08)}}
+.meaning{font-size:16px;color:var(--soft)}
+.meaning b{color:var(--ink);font-weight:500}
+.timer{position:fixed;left:24px;top:110px;font-size:14px;color:var(--soft);font-variant-numeric:tabular-nums;pointer-events:none}
+.timer b{font-size:30px;color:var(--ink);font-weight:600}
+.result{flex-direction:column;text-align:center;gap:8px}
+.stars{font-size:52px;letter-spacing:.1em;color:var(--warn)}.stars span{color:var(--line)}
+.scores{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-variant-numeric:tabular-nums;text-align:left;margin:0 auto}
+.learned{font-size:14px;color:var(--soft);max-width:420px;line-height:1.7}
+@media (prefers-reduced-motion:reduce){.slots span.next{animation:none}}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+<script type="importmap">{ "imports": { "three": "../lib/three.module.js" } }</script>
+</head>
+<body>
+<div class="hud"><span class="lbl">คำที่สะกดได้</span><b id="score">0</b></div>
+<div class="timer">เวลา <b id="time">90</b> วิ</div>
+<div class="word"><div class="slots" id="slots"></div><div class="meaning" id="meaning"></div></div>
+<div class="overlay" id="result" hidden>
+  <div class="card result">
+    <p style="margin:0">หมดเวลา!</p>
+    <h1 id="resTitle"></h1>
+    <div class="stars" id="stars"></div>
+    <div class="scores" id="scores"></div>
+    <div class="learned" id="learned"></div>
+    <div class="btns" style="justify-content:center;margin-top:8px"><button class="btn" id="again">เล่นอีกรอบ</button></div>
+  </div>
+</div>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
+
+shellMarkup({
+  title: 'ซีเรียลตัวอักษร',
+  blurb: 'มือถือคือช้อน ตักซีเรียลตัวอักษรที่ลอยในนมมาเรียงเป็นคำศัพท์ภาษาอังกฤษตามคำแปลที่ให้',
+  steps: ['ถือหงายจอ หัวเครื่องชี้จอ กด <b>ตั้งศูนย์</b>', 'ชี้ช้อนไปที่ตัวอักษรที่ต้องการ แล้วสะบัดขึ้นเพื่อตัก (หรือแตะ <b>ตัก!</b>)'],
+});
+const S = setupShell({ game: 'cereal', minCutoff: .9, beta: 1.6 });
+// draw letters with the round font once it has loaded (falls back after 1.5 s offline)
+try { await Promise.race([document.fonts.load('600 82px Fredoka'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+
+/* ================= words ================= */
+const WORDS = [
+  ['CAT', 'แมว'], ['DOG', 'หมา'], ['SUN', 'ดวงอาทิตย์'], ['CUP', 'ถ้วย'], ['BEE', 'ผึ้ง'], ['EGG', 'ไข่'], ['HAT', 'หมวก'], ['PIG', 'หมู'],
+  ['FISH', 'ปลา'], ['MILK', 'นม'], ['BOOK', 'หนังสือ'], ['CAKE', 'เค้ก'], ['STAR', 'ดาว'], ['BIRD', 'นก'], ['FROG', 'กบ'], ['MOON', 'ดวงจันทร์'], ['RAIN', 'ฝน'], ['TREE', 'ต้นไม้'],
+  ['APPLE', 'แอปเปิล'], ['HOUSE', 'บ้าน'], ['WATER', 'น้ำ'], ['HAPPY', 'มีความสุข'], ['BREAD', 'ขนมปัง'], ['TIGER', 'เสือ'], ['SPOON', 'ช้อน'], ['MOUSE', 'หนู'], ['SMILE', 'ยิ้ม'],
+  ['RABBIT', 'กระต่าย'], ['BANANA', 'กล้วย'], ['ORANGE', 'ส้ม'], ['CEREAL', 'ซีเรียล'], ['FLOWER', 'ดอกไม้'], ['SCHOOL', 'โรงเรียน'], ['FRIEND', 'เพื่อน'],
+];
+const ABC = 'ABCDEFGHIJKLMNOPRSTUWY';
+
+/* ================= scene ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.domElement.className = 'scene';
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#ffefd0');
+const camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+camera.position.set(0, 10.5, 6.2); camera.lookAt(0, 0, .5);
+scene.add(new THREE.HemisphereLight('#fffaf0', '#e0c49a', 1.4));
+const sun = new THREE.DirectionalLight('#fff3df', 2); sun.position.set(-4, 12, 5); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .6, ...o });
+const R = 3.6; // milk radius
+const table = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, .4, 64), M('#e9c39a')); table.position.y = -1.4; table.receiveShadow = true; scene.add(table);
+const bowlOut = new THREE.Mesh(new THREE.SphereGeometry(R + .5, 48, 24, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), M('#8fd3e8', { side: THREE.DoubleSide }));
+bowlOut.scale.y = .38; bowlOut.position.y = .1; bowlOut.castShadow = true; scene.add(bowlOut);
+const rim = new THREE.Mesh(new THREE.TorusGeometry(R + .5, .14, 12, 64), M('#ffffff')); rim.rotation.x = Math.PI / 2; rim.position.y = .1; scene.add(rim);
+// polka dots on the bowl rim area (decor)
+for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, d = new THREE.Mesh(new THREE.CircleGeometry(.12, 12), M('#ffffff')); d.position.set(Math.cos(a) * (R + .52), -.6, Math.sin(a) * (R + .52)); d.lookAt(Math.cos(a) * 20, -2, Math.sin(a) * 20); scene.add(d); }
+const milkGeo = new THREE.CircleGeometry(R, 64);
+const milk = new THREE.Mesh(milkGeo, new THREE.MeshStandardMaterial({ color: '#fffdf6', roughness: .25 }));
+milk.rotation.x = -Math.PI / 2; milk.position.y = 0; milk.receiveShadow = true; scene.add(milk);
+
+/* ================= letter cereal ================= */
+const texCache = {};
+function letterTex(ch) {
+  if (texCache[ch]) return texCache[ch];
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  g.fillStyle = '#f4b860'; g.beginPath(); g.arc(64, 64, 62, 0, 6.3); g.fill();
+  g.fillStyle = '#e09a3c'; for (let i = 0; i < 18; i++) { g.beginPath(); g.arc(rand(20, 108), rand(20, 108), rand(2, 4), 0, 6.3); g.fill(); }
+  g.fillStyle = '#7a4a1e'; g.font = '600 82px Fredoka, Mitr, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch, 64, 70);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; texCache[ch] = t; return t;
+}
+const discGeo = new THREE.CylinderGeometry(.42, .42, .16, 28);
+const sideMat = M('#e6a24c', { roughness: .8 });
+let pieces = [];
+function addPiece(ch, drop = false) {
+  const top = new THREE.MeshStandardMaterial({ map: letterTex(ch), roughness: .7 });
+  const m = new THREE.Mesh(discGeo, [sideMat, top, sideMat]); m.castShadow = true;
+  const a = rand(0, Math.PI * 2), r = rand(.5, R - .6);
+  const p = { ch, m, x: Math.cos(a) * r, z: Math.sin(a) * r, vx: rand(-.3, .3), vz: rand(-.3, .3), spin: rand(-1, 1), rot: rand(-.3, .3), y: drop ? 3 : 0, vy: 0, bob: rand(0, 6), gone: false };
+  m.position.set(p.x, p.y, p.z); scene.add(m); pieces.push(p); return p;
+}
+function removePiece(p) { p.gone = true; scene.remove(p.m); pieces = pieces.filter(q => q !== p); }
+
+/* ================= spoon ================= */
+const spoon = new THREE.Group();
+{
+  const bowlS = new THREE.Mesh(new THREE.SphereGeometry(.55, 24, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), M('#dfe7ef', { metalness: .6, roughness: .25, side: THREE.DoubleSide }));
+  bowlS.scale.set(1, .5, 1.35);
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(.08, .1, 3.2, 12), M('#ff9fb4')); handle.rotation.x = Math.PI / 2.6; handle.position.set(0, .7, 1.75);
+  spoon.add(bowlS, handle); scene.add(spoon);
+}
+const carried = []; // letters flying up to the word card
+
+/* ================= game flow ================= */
+const ROUND = 90;
+let mode = 'menu', timeLeft = ROUND, score = 0, wordIdx = 0, word = '', meaning = '', filled = 0, mistakes = 0, learned = [], order = [];
+function pickWords() {
+  const by = n => WORDS.filter(w => w[0].length === n).sort(() => Math.random() - .5);
+  order = [...by(3).slice(0, 3), ...by(4).slice(0, 3), ...by(5).slice(0, 3), ...by(6)];
+}
+function renderSlots() {
+  $('slots').innerHTML = [...word].map((c, i) => `<span class="${i < filled ? 'ok' : i === filled ? 'next' : ''}">${i < filled ? c : ''}</span>`).join('');
+  $('meaning').innerHTML = `สะกดคำว่า <b>${meaning}</b>`;
+}
+function ensureLetters() {
+  // every letter still needed must be floating somewhere (twice for repeated letters)
+  const need = {};
+  for (const c of word.slice(filled)) need[c] = (need[c] || 0) + 1;
+  for (const c in need) { const have = pieces.filter(p => p.ch === c).length; for (let k = have; k < need[c]; k++) addPiece(c, true); }
+  while (pieces.length < 16) addPiece(ABC[Math.floor(Math.random() * ABC.length)], true);
+  while (pieces.length > 22) { const extra = pieces.find(p => !word.slice(filled).includes(p.ch)); if (!extra) break; removePiece(extra); }
+}
+function nextWord() {
+  if (wordIdx >= order.length) pickWords(), wordIdx = 0;
+  [word, meaning] = order[wordIdx++]; filled = 0; renderSlots(); ensureLetters();
+}
+function start() {
+  for (const p of [...pieces]) removePiece(p);
+  pickWords(); wordIdx = 0; score = 0; mistakes = 0; learned = []; timeLeft = ROUND; $('score').textContent = 0;
+  for (let i = 0; i < 14; i++) addPiece(ABC[Math.floor(Math.random() * ABC.length)]);
+  mode = 'play'; $('result').hidden = true; nextWord(); S.big('ตักเลย!', 1);
+}
+function endRound() {
+  mode = 'done';
+  const stars = score >= 8 ? 3 : score >= 5 ? 2 : score >= 2 ? 1 : 0;
+  $('resTitle').textContent = `สะกดได้ ${score} คำ`;
+  $('stars').innerHTML = '★'.repeat(stars) + `<span>${'★'.repeat(3 - stars)}</span>`;
+  $('scores').innerHTML = `<span>ตักผิดตัว</span><b>${mistakes} ครั้ง</b>`;
+  $('learned').innerHTML = learned.length ? 'คำที่ได้วันนี้: ' + learned.map(w => `<b>${w[0]}</b> ${w[1]}`).join(' · ') : '';
+  $('result').hidden = false; S.vib([60, 60, 200]);
+}
+$('again').onclick = start;
+
+function scoop(x, z) {
+  const near = pieces.filter(p => !p.gone && p.y < .5).map(p => ({ p, d: Math.hypot(p.x - x, p.z - z) })).filter(o => o.d < .75).sort((a, b) => a.d - b.d);
+  spoonLift = 1;
+  S.noise(.12, 1600, .12, 'bandpass');
+  if (!near.length) { splash(x, z, 6); return; }
+  // prefer the letter that is needed next if it is inside the spoon
+  const want = word[filled], hitWanted = near.find(o => o.p.ch === want), pick = (hitWanted || near[0]).p;
+  if (pick.ch === want) {
+    filled++; S.tone(880 + filled * 60, 1320, .1, .1, 'triangle'); S.vib(30);
+    carried.push({ m: pick.m, from: pick.m.position.clone(), t: 0, slot: filled - 1 });
+    pieces = pieces.filter(q => q !== pick);
+    renderSlots();
+    if (filled >= word.length) {
+      score++; $('score').textContent = score; learned.push([word, meaning]); timeLeft = Math.min(ROUND, timeLeft + 6);
+      setTimeout(() => { S.jingle(); S.big(`${word} = ${meaning}`, 1.6); S.vib([40, 40, 40, 40, 120]); }, 250);
+      setTimeout(() => { if (mode === 'play') nextWord(); }, 1300);
+    } else ensureLetters();
+  } else {
+    mistakes++; timeLeft = Math.max(0, timeLeft - 3);
+    pick.vy = 3; pick.y = .3; pick.vx += rand(-1.5, 1.5); pick.vz += rand(-1.5, 1.5);
+    splash(pick.x, pick.z, 10); S.tone(260, 180, .15, .1, 'square'); S.vib([80, 30, 80]);
+    S.toast(`นั่นตัว ${pick.ch} ต้องการตัว ${want}`, 1.4);
+  }
+}
+const drops = [];
+function splash(x, z, n) {
+  for (let i = 0; i < n; i++) { const d = new THREE.Mesh(new THREE.SphereGeometry(.06, 6, 4), M('#ffffff')); d.position.set(x, .05, z); d.userData = { v: new THREE.Vector3(rand(-1.2, 1.2), rand(1.5, 3), rand(-1.2, 1.2)) }; scene.add(d); drops.push(d); }
+}
+
+/* ================= input ================= */
+let mouse = { x: 0, y: 0 }, clicks = 0;
+addEventListener('mousemove', e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = -(e.clientY / innerHeight * 2 - 1); });
+renderer.domElement.addEventListener('mousedown', e => { if (e.button === 0) clicks++; });
+addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); if (mode === 'play') clicks++; else start(); } });
+function pointerNdc() {
+  if (S.pad.live) { const a = S.pad.aim(), c = new THREE.Vector3(0, 0, 0).project(camera); return { x: clamp(c.x + a.yaw / .5, -1, 1), y: clamp(c.y + a.pitch / .36, -1, 1) }; }
+  return { x: mouse.x, y: mouse.y };
+}
+
+/* ================= loop ================= */
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hist = [];
+let last = performance.now(), time = 0, spoonLift = 0, prevSp = new THREE.Vector3();
+function frame(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now; time += dt;
+  S.tick(dt);
+  if (S.pad.tap('skip') && mode === 'play') { S.toast(`ข้ามคำว่า ${word} (${meaning})`, 1.6); timeLeft = Math.max(0, timeLeft - 5); nextWord(); }
+  const ndc = pointerNdc();
+  ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+  const hit = new THREE.Vector3(); ray.ray.intersectPlane(plane, hit);
+  const r = Math.hypot(hit.x, hit.z); if (r > R - .3) hit.multiplyScalar((R - .3) / r);
+  hist.push({ t: now, p: hit.clone() }); while (hist.length && now - hist[0].t > 400) hist.shift();
+  spoon.position.lerp(new THREE.Vector3(hit.x, .05 + spoonLift * 1.2, hit.z), .5);
+  spoonLift = Math.max(0, spoonLift - dt * 3);
+  spoon.rotation.x = -spoonLift * .5;
+  const sv = spoon.position.clone().sub(prevSp).divideScalar(Math.max(dt, 1e-3)); prevSp.copy(spoon.position);
+
+  const flick = S.pad.takeFlickUp(), taps = S.pad.tap('scoop') + clicks; clicks = 0;
+  if ((flick || taps) && mode === 'play' && !S.pairing()) {
+    const at = flick ? (hist.find(h => now - h.t <= 200) || hist[0]).p : hit;
+    scoop(at.x, at.z);
+  }
+
+  // milk swirls gently; letters drift, push each other apart, and get stirred by the spoon
+  for (const p of pieces) {
+    const d = Math.hypot(p.x, p.z) || 1;
+    p.vx += (-p.z / d * .35 - p.vx) * dt * .6; p.vz += (p.x / d * .35 - p.vz) * dt * .6;  // swirl
+    const sd = Math.hypot(p.x - spoon.position.x, p.z - spoon.position.z);
+    if (sd < .9 && spoon.position.y < .4) { const k = (1 - sd / .9); p.vx += sv.x * k * dt * 3; p.vz += sv.z * k * dt * 3; }
+    for (const q of pieces) { if (q === p) continue; const dx = p.x - q.x, dz = p.z - q.z, dd = Math.hypot(dx, dz); if (dd < .86 && dd > 1e-3) { const f = (.86 - dd) * 4; p.vx += dx / dd * f * dt; p.vz += dz / dd * f * dt; } }
+    const sp = Math.hypot(p.vx, p.vz); if (sp > 3) { p.vx *= 3 / sp; p.vz *= 3 / sp; }
+    p.x += p.vx * dt; p.z += p.vz * dt;
+    const rr = Math.hypot(p.x, p.z); if (rr > R - .45) { p.x *= (R - .45) / rr; p.z *= (R - .45) / rr; p.vx *= -.4; p.vz *= -.4; }
+    if (p.y > 0 || p.vy) { p.vy -= 12 * dt; p.y += p.vy * dt; if (p.y <= 0) { if (p.vy < -2) splash(p.x, p.z, 4); p.y = 0; p.vy = 0; } }
+    p.m.position.set(p.x, p.y + .03 + Math.sin(time * 2 + p.bob) * .025, p.z);
+    p.m.rotation.set(Math.sin(time * 1.5 + p.bob) * .06, p.rot + Math.sin(time * .6 + p.bob) * .3 * p.spin, Math.cos(time * 1.3 + p.bob) * .06); // letters stay readable
+  }
+  // scooped letters fly up toward the word card and vanish
+  for (const c of carried) {
+    c.t += dt * 1.6; const t = Math.min(1, c.t);
+    const top = new THREE.Vector3(0, 6, -4);
+    c.m.position.lerpVectors(c.from, top, t * t); c.m.position.y += Math.sin(t * Math.PI) * 1.5; c.m.rotation.x += dt * 8; c.m.scale.setScalar(1 - t * .6);
+    if (t >= 1) scene.remove(c.m);
+  }
+  for (let i = carried.length - 1; i >= 0; i--) if (carried[i].t >= 1) carried.splice(i, 1);
+  for (const d of drops) { d.userData.v.y -= 9 * dt; d.position.addScaledVector(d.userData.v, dt); }
+  for (let i = drops.length - 1; i >= 0; i--) if (drops[i].position.y < -.1) { scene.remove(drops[i]); drops.splice(i, 1); }
+
+  if (mode === 'play' && !S.pairing()) { timeLeft -= dt; if (timeLeft <= 0) { timeLeft = 0; endRound(); } }
+  $('time').textContent = Math.ceil(timeLeft);
+  const P = S.pad.live;
+  if (S.pairing() || !$('result').hidden) S.hint('');
+  else if (mode === 'play') S.hint(P ? `ชี้ช้อนไปที่ตัว ${word[filled] || ''} แล้วสะบัดขึ้นเพื่อตัก · ลากช้อนผ่านนมเพื่อกวน` : `คลิกที่ตัว ${word[filled] || ''} เพื่อตัก · เลื่อนเมาส์ผ่านนมเพื่อกวน`);
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+window.__cer = { feed: d => S.pad.feed(d), get mode() { return mode; }, get word() { return word; }, get filled() { return filled; }, get score() { return score; }, get mistakes() { return mistakes; },
+  find(ch) { const p = pieces.find(q => q.ch === ch && q.y < .3); return p && new THREE.Vector3(p.x, 0, p.z).project(camera); } };
+let started = false;
+const startWhenReady = setInterval(() => { if (!S.pairing() && !started) { started = true; clearInterval(startWhenReady); start(); } }, 200);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ซ่อมตุ๊กตาหมี</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap">
+<style>
+/* Layout: teddy bear lying on a sewing table, facing the player; repair card top-centre, bears fixed top-left */
+:root{--bg:#fbf0e6;--card:#fffdf9;--ink:#4f3d36;--soft:#9b8579;--accent:#e98fa0;--accent-deep:#d46c80;--good:#8fcfa0;--warn:#f2b24a;--line:#f1e1d4;
+  --font:"Mitr","Noto Sans Thai",system-ui,sans-serif;color-scheme:light}
+.job{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 18px;display:flex;flex-direction:column;gap:6px;min-width:320px;text-align:center;box-shadow:0 10px 24px -16px #a06a50}
+.job b{font-size:19px;font-weight:600}
+.job .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums}
+.result{flex-direction:column;text-align:center;gap:8px}
+.stars{font-size:52px;letter-spacing:.1em;color:var(--warn)}.stars span{color:var(--line)}
+.scores{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-variant-numeric:tabular-nums;text-align:left;margin:0 auto}
+</style>
+<link rel="stylesheet" href="../lib/shell.css">
+<script type="importmap">{ "imports": { "three": "../lib/three.module.js" } }</script>
+</head>
+<body>
+<div class="hud"><span class="lbl">ซ่อมเสร็จ</span><b id="count">0</b></div>
+<div class="job"><b id="bearName"></b>
+  <div class="row"><span id="tearTxt">รอยขาด 0/0</span><span id="holeTxt">แทงพลาด 0</span><span id="timeTxt">0 วิ</span></div>
+  <div class="bar"><i id="jobBar"></i></div>
+</div>
+<div class="overlay" id="result" hidden>
+  <div class="card result">
+    <p style="margin:0" id="resSub"></p>
+    <h1>น้องหมีหายดีแล้ว!</h1>
+    <div class="stars" id="stars"></div>
+    <div class="scores" id="scores"></div>
+    <div class="btns" style="justify-content:center;margin-top:8px"><button class="btn" id="nextBear">ตุ๊กตาตัวใหม่</button></div>
+  </div>
+</div>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from '../lib/RoundedBoxGeometry.js';
+import { setupShell, shellMarkup } from '../lib/shell.js?v=3';
+
+shellMarkup({
+  title: 'ซ่อมตุ๊กตาหมี',
+  blurb: 'มือถือคือเข็ม ชี้ไปที่จุดวงกลม แล้วสะบัดแทงทีละจุด เย็บรอยขาดให้ปิดสนิท แทงพลาดผ้าจะเป็นรู',
+  steps: ['ถือหงายจอ หัวเครื่องชี้จอ กด <b>ตั้งศูนย์</b>', 'ชี้เข็มไปที่วงกลมที่กระพริบ แล้วสะบัดลง (หรือแตะ <b>แทงเข็ม</b>)'],
+});
+const S = setupShell({ game: 'sewing', minCutoff: .8, beta: 1.5 });
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+
+/* ================= scene ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.domElement.className = 'scene';
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#f7e7d9');
+const camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+camera.position.set(0, 2.2, 9.5); camera.lookAt(0, 1.7, 0);
+scene.add(new THREE.HemisphereLight('#fffaf3', '#d9b8a3', 1.5));
+const sun = new THREE.DirectionalLight('#fff3e3', 2); sun.position.set(-3, 6, 8); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .85, ...o });
+// cutting mat behind the bear
+{
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  g.fillStyle = '#a8dcc6'; g.fillRect(0, 0, 128, 128); g.strokeStyle = '#ffffff66'; g.lineWidth = 1;
+  for (let i = 0; i <= 128; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 128); g.moveTo(0, i); g.lineTo(128, i); g.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(5, 4); t.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.Mesh(new RoundedBoxGeometry(12, 9, .2, 4, .1), new THREE.MeshStandardMaterial({ map: t, roughness: .9 }));
+  mat.position.set(0, 1.8, -1.6); mat.receiveShadow = true; scene.add(mat);
+}
+// spool + pin cushion decor
+const spool = new THREE.Group();
+{ const core = new THREE.Mesh(new THREE.CylinderGeometry(.35, .35, .7, 24), M('#ff9fb4')); const ends = [-.38, .38].map(y => { const e = new THREE.Mesh(new THREE.CylinderGeometry(.48, .48, .08, 24), M('#e8c79e')); e.position.y = y; return e; }); spool.add(core, ...ends); spool.position.set(4.6, 0, -.6); spool.rotation.z = .2; scene.add(spool); }
+const cushion = new THREE.Mesh(new THREE.SphereGeometry(.6, 24, 16), M('#ff8f8f')); cushion.scale.y = .7; cushion.position.set(-4.6, -.3, -.6); scene.add(cushion);
+
+/* ================= bear ================= */
+const bear = new THREE.Group(); scene.add(bear);
+const COLORS = [
+  { name: 'น้องหมีน้ำตาล', fur: '#c99a6e', inner: '#f2d6b8', thread: '#ff7f9f' },
+  { name: 'น้องหมีชมพู', fur: '#f4a7bd', inner: '#ffe1ea', thread: '#5fa8e8' },
+  { name: 'น้องหมีฟ้า', fur: '#9cc9ef', inner: '#e3f1fb', thread: '#f2a03a' },
+  { name: 'น้องหมีครีม', fur: '#efd7aa', inner: '#fff3dc', thread: '#b77bdc' },
+];
+let col = COLORS[0], parts = [], eyes = [];
+function buildBear() {
+  while (bear.children.length) bear.remove(bear.children[0]); parts = []; eyes = [];
+  const fur = M(col.fur), inner = M(col.inner);
+  const add = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.castShadow = true; bear.add(m); parts.push(m); return m; };
+  const S1 = new THREE.SphereGeometry(1, 40, 28);
+  add(S1, fur, 0, 1.0, 0, 1.5, 1.6, .9);           // body
+  add(S1, inner, 0, .85, .55, 1.0, 1.05, .5);       // tummy patch
+  add(S1, fur, 0, 3.1, .1, 1.25, 1.1, .95);          // head
+  add(S1, inner, 0, 2.8, .85, .5, .38, .3);          // muzzle
+  for (const s of [-1, 1]) {
+    add(S1, fur, s * 1.0, 4.05, 0, .45, .45, .3); add(S1, inner, s * 1.0, 4.05, .14, .27, .27, .2);   // ears
+    add(S1, fur, s * 1.75, 1.45, .2, .5, .95, .5).rotation.z = s * .7;                              // arms
+    add(S1, fur, s * .95, -.55, .45, .6, .55, .65);                                                 // legs
+    const e = new THREE.Mesh(new THREE.SphereGeometry(.12, 14, 10), M('#2e2626', { roughness: .3 })); e.position.set(s * .45, 3.3, 1.0); bear.add(e); eyes.push(e);
+    const b = new THREE.Mesh(new THREE.CircleGeometry(.18, 16), new THREE.MeshBasicMaterial({ color: '#ff9fb2', transparent: true, opacity: .7 })); b.position.set(s * .78, 2.9, 1.0); b.lookAt(s * 3, 2.9, 6); bear.add(b);
+  }
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(.13, 14, 10), M('#5a3b3b')); nose.position.set(0, 2.92, 1.13); nose.scale.set(1.3, .9, .8); bear.add(nose);
+  bear.updateMatrixWorld(true);
+}
+
+/* ================= tears ================= */
+const ray = new THREE.Raycaster();
+// project a point in front of the bear onto its surface, along the view ray
+function onSurface(p) {
+  ray.set(camera.position, p.clone().sub(camera.position).normalize());
+  const h = ray.intersectObjects(parts, false)[0];
+  return h ? { p: h.point.clone(), n: h.face.normal.clone().transformDirection(h.object.matrixWorld) } : null;
+}
+let tears = [], holes = [], stitchesDone = 0, stitchesAll = 0, curTear = 0;
+const SPOTS = [ // candidate tear centres (world, roughly on the front) and directions
+  { c: [.2, .9, 1.3], ang: .5, len: 1.1 }, { c: [-.6, 1.6, 1.2], ang: -.9, len: .9 },
+  { c: [.5, 3.5, 1.1], ang: .2, len: .8 }, { c: [-1.75, 1.3, .9], ang: 1.4, len: .8 }, { c: [1.0, -.5, 1.0], ang: .1, len: .7 },
+];
+function buildTears() {
+  for (const t of tears) { for (const m of t.meshes) scene.remove(m); }
+  for (const h of holes) scene.remove(h); holes = [];
+  tears = []; stitchesDone = 0; stitchesAll = 0; curTear = 0;
+  const pick = SPOTS.slice().sort(() => Math.random() - .5).slice(0, 3);
+  for (const sp of pick) {
+    const c = new THREE.Vector3(...sp.c), dir = new THREE.Vector3(Math.cos(sp.ang), Math.sin(sp.ang), 0), side = new THREE.Vector3(-dir.y, dir.x, 0);
+    const N = Math.round(sp.len / .16) + 2, targets = [], meshes = [];
+    // the rip itself: a dark zig-zag with stuffing poking out
+    const rip = [];
+    for (let i = 0; i <= 14; i++) { const t = (i / 14 - .5) * sp.len, q = c.clone().addScaledVector(dir, t).addScaledVector(side, (i % 2 ? 1 : -1) * .05); const s = onSurface(q); if (s) rip.push(s.p.addScaledVector(s.n, .01)); }
+    const ripMesh = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rip), 40, .05, 6), M('#5a3b3b', { roughness: 1 })); scene.add(ripMesh); meshes.push(ripMesh);
+    const fluff = [];
+    for (let i = 0; i < 6; i++) { const s = onSurface(c.clone().addScaledVector(dir, (i / 5 - .5) * sp.len * .8)); if (!s) continue; const f = new THREE.Mesh(new THREE.SphereGeometry(rand(.08, .13), 10, 8), M('#ffffff', { roughness: 1 })); f.position.copy(s.p).addScaledVector(s.n, .05); scene.add(f); meshes.push(f); fluff.push(f); }
+    // stitch targets alternate across the rip
+    for (let i = 0; i < N; i++) {
+      const t = (i / (N - 1) - .5) * sp.len, q = c.clone().addScaledVector(dir, t).addScaledVector(side, (i % 2 ? 1 : -1) * .2);
+      const s = onSurface(q); if (!s) continue;
+      const ring = new THREE.Mesh(new THREE.RingGeometry(.07, .1, 20), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: .5, side: THREE.DoubleSide, depthTest: false }));
+      ring.position.copy(s.p).addScaledVector(s.n, .02); ring.lookAt(ring.position.clone().add(s.n)); ring.renderOrder = 5; scene.add(ring); meshes.push(ring);
+      targets.push({ p: s.p, n: s.n, ring, done: false });
+    }
+    stitchesAll += targets.length;
+    tears.push({ targets, meshes, rip: ripMesh, fluff, next: 0, thread: [], done: false });
+  }
+}
+
+/* ================= needle + thread ================= */
+const needle = new THREE.Group();
+{
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.025, .005, 1.1, 8), M('#dfe7ef', { metalness: .7, roughness: .2 })); shaft.position.y = .55;
+  const eye = new THREE.Mesh(new THREE.TorusGeometry(.04, .012, 6, 12), M('#dfe7ef', { metalness: .7, roughness: .2 })); eye.position.y = 1.08;
+  needle.add(shaft, eye); scene.add(needle);
+}
+const loose = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: '#ff7f9f' }));
+scene.add(loose);
+const threadMeshes = [];
+function stitchTo(tear, tg) {
+  tg.done = true; tg.ring.visible = false; tear.next++; stitchesDone++;
+  const prev = tear.thread[tear.thread.length - 1];
+  const p = tg.p.clone().addScaledVector(tg.n, .03);
+  if (prev) {
+    const mid = prev.clone().add(p).multiplyScalar(.5).addScaledVector(tg.n, .06);
+    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(prev, mid, p), 10, .022, 6), M(col.thread, { roughness: .6 }));
+    m.castShadow = true; scene.add(m); threadMeshes.push(m);
+  }
+  tear.thread.push(p);
+  // the rip pulls shut as stitches go in
+  const k = tear.next / tear.targets.length;
+  tear.rip.scale.setScalar(1); tear.rip.material.opacity = 1; tear.rip.material.transparent = true; tear.rip.material.opacity = 1 - k * .9;
+  for (const f of tear.fluff) f.scale.setScalar(Math.max(.05, 1 - k));
+  S.tone(880 + tear.next * 30, 1100, .06, .08, 'triangle'); S.vib(25);
+  if (tear.next >= tear.targets.length) {
+    tear.done = true; S.big('ปิดรอยขาดแล้ว!', 1.2); S.vib([40, 40, 40]);
+    [784, 988, 1175].forEach((f, i) => S.tone(f, f, .15, .08, 'sine', i * .1));
+    curTear = tears.findIndex(t => !t.done);
+  }
+}
+function poke(hitP, hitN) {
+  const h = new THREE.Mesh(new THREE.CircleGeometry(.06, 14), new THREE.MeshBasicMaterial({ color: '#4a3030' }));
+  h.position.copy(hitP).addScaledVector(hitN, .012); h.lookAt(h.position.clone().add(hitN)); scene.add(h); holes.push(h);
+  ouchT = .8; S.tone(300, 180, .12, .1, 'square'); S.vib([90, 30, 60]);
+  S.toast(holes.length % 3 === 0 ? 'เป็นรูอีกแล้ว! เล็งที่วงกลมที่กระพริบ' : 'แทงพลาด ผ้าเป็นรู', 1.2);
+}
+
+/* ================= flow ================= */
+let mode = 'work', jobT = 0, count = 0, bearIdx = 0, ouchT = 0, hugT = 0;
+function newBear() {
+  for (const m of threadMeshes) scene.remove(m); threadMeshes.length = 0;
+  col = COLORS[bearIdx % COLORS.length]; bearIdx++;
+  buildBear(); buildTears(); loose.material.color.set(col.thread);
+  mode = 'work'; jobT = 0; hugT = 0; $('result').hidden = true; $('bearName').textContent = col.name;
+}
+function finishBear() {
+  mode = 'done'; count++; $('count').textContent = count; hugT = 2;
+  const stars = holes.length === 0 ? 3 : holes.length <= 3 ? 2 : 1;
+  $('resSub').textContent = col.name;
+  $('stars').innerHTML = '★'.repeat(stars) + `<span>${'★'.repeat(3 - stars)}</span>`;
+  $('scores').innerHTML = `<span>ใช้เวลา</span><b>${Math.round(jobT)} วิ</b><span>แทงพลาด</span><b>${holes.length} รู</b><span>จำนวนฝีเข็ม</span><b>${stitchesAll}</b>`;
+  setTimeout(() => { if (mode === 'done') $('result').hidden = false; }, 1500);
+  S.jingle(); S.vib([40, 40, 40, 40, 160]);
+}
+$('nextBear').onclick = newBear;
+
+/* ================= input ================= */
+let mouse = { x: 0, y: 0 }, clicks = 0;
+addEventListener('mousemove', e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = -(e.clientY / innerHeight * 2 - 1); });
+renderer.domElement.addEventListener('mousedown', e => { if (e.button === 0) clicks++; });
+addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); clicks++; } });
+function pointerNdc() {
+  if (S.pad.live) { const a = S.pad.aim(), c = new THREE.Vector3(0, 1.7, 1).project(camera); return { x: clamp(c.x + a.yaw / .5, -1, 1), y: clamp(c.y + a.pitch / .38, -1, 1) }; }
+  return { x: mouse.x, y: mouse.y };
+}
+
+/* ================= loop ================= */
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+const hist = [];
+let last = performance.now(), time = 0;
+function frame(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now; time += dt;
+  S.tick(dt);
+  if (S.pad.tap('next')) newBear();
+  const ndc = pointerNdc();
+  hist.push({ t: now, ndc }); while (hist.length && now - hist[0].t > 400) hist.shift();
+  ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+  const hit = ray.intersectObjects(parts, false)[0];
+  const tip = hit ? hit.point.clone() : ray.ray.origin.clone().addScaledVector(ray.ray.direction, 9);
+  const nrm = hit ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : new THREE.Vector3(0, 0, 1);
+  const stabbing = Math.max(0, needle.userData.stab || 0);
+  needle.position.copy(tip).addScaledVector(nrm, .05 + (1 - stabbing) * .25);
+  // needle points into the cloth, leaning a little toward the player's hand
+  needle.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), nrm.clone().negate().lerp(new THREE.Vector3(-.3, -.8, -.5).normalize(), .35).normalize());
+  needle.userData.stab = Math.max(0, stabbing - dt * 5);
+
+  // stab: flick the phone down, tap the button, click or Space. Aim from just before the flick.
+  const flick = S.pad.takeFlickDown(), taps = S.pad.tap('stab') + clicks; clicks = 0;
+  if ((flick || taps) && mode === 'work' && !S.pairing()) {
+    needle.userData.stab = 1;
+    const before = flick ? (hist.find(h => now - h.t <= 220) || hist[0]).ndc : ndc;
+    ray.setFromCamera(new THREE.Vector2(before.x, before.y), camera);
+    const h = ray.intersectObjects(parts, false)[0];
+    const tear = tears[curTear];
+    if (h && tear) {
+      const tg = tear.targets[tear.next];
+      if (tg && h.point.distanceTo(tg.p) < .16) stitchTo(tear, tg);
+      else poke(h.point, h.face.normal.clone().transformDirection(h.object.matrixWorld));
+    }
+  }
+  // the next target pulses
+  for (const t of tears) t.targets.forEach((tg, i) => { if (tg.done) return; const isNext = t === tears[curTear] && i === t.next; tg.ring.material.opacity = isNext ? .55 + Math.sin(time * 8) * .4 : .18; tg.ring.material.color.set(isNext ? '#ffe066' : '#ffffff'); tg.ring.scale.setScalar(isNext ? 1.25 : 1); });
+  // loose thread from the last stitch to the needle eye
+  const tear = tears[curTear], lastP = tear && tear.thread[tear.thread.length - 1];
+  loose.visible = !!lastP && mode === 'work';
+  if (lastP) loose.geometry.setFromPoints([lastP, needle.localToWorld(new THREE.Vector3(0, 1.08, 0))]);
+
+  ouchT = Math.max(0, ouchT - dt);
+  for (const e of eyes) e.scale.y = ouchT > 0 ? .25 : 1;
+  bear.position.x = ouchT > 0 ? Math.sin(time * 60) * .04 : 0;
+  if (hugT > 0) { hugT -= dt; bear.position.y = Math.abs(Math.sin(time * 9)) * .25; bear.rotation.z = Math.sin(time * 6) * .08; } else { bear.position.y = 0; bear.rotation.z = 0; }
+
+  if (mode === 'work' && !S.pairing()) {
+    jobT += dt;
+    $('tearTxt').textContent = `รอยขาด ${tears.filter(t => t.done).length}/${tears.length}`;
+    $('holeTxt').textContent = `แทงพลาด ${holes.length}`;
+    $('timeTxt').textContent = Math.round(jobT) + ' วิ';
+    $('jobBar').style.width = (stitchesAll ? stitchesDone / stitchesAll : 0) * 100 + '%';
+    if (tears.length && tears.every(t => t.done)) finishBear();
+  }
+  const P = S.pad.live;
+  if (S.pairing() || !$('result').hidden) S.hint('');
+  else if (mode === 'work') S.hint(P ? 'ชี้เข็มไปที่วงกลมสีเหลือง แล้วสะบัดลงเพื่อแทง' : 'คลิก (หรือ Space) ที่วงกลมสีเหลืองเพื่อแทงเข็ม');
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+window.__sew = { feed: d => S.pad.feed(d), get mode() { return mode; }, get holes() { return holes.length; }, get done() { return [stitchesDone, stitchesAll]; },
+  nextScreen() { const t = tears[curTear]; if (!t) return null; const tg = t.targets[t.next]; return tg && tg.p.clone().project(camera); } };
+newBear();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
