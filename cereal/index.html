@@ -266,5 +266,6 @@ let started = false;
 const startWhenReady = setInterval(() => { if (!S.pairing() && !started) { started = true; clearInterval(startWhenReady); start(); } }, 200);
 requestAnimationFrame(frame);
 </script>
+<script src="../lib/home.js"></script>
 </body>
 </html>
