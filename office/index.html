@@ -2150,6 +2150,7 @@ function newDay(d) {
   }
   if (D === 10) { const hot = [2, 3, 4].includes(dt.getMonth()); addBill('⚡', `ค่าไฟ (${mon})`, Math.round((700 + Math.random() * 800) * (hot ? 1.5 : 1)), d + 5 * DAY); addBill('💧', `ค่าน้ำ (${mon})`, Math.round(120 + Math.random() * 140), d + 5 * DAY); }
   for (const b of bank.bills) if (!b.paid && !b.late && b.due < d) { b.late = true; b.amt += 100; bank.notes.push(`⚠️ ${b.n} เลยกำหนด ปรับ 100 บาท`); }
+  dailyDocs(d);
   if (d > bank.start && Math.random() < .14) {
     const [e, n, a, b] = pick(EXP), amt = Math.round((a + Math.random() * (b - a)) / 10) * 10;
     if (bank.bal >= amt) { bankTx(`${e} ${n}`, -amt); bank.notes.push(`💳 ${n} −${baht(amt)}`); } else addBill(e, n, amt, d + 3 * DAY);
@@ -2431,7 +2432,7 @@ function downloadChatFile(id) {
 const work = { W: null, sel: null, entries: {}, right: 0 };
 function openWork() {
   if (work.W && wins.has('work')) { focusWin(work.W); return work.W; }
-  const root = h('div', { class: 'wk' }, `<div class="wl"><div class="docs"></div><div class="dv"></div></div><div class="wr"><div class="wh">📒 บันทึกเอกสาร</div><form class="wf" autocomplete="off"></form><div class="ent"></div></div>`);
+  const root = h('div', { class: 'wk' }, `<div class="wl"><div class="docs"></div><div class="dv"></div></div><div class="wr"><div class="wh">📒 บันทึกเอกสาร <span class="pend" style="float:right;color:#e0457b;font-weight:400"></span></div><form class="wf" autocomplete="off"></form><div class="ent"></div></div>`);
   work.W = openWin('work', 'บัญชีน้อย — โปรแกรมบันทึกเอกสาร', root, 860, 500, '#e3eaff'); work.W.work = true; work.W.onClose = () => { work.W = null; }; work.W.body.style.overflow = 'hidden';
   root.addEventListener('click', e => { const b = e.target.closest('[data-wdoc]'); if (b) { work.sel = b.dataset.wdoc; renderWork(); } });
   root.querySelector('.wf').addEventListener('submit', e => { e.preventDefault(); saveEntry(); });
@@ -2453,6 +2454,7 @@ function renderWork() {
     <label>คู่ค้า</label><input name="party" type="text" spellcheck="false" ${en ? `value="${esc(en.party)}" disabled` : ''}>
     <label>ยอดรวม (บาท)</label><input name="total" type="text" inputmode="decimal" ${en ? `value="${esc(en.total)}" disabled` : ''}>
     <span></span>${en ? '<b style="color:#2f9d5a">✅ บันทึกถูกต้องแล้ว</b>' : '<button class="btn2 pri" type="submit">💾 บันทึกรายการ</button>'}<span></span><small class="msg" style="color:#e0457b"></small>`;
+  const pend = sentDocs().filter(id => !work.entries[id]).length; root.querySelector('.pend').textContent = pend ? `ลูกค้าส่งมารอบันทึก ${pend} ใบ` : 'บันทึกครบแล้ว 🎉';
   const rows = Object.values(work.entries);
   root.querySelector('.ent').innerHTML = `<table><tr><th>วันที่</th><th>ประเภท</th><th>เลขที่</th><th>คู่ค้า</th><th style="text-align:right">ยอด</th></tr>${rows.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.dt)}</td><td>${esc(r.no)}</td><td>${esc(r.party)}</td><td style="text-align:right">${m2(money2(r.total))}</td></tr>`).join('') || '<tr><td colspan="5" style="color:var(--soft)">ยังไม่มีรายการ</td></tr>'}</table><div style="padding:6px 8px;color:var(--soft)">บันทึกแล้ว ${rows.length} รายการ · รวม ${m2(rows.reduce((s, r) => s + money2(r.total), 0))} บาท</div>`;
 }
@@ -2478,6 +2480,39 @@ addEvent(bank.start + 7 * DAY, '📨', 'ลูกค้าส่งเอกส�
   pushMsg('cust', 'cust', 'สวัสดีค่ะ ส่งเอกสารเพิ่มอีก 2 ใบนะคะ 🙏', 1200);
   ['c4', 'c5'].forEach((id, i) => pushMsg('cust', 'cust', '📎 ' + CDOCS[id].name, 2600 + i * 1300, { file: { id, name: CDOCS[id].name, type: 'pdf' } }));
 });
+/* ---- new random customer documents every working day ---- */
+const SUPPLIERS = [
+  { dt: 'ใบแจ้งหนี้', party: 'บริษัท แป้งนุ่ม จำกัด', key: 'แป้งนุ่ม', pre: 'IV', items: [['แป้งเค้กพิเศษ', 'ถุง', 450, 650], ['น้ำตาลทรายละเอียด', 'กระสอบ', 900, 1200]], vat: 1 },
+  { dt: 'ใบแจ้งหนี้', party: 'บริษัท เนยหอมฟาร์ม จำกัด', key: 'เนยหอม', pre: 'INV', items: [['เนยสดจืด', 'ก้อน', 180, 260], ['วิปปิ้งครีม', 'กล่อง', 120, 190]], vat: 1 },
+  { dt: 'ใบแจ้งหนี้', party: 'บริษัท บรรจุภัณฑ์น่ารัก จำกัด', key: 'บรรจุภัณฑ์น่ารัก', pre: 'BL', items: [['กล่องเค้ก 1 ปอนด์', 'ใบ', 12, 18], ['ถุงกระดาษหูหิ้ว', 'ใบ', 5, 9]], vat: 1 },
+  { dt: 'ใบเสร็จรับเงิน', party: 'ร้านเครื่องเขียนดาวเรือง', key: 'ดาวเรือง', pre: 'RC-', items: [['กระดาษ A4', 'รีม', 120, 140], ['ปากกาเจล', 'กล่อง', 250, 320]] },
+  { dt: 'ใบเสร็จรับเงิน', party: 'ร้านไข่ไก่สดป้าศรี', key: 'ป้าศรี', pre: 'NO.', items: [['ไข่ไก่เบอร์ 1', 'แผง', 110, 135]] },
+  { dt: 'ใบเสร็จรับเงิน', party: 'ร้านซ่อมแอร์เย็นใจ', key: 'เย็นใจ', pre: 'SV', items: [['ล้างแอร์หน้าร้าน', 'เครื่อง', 500, 800]] },
+  { dt: 'ค่าใช้จ่าย', party: 'ปั๊มน้ำมันใจดี', key: 'ใจดี', pre: 'FL-', items: [['น้ำมันรถส่งของ', 'ครั้ง', 500, 1500]] },
+  { dt: 'ค่าใช้จ่าย', party: 'ไรเดอร์ส่งด่วนเมืองน้อย', key: 'ส่งด่วน', pre: 'DL', items: [['ค่าส่งเค้กให้ลูกค้า', 'เที่ยว', 60, 150]] },
+  { dt: 'ค่าใช้จ่าย', party: 'ตลาดสดเมืองน้อย', key: 'ตลาดสด', pre: 'MK', items: [['ผลไม้แต่งหน้าเค้ก', 'ชุด', 300, 900]] },
+];
+let cdSeq = 100;
+const sentDocs = () => [...new Set(chatById('cust').msgs.filter(m => m.file).map(m => m.file.id))];
+const rint = (a, b) => Math.round(a + Math.random() * (b - a));
+function makeDoc(day) {
+  const sp = pick(SUPPLIERS), dt = new Date(day - (Math.random() < .4 ? DAY : 0) + 3600000), lines = [];
+  for (const [n, u, a, b] of sp.items) if (lines.length === 0 || Math.random() < .6) { const q = ['ครั้ง', 'เที่ยว', 'ชุด'].includes(u) ? 1 : u === 'เครื่อง' ? rint(1, 3) : rint(2, 20), p = rint(a, b); lines.push([`${n} ${q > 1 ? q + ' ' + u : ''}`.trim(), q * p]); }
+  const sub = lines.reduce((s, l) => s + l[1], 0); if (sp.vat) lines.push(['ภาษีมูลค่าเพิ่ม', Math.round(sub * 7) / 100]);
+  const total = Math.round(lines.reduce((s, l) => s + l[1], 0) * 100) / 100, seq = ++cdSeq, by = dt.getFullYear() + 543;
+  const no = sp.pre === 'IV' || sp.pre === 'INV' ? `${sp.pre}${String(by).slice(2)}${p2(dt.getMonth() + 1)}-${String(seq).padStart(3, '0')}` : `${sp.pre}${String(seq * 7 + 1000)}`;
+  const d = { name: `${sp.dt === 'ใบแจ้งหนี้' ? 'ใบแจ้งหนี้' : sp.dt === 'ใบเสร็จรับเงิน' ? 'ใบเสร็จ' : 'ค่าใช้จ่าย'}-${sp.key}-${seq}.pdf`, dt: sp.dt, no, date: [dt.getDate(), dt.getMonth() + 1, by], party: sp.party, key: sp.key, lines, total };
+  const id = 'cd' + seq; CDOCS[id] = d; return id;
+}
+function dailyDocs(day) {
+  const wd = new Date(day).getDay(); if (day <= bank.start || wd === 0 || wd === 6) return;
+  const n = Math.random() < .25 ? 3 : Math.random() < .55 ? 2 : 1, ids = Array.from({ length: n }, () => makeDoc(day));
+  pushMsg('cust', 'cust', pick(['สวัสดีค่ะ เอกสารวันนี้ส่งมาให้นะคะ 🙏', `วันนี้มี ${n} ใบค่ะ ฝากด้วยนะคะ`, 'ส่งบิลของวันนี้ค่ะ ขอบคุณค่ะ 😊', 'มีเอกสารใหม่มาแล้วค่ะ 📄']), 900);
+  ids.forEach((id, i) => pushMsg('cust', 'cust', '📎 ' + CDOCS[id].name, 1800 + i * 900, { file: { id, name: CDOCS[id].name, type: 'pdf' } }));
+  const pending = sentDocs().filter(id => !work.entries[id]).length;
+  if (pending >= 8 && !work.nagged) { work.nagged = true; pushMsg('boss', 'boss', `เอกสารลูกค้าร้านขนมอร่อยค้างบันทึก ${pending} ใบแล้วนะ รีบเคลียร์ด้วย 😾`, 4000); }
+  if (pending < 5) work.nagged = false;
+}
 PERSONAL.cust = (c, m) => {
   const t = m.text || '';
   if (m.file) return say(c, 'cust', 'ได้รับไฟล์แล้วค่ะ ขอบคุณนะคะ 😊', 1600);
@@ -2674,7 +2709,7 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 renderDesktop();
-window.__office = { work, jr, JQ, debts, juniorAsk, downloadChatFile, openWork, pinCurrent, scanCurrent, get pin() { return pin; }, bank, ai, MEETS, DORMS, openBank, openAI, aiSend, aiAttach, openCal, advanceDays, EVENTS, cal, get dayOff() { return dayOff; }, gnow, openDesign, openJobs, openGames, openPhone, openTime, phone, gm, jobs, PEOPLE, get timeOff() { return timeOff; }, feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, FOLDERS, done, setView, openSheet, openSearch, openChat, openFood, typeText, setWallpaper, desktopMenu, wins, chat, food, se, HOTELS, value, tripTotal, sheetCmd, saveBook, get tool() { return tool; }, get clip() { return clip; } };
+window.__office = { CDOCS, dailyDocs, work, jr, JQ, debts, juniorAsk, downloadChatFile, openWork, pinCurrent, scanCurrent, get pin() { return pin; }, bank, ai, MEETS, DORMS, openBank, openAI, aiSend, aiAttach, openCal, advanceDays, EVENTS, cal, get dayOff() { return dayOff; }, gnow, openDesign, openJobs, openGames, openPhone, openTime, phone, gm, jobs, PEOPLE, get timeOff() { return timeOff; }, feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, FOLDERS, done, setView, openSheet, openSearch, openChat, openFood, typeText, setWallpaper, desktopMenu, wins, chat, food, se, HOTELS, value, tripTotal, sheetCmd, saveBook, get tool() { return tool; }, get clip() { return clip; } };
 // for older tests: cells + value of the first workbook
 Object.defineProperty(window.__office, 'cells', { get: () => FILES.find(f => f.id === 'x1').book.cells });
 requestAnimationFrame(loop);
