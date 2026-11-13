@@ -44,6 +44,8 @@ function interviewDay(j) {
   pushMsg(pid, pid, `ขอบคุณที่มาสัมภาษณ์นะคะ ผลคือ… ผ่านค่ะ 🎉 ยินดีต้อนรับสู่ ${j.co} เริ่มงาน 1 ก.พ. นะคะ`, 1800);
   pushMsg('gang', 'fon', 'แกได้งานใหม่แล้วเหรอ!! 😭🎉 เลี้ยงส่งด้วยนะ', 4000);
   pushMsg('mom', 'mom', 'แม่ได้ยินว่าลูกได้งานใหม่ แม่ดีใจด้วยนะ 🥹', 5500);
+  const off = Math.round((j.min + j.max) / 2 / 500) * 500;
+  mailPush(null, 'HR ' + j.co, `ผลการสัมภาษณ์: ผ่าน! เสนองาน ${j.pos}`, `<p>ยินดีด้วยค่ะ 🎉</p><p>ทาง ${esc(j.co)} ขอเสนองานตำแหน่ง <b>${esc(j.pos)}</b> เงินเดือน <b>${baht(off)} บาท</b> เริ่มงาน 1 ก.พ.</p><p>สวัสดิการ: ${j.perks.map(esc).join(' · ')}</p><p>กรุณาตอบรับภายใน 7 วัน</p>`, 'job');
 }
 // keep the game date from ever going backwards (the time setter can only move within the day)
 function enforceDate() {

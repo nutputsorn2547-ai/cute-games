@@ -4,9 +4,11 @@
 
 /* ================= pretend email ================= */
 const MAIL_DOMAIN = 'mewnoi.test';
-const mail = { accounts: [], inbox: [], view: 'auto', open: null };
+const mail = { accounts: [], inbox: [], view: 'auto', open: null, f: 'all' };
+const MAIL_CATS = [['all', 'ทั้งหมด'], ['job', '💼 สมัครงาน'], ['work', '📎 งานภายนอก'], ['news', '📰 ข่าว'], ['promo', '🏷️ โปรโมชั่น']];
+const forMe = m => !m.to || mail.accounts.some(a => a.email === m.to); // mail with no address waits for whoever signs up first
 const WARN_BIG = `<div class="warnbig">⚠️ ใช้อีเมลสมมุติและรหัสผ่านสมมุติเท่านั้น<small>ห้ามใช้อีเมลหรือรหัสผ่านจริงของคุณ · ข้อมูลทั้งหมดอยู่ในเกมบนเครื่องนี้ ไม่มีการนำออกไปภายนอก แต่ขอให้ระมัดระวังไว้ก่อน</small></div>`;
-function mailPush(to, from, subj, body) { mail.inbox.unshift({ to, from, subj, body, at: gnow().getTime(), read: false }); }
+function mailPush(to, from, subj, body, cat = 'news', at) { mail.inbox.unshift({ to, from, subj, body, cat, at: at ?? gnow().getTime(), read: false }); if (mail.inbox.length > 120) mail.inbox.length = 120; }
 function showMail(view) {
   if (view) mail.view = view;
   const v = mail.view === 'auto' ? (mail.accounts.length ? 'inbox' : 'new') : mail.view, box = res();
@@ -30,10 +32,12 @@ function showMail(view) {
     return;
   }
   // inbox
-  const mine = mail.inbox.filter(m => mail.accounts.some(a => a.email === m.to)), op = mail.open !== null ? mail.inbox[mail.open] : null;
+  const mine = mail.inbox.filter(m => forMe(m) && (mail.f === 'all' || m.cat === mail.f)).sort((a, b) => b.at - a.at), op = mail.open !== null ? mail.inbox[mail.open] : null;
+  const cnt = k => mail.inbox.filter(m => forMe(m) && !m.read && (k === 'all' || m.cat === k)).length;
   box.innerHTML = `<div class="mailw"><div class="mlogo">📧 เมลน้อย <small>${mail.accounts.map(a => esc(a.email)).join(' · ')}</small></div>
     <div class="mbar2"><button class="btn2" data-mv="new">➕ สร้างอีเมลใหม่</button></div>
-    ${op ? `<div class="mread"><a data-mback style="color:#3348b8;cursor:pointer">← กลับ</a><h3>${esc(op.subj)}</h3><small>จาก ${esc(op.from)} · ถึง ${esc(op.to)} · ${thDate(op.at, { day: 'numeric', month: 'short' })}</small><div class="mbody">${op.body}</div></div>`
+    ${op ? '' : `<div class="mchips">${MAIL_CATS.map(([k, n]) => `<button class="${mail.f === k ? 'on' : ''}" data-mf="${k}">${n}${cnt(k) ? ` <i>${cnt(k)}</i>` : ''}</button>`).join('')}</div>`}
+    ${op ? `<div class="mread"><a data-mback style="color:#3348b8;cursor:pointer">← กลับ</a><h3>${esc(op.subj)}</h3><small>จาก ${esc(op.from)} · ถึง ${esc(op.to || mail.accounts[0].email)} · ${thDate(op.at, { day: 'numeric', month: 'short' })}</small><div class="mbody">${op.body}</div></div>`
       : `<div class="mlist">${mine.map(m => `<div class="mrow ${m.read ? '' : 'new'}" data-mi="${mail.inbox.indexOf(m)}"><b>${esc(m.from)}</b><span>${esc(m.subj)}</span><small>${thDate(m.at, { day: 'numeric', month: 'short' })}</small></div>`).join('') || '<p class="note">ยังไม่มีจดหมาย</p>'}</div>`}
     <p class="note" style="margin-top:10px">อีเมลในเกมทั้งหมดลงท้าย @${MAIL_DOMAIN} ซึ่งเป็นโดเมนสมมุติที่ไม่มีอยู่จริง</p></div>`;
 }
@@ -54,13 +58,49 @@ function createMail(fm) {
 function mailClick(e) {
   const t = e.target;
   const mv = t.closest('[data-mv]'); if (mv) { mail.open = null; showMail(mv.dataset.mv); return true; }
+  const mf = t.closest('[data-mf]'); if (mf) { mail.f = mf.dataset.mf; showMail('inbox'); return true; }
   const mi = t.closest('[data-mi]'); if (mi) { mail.open = +mi.dataset.mi; mail.inbox[mail.open].read = true; showMail('inbox'); return true; }
   if (t.closest('[data-mback]')) { mail.open = null; showMail('inbox'); return true; }
   if (t.closest('[data-mnote]')) { const a = mail.accounts[mail.accounts.length - 1]; addNote('screen', `บัญชีอีเมลในเกม (สมมุติ)\n${a.email}\nรหัส: ${a.pass}`); S.toast('แปะโพสต์อิทไว้บนจอแล้ว ลากย้ายได้', 2); return true; }
   if (t.closest('[data-mchat]')) { openChat(); return true; }
   return false;
 }
-const mailUnread = () => mail.inbox.filter(m => !m.read && mail.accounts.some(a => a.email === m.to)).length;
+const mailUnread = () => mail.inbox.filter(m => !m.read && forMe(m) && mail.accounts.length).length;
+
+/* ---- daily mail from the outside world: promotions, news, and work mail from other companies (all made up) ---- */
+const MAIL_PROMO = [
+  () => ['ช้อปน้อย', `⚡ ลดแรง ${pick([30, 40, 50, 70])}% เฉพาะวันนี้`, '<p>สินค้าคัดมาให้เพียบ ตั้งแต่เครื่องเขียน แก้วกาแฟ ไปจนถึงเก้าอี้ออฟฟิศ</p><p>🎁 ใช้โค้ด <b>MEWNOI</b> ลดเพิ่มอีก 50 บาท</p><p><small>อีเมลโฆษณาในเกม ไม่มีลิงก์จริง</small></p>'],
+  () => ['หิวแล้ว', '🍱 ส่งฟรีเมื่อสั่งครบ 200 บาท', '<p>มื้อเที่ยงนี้อยากกินอะไร? ร้านในแอปหิวแล้วส่งฟรีทุกวันจันทร์–ศุกร์</p><p>เปิดแอป หิวแล้ว ในคอมได้เลย 😋</p>'],
+  () => ['โรงแรมเมฆหมอก', '🏨 พักสองจ่ายหนึ่ง ช่วงต้นปี', '<p>จองวันนี้ พักสองคืนจ่ายคืนเดียว พร้อมอาหารเช้า</p><p>เหมาะกับทริปทีมบัญชี ☁️</p>'],
+  () => ['ร้านเครื่องเขียนดาวเรือง', '✏️ ปากกาเจล 3 ด้าม 25 บาท', '<p>ใครใช้ปากกาเยอะ ต้องมา! สมุดบัญชี แฟ้มเอกสาร ลดทุกชิ้น</p>'],
+  () => ['คาเฟ่เมฆ', '☕ ซื้อ 1 แถม 1 วันศุกร์นี้', '<p>กาแฟแก้วที่สองฟรี เมื่อแสดงอีเมลนี้ที่ร้าน</p><p><small>(ในเกมเท่านั้น)</small></p>'],
+  () => ['บัตรเครดิตน้อย', `💳 คืนเงิน ${pick([3, 5, 10])}% ค่าน้ำมัน`, '<p>สมัครบัตรวันนี้รับเครดิตเงินคืน ข้อมูลสมมุติ ไม่มีบัตรจริงในเกมนะ</p>'],
+  () => ['สปาแมวหง่าว', '💆 นวดคลายเมื่อย ลด 35%', '<p>นั่งโต๊ะทำงานมาทั้งวัน ไหล่ตึงไหม? มานวดกันเถอะ</p>'],
+];
+const MAIL_NEWS = [
+  () => ['ข่าวน้อย', '📰 ตลาดหุ้นเมืองแมวทรงตัว', '<p>นักลงทุนจับตาตัวเลขเศรษฐกิจรอบใหม่ ราคากาแฟและขนมหวานยังเป็นขาขึ้น</p><p><small>ข่าวสมมุติในเกม</small></p>'],
+  () => ['ข่าวน้อย', '🌦️ พยากรณ์อากาศสัปดาห์นี้', `<p>ฟ้าใสสลับฝนโปรยในช่วงบ่าย พกร่มไว้ก็ดีนะ ☂️ อุณหภูมิ ${pick([27, 29, 31, 33])} องศา</p>`],
+  () => ['นิตยสารมนุษย์ออฟฟิศ', '💡 5 วิธีจัดโต๊ะให้ทำงานไหลลื่น', '<p>1) เก็บของที่ไม่ใช้ 2) แปะโพสต์อิทเฉพาะเรื่องสำคัญ 3) แยกโฟลเดอร์ให้ชัด 4) จิบน้ำบ่อยๆ 5) ลุกยืดเส้นทุกชั่วโมง</p>'],
+  () => ['ข่าวน้อย', '🚇 รถไฟฟ้าปรับเวลาเดินรถ', '<p>ช่วงสุดสัปดาห์นี้รถไฟฟ้าสายสีชมพูเดินรถถึงเที่ยงคืนครึ่ง วางแผนกลับบ้านกันด้วยนะ</p>'],
+  () => ['เพื่อนบ้านใจดี', '🏘️ ประกาศจากนิติบุคคลหอพัก', '<p>ขอความร่วมมือลดเสียงหลัง 4 ทุ่ม และทิ้งขยะให้ตรงเวลา ขอบคุณค่ะ</p>'],
+  () => ['จดหมายข่าวคนทำบัญชี', '🧮 เคล็ดลับ Excel วันนี้', '<p>ลองกด <b>Ctrl + ;</b> เพื่อใส่วันที่วันนี้ลงช่อง หรือใช้ <b>=SUM(B2:B6)</b> รวมยอดเร็วๆ</p>'],
+];
+const MAIL_WORK = [
+  () => { const n = Math.round((3000 + Math.random() * 30000) / 10) * 10; return ['บริษัท แป้งนุ่ม จำกัด', `ขอใบแจ้งหนี้ล่วงหน้า ยอดประมาณ ${baht(n)} บาท`, `<p>เรียนทีมบัญชี</p><p>เดือนนี้ขอใบแจ้งหนี้ล่วงหน้า ยอดประมาณ <b>${baht(n)} บาท</b> ช่วยส่งให้ภายในสัปดาห์นี้ได้ไหมครับ</p><p>ขอบคุณครับ<br>ฝ่ายจัดซื้อ แป้งนุ่ม</p>`]; },
+  () => ['สำนักงานสอบบัญชี ดาวเด่น', 'นัดตรวจสอบเอกสารปลายเดือน', '<p>สวัสดีค่ะ ทางเราขอนัดเข้าตรวจเอกสารต้นทุนและสต๊อกปลายเดือนนี้ รบกวนเตรียมไฟล์ใส่โฟลเดอร์ให้เรียบร้อยด้วยนะคะ 📂</p>'],
+  () => ['ร้านเครื่องเขียนดาวเรือง', 'ใบเสร็จรับเงิน (ตัวสำเนา) แนบมาให้แล้ว', '<p>ส่งสำเนาใบเสร็จเดือนก่อนตามที่ขอ ตรวจสอบยอดแล้วแจ้งกลับได้เลยนะคะ</p>'],
+  () => ['คุณขนม (ลูกค้า)', 'ขอเลื่อนส่งเอกสารไปวันพรุ่งนี้', '<p>ขอโทษด้วยนะคะ เอกสารยังไม่ครบ ขอส่งพรุ่งนี้ช่วงบ่ายได้ไหมคะ 🙏</p>'],
+  () => ['บริษัท ปลาทอง โลจิสติกส์', 'สอบถามราคาบริการทำบัญชีรายเดือน', '<p>สนใจใช้บริการทำบัญชีและยื่นภาษีรายเดือน มีเอกสารประมาณ 80 ใบ/เดือน ขอใบเสนอราคาด้วยครับ</p>'],
+  () => ['ธนาคารน้อย', 'แจ้งยอดบัญชีและรายการเดินบัญชี', '<p>รายการล่าสุดพร้อมให้ตรวจสอบในแอปธนาคารน้อยแล้วนะคะ</p><p><small>อีเมลสมมุติจากธนาคารสมมุติ ไม่มีลิงก์ให้กด</small></p>'],
+  () => ['ช้างน้อย เทค', 'ขอนัดคุยงานบริการวิเคราะห์ข้อมูล', '<p>ทีมเรามีงานจัดทำแดชบอร์ดให้ลูกค้า สนใจร่วมงานไหมครับ ว่างวันไหนบอกได้เลย</p>'],
+];
+function mailDaily(d) {
+  if (d < bank.start) return; const wd = new Date(d).getDay(), wk = wd !== 0 && wd !== 6, T = (h) => d + h * 3600000 + Math.random() * 3000000;
+  const add = (tpl, cat) => { const [f, s, b] = tpl(); mailPush(null, f, s, b, cat, T(7 + Math.random() * 12)); };
+  if (wk && Math.random() < .75) add(pick(MAIL_WORK), 'work');
+  if (Math.random() < .55) add(pick(MAIL_PROMO), 'promo');
+  if (Math.random() < .45) add(pick(MAIL_NEWS), 'news');
+}
 
 /* ================= post-it notes (screen view or desk) ================= */
 const notes = []; let noteSeq = 0;

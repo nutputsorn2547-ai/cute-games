@@ -48,27 +48,30 @@ function applyJob(j, rf) {
   pushMsg('gang', 'fon', 'ได้ข่าวว่าแกไปสมัครงานที่ใหม่เหรอ 👀 อย่าทิ้งกันน้า', 11000);
   const mon = new Date(dayStart(gnow()) + DAY + 3 * 3600000); while (mon.getDay() !== 1) mon.setDate(mon.getDate() + 1);
   addEvent(mon, '🤝', 'สัมภาษณ์งาน ' + j.co, 'interview', { a: j.id }); renderCal();
+  mailPush(null, 'HR ' + j.co, `ได้รับใบสมัครตำแหน่ง ${j.pos} แล้ว`, `<p>เรียนผู้สมัคร</p><p>ทาง ${esc(j.co)} ได้รับใบสมัครและเรซูเม่ (${esc(rf.name)}) ของคุณแล้ว กำลังพิจารณาคุณสมบัติ จะติดต่อกลับภายใน 3 วันทำการ</p><p>ขอบคุณที่สนใจร่วมงานกับเรา ${j.e}</p>`, 'job');
+  mailPush(null, 'HR ' + j.co, `นัดสัมภาษณ์งาน ${j.pos}`, `<p>ยินดีด้วย! คุณผ่านการคัดเลือกเบื้องต้น</p><p>ขอนัดสัมภาษณ์ <b>${thDate(mon.getTime(), { weekday: 'long', day: 'numeric', month: 'long' })} เวลา 10:00 น.</b> ที่ ${esc(j.where)}</p><p>โปรดเตรียมเอกสารประกอบการสมัครมาด้วย</p>`, 'job');
   renderChat();
 }
 
 /* ================= mini games ================= */
-const gm = { W: null, mode: null, best: { whack: 0, mem: 0 } };
+const gm = { W: null, mode: null, best: { whack: 0, mem: 0, typeth: 0, typeen: 0, sudoku: 0, cards: 1000 } };
 function openGames() {
   if (gm.W && wins.has('game')) { focusWin(gm.W); return gm.W; }
-  gm.W = openWin('game', 'เกมน้อย', h('div', { class: 'gm' }), 540, 430, '#ffe8f0'); gm.W.onClose = () => { gm.W = null; gm.mode = null; };
+  gm.W = openWin('game', 'เกมน้อย', h('div', { class: 'gm' }), 580, 500, '#ffe8f0'); gm.W.onClose = () => { gm.W = null; gm.mode = null; };
   gm.W.body.style.overflow = 'hidden'; gm.W.body.style.containerType = 'inline-size';
-  const box = gm.W.body.firstChild; box.addEventListener('click', gameClick); box.addEventListener('pointerdown', gameDown);
+  const box = gm.W.body.firstChild; box.addEventListener('click', gameClick); box.addEventListener('pointerdown', gameDown); box.addEventListener('input', e => g2Input(e)); box.addEventListener('keydown', e => g2Key(e));
   gameMenu(); return gm.W;
 }
 function gameMenu() {
   gm.mode = null;
-  gm.W.body.firstChild.innerHTML = `<div class="menu2"><button data-g="whack"><span>🔨</span><b>ทุบตุ่น</b><small>30 วินาที · สถิติ ${gm.best.whack} แต้ม</small></button><button data-g="mem"><span>🃏</span><b>จับคู่การ์ด</b><small>${gm.best.mem ? 'ดีที่สุด ' + gm.best.mem + ' ครั้ง' : 'ยังไม่เคยเล่น'}</small></button></div>`;
+  gm.W.body.firstChild.innerHTML = `<div class="menu2"><button data-g="whack"><span>🔨</span><b>ทุบตุ่น</b><small>30 วินาที · สถิติ ${gm.best.whack} แต้ม</small></button><button data-g="mem"><span>🃏</span><b>จับคู่การ์ด</b><small>${gm.best.mem ? 'ดีที่สุด ' + gm.best.mem + ' ครั้ง' : 'ยังไม่เคยเล่น'}</small></button><button data-g="card"><span>♠️</span><b>ป๊อกเด้ง</b><small>แต้มสูงสุด ${gm.best.cards}</small></button><button data-g="sudoku"><span>🔢</span><b>ซูโดกุ</b><small>${gm.best.sudoku ? 'เร็วสุด ' + fmtSec(gm.best.sudoku) : 'ยังไม่เคยชนะ'}</small></button><button data-g="typeth"><span>⌨️</span><b>พิมพ์เร็วไทย</b><small>${gm.best.typeth ? 'สถิติ ' + gm.best.typeth + ' ตัว/นาที' : 'แข่งกับเพื่อนร่วมงาน'}</small></button><button data-g="typeen"><span>🔤</span><b>Typing English</b><small>${gm.best.typeen ? 'best ' + gm.best.typeen + ' cpm' : 'แข่งกับเพื่อนร่วมงาน'}</small></button></div>`;
 }
 function startWhack() {
   gm.mode = 'whack'; gm.score = 0; gm.t0 = performance.now(); gm.next = 0; gm.holes = Array.from({ length: 9 }, () => ({ up: 0, until: 0, k: '🐹', hit: 0 }));
   gm.W.body.firstChild.innerHTML = `<div class="bar2"><button class="btn2" data-g="menu">← เมนู</button><span>ทุบ 🐹 +1 · อย่าทุบแมว 🐱 −3</span><b class="sc">0 แต้ม · 30 วิ</b></div><div class="holes">${gm.holes.map((_, i) => `<button class="hole" data-h="${i}" aria-label="หลุม ${i + 1}"><span>🐹</span></button>`).join('')}</div>`;
 }
 function updateGame(now) {
+  if (gm.W && (gm.mode === 'type' || gm.mode === 'sudoku')) { g2Tick(now); return; }
   if (!gm.W || gm.mode !== 'whack') return;
   const left = 30 - (now - gm.t0) / 1000, box = gm.W.body.firstChild; if (left <= 0) { endWhack(); return; }
   const lvl = 30 - left;
@@ -106,6 +109,7 @@ function renderMem() {
   gm.W.body.firstChild.innerHTML = `<div class="bar2"><button class="btn2" data-g="menu">← เมนู</button><span>เปิดทีละ 2 ใบ หาคู่ให้ครบ</span><b>${gm.moves} ครั้ง</b></div><div class="cards">${gm.cards.map((c, i) => `<button class="card2 ${c.st === 1 ? 'op' : c.st === 2 ? 'ok' : ''}" data-c2="${i}">${c.st ? c.e : '?'}</button>`).join('')}</div>`;
 }
 function gameClick(e) {
+  if (g2Click(e)) return;
   const b = e.target.closest('[data-g]'); if (b) { ({ whack: startWhack, mem: startMem, menu: gameMenu })[b.dataset.g](); S.tone(700, 900, .05, .05); return; }
   const cb = e.target.closest('[data-c2]'); if (!cb || gm.mode !== 'mem' || gm.lock) return;
   const card = gm.cards[+cb.dataset.c2]; if (card.st) return;
