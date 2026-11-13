@@ -21,7 +21,7 @@ function showMail(view) { if (view) mail.view = view; mailBoxes().forEach(paintM
 function openMailApp() {
   const W = openWin('mail', 'เมลน้อย — อีเมล', h('div', { class: 'mailapp' }), 580, 460, '#e6efff');
   if (!W.body.firstChild.dataset.k) { W.body.firstChild.dataset.k = 1; W.body.style.overflow = 'auto'; W.body.firstChild.addEventListener('click', e => mailClick(e)); }
-  showMail(); return W;
+  W.mail = true; showMail(); return W;
 }
 function paintMail(box) {
   const v = mail.view === 'auto' ? (mail.accounts.length ? 'inbox' : 'new') : mail.view;

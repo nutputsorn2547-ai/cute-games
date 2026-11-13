@@ -88,14 +88,20 @@ function emailAsk(c, m) {
 }
 
 /* ---------- writing a new email ---------- */
-const MAILFILES = () => FILES.filter(f => f.loc !== 'trash' && !f.src && ['worddoc', 'pdfdoc', 'scan', 'sheet', 'cdoc', 'rec', 'doc'].includes(f.kind || (f.type === 'doc' ? 'doc' : '')));
+const mailDraftRead = box => { const w = mail.wr || (mail.wr = { to: '', subj: '', body: '', att: [] }); const g = q => box && box.querySelector(q); if (g('.mwto')) { w.to = g('.mwto').value; w.subj = g('.mwsub').value; w.body = g('.mwbody').value; } return w; };
+function mailAttach(f) {
+  if (!mail.accounts.length) { S.toast('ต้องสร้างอีเมลของตัวเองก่อนนะ', 2); return; }
+  const box = wins.has('mail') ? wins.get('mail').body.firstChild : null, w = mailDraftRead(box);
+  w.att = w.att || []; if (w.att.includes(f.id)) { S.toast('แนบไฟล์นี้ไว้แล้ว', 1.4); return; }
+  w.att.push(f.id); mail.open = null; mail.compose = null; showMail('write'); S.tone(700, 1000, .08, .07); S.toast(`📎 แนบ "${f.name}" แล้ว`, 1.6);
+}
 function paintWrite(box) {
-  const w = mail.wr || (mail.wr = { to: '', subj: '', body: '' }), files = MAILFILES();
+  const w = mail.wr || (mail.wr = { to: '', subj: '', body: '', att: [] }), atts = (w.att || []).map(id => FILES.find(f => f.id === id)).filter(Boolean);
   box.innerHTML = `<div class="mailw"><div class="mlogo">✍️ เขียนอีเมลใหม่ <small>จาก ${esc(mail.accounts[0]?.email || '')}</small></div>
     <div class="mcomp"><label class="mwl">ถึง<input class="mwto" type="text" spellcheck="false" autocapitalize="off" placeholder="พิมพ์อีเมลผู้รับเอง เช่น ชื่อ@โดเมน.test" value="${esc(w.to)}"></label>
     <label class="mwl">หัวข้อ<input class="mwsub" type="text" spellcheck="false" placeholder="หัวข้อ" value="${esc(w.subj)}"></label>
     <textarea class="mrt mwbody" rows="6" spellcheck="false" placeholder="พิมพ์ข้อความ (อย่างน้อย 10 ตัวอักษร)">${esc(w.body)}</textarea>
-    <div class="mwat"><b>📎 แนบไฟล์</b>${files.length ? files.map(f => `<label><input type="checkbox" class="wa" value="${esc(f.id)}"${(w.att || []).includes(f.id) ? ' checked' : ''}> ${esc(f.name)}</label>`).join('') : '<small>ยังไม่มีไฟล์ให้แนบ</small>'}</div>
+    <div class="mwdrop"><b>📎 ไฟล์แนบ</b> ${atts.length ? atts.map(f => `<span class="mwchip">${esc(f.name)} <button data-mwrm="${esc(f.id)}" aria-label="เอาออก">✕</button></span>`).join('') : '<small>ลากไฟล์จากหน้าจอคอมหรือโฟลเดอร์ มาวางในหน้าต่างอีเมลนี้ได้เลย</small>'}</div>
     <p class="note">ระบบไม่มีสมุดที่อยู่ ต้องถามอีเมลจากแต่ละคนในแชทแล้วจดเอง 📝</p>
     <div class="err"></div><div class="acts"><button class="btn2 pri" data-mwsend>📨 ส่งอีเมล</button><button class="btn2" data-mv="inbox">ยกเลิก</button></div></div></div>`;
 }
@@ -108,6 +114,7 @@ function paintSent(box) {
 }
 function mailClick2(e) {
   const t = e.target; let b;
+  if ((b = t.closest('[data-mwrm]'))) { const w = mailDraftRead(t.closest('.mailw')); w.att = (w.att || []).filter(i => i !== b.dataset.mwrm); showMail('write'); return true; }
   if (t.closest('[data-mwsend]')) { mailWriteSend(t.closest('.mailw')); return true; }
   if ((b = t.closest('[data-msi]'))) { mail.sopen = +b.dataset.msi; showMail('inbox'); return true; }
   if (t.closest('[data-msback]')) { mail.sopen = null; showMail('inbox'); return true; }
@@ -124,7 +131,7 @@ function saveAtt(a) {
 }
 function mailWriteSend(root) {
   const err = root.querySelector('.err'), bad = t => { err.textContent = t; S.tone(300, 200, .15, .08); };
-  const w = mail.wr = { to: root.querySelector('.mwto').value.trim(), subj: root.querySelector('.mwsub').value.trim(), body: root.querySelector('.mwbody').value.trim(), att: [...root.querySelectorAll('.wa:checked')].map(i => i.value) };
+  const w = mail.wr = { to: root.querySelector('.mwto').value.trim(), subj: root.querySelector('.mwsub').value.trim(), body: root.querySelector('.mwbody').value.trim(), att: (mail.wr && mail.wr.att) || [] };
   if (!mail.accounts.length) return bad('ต้องสร้างอีเมลของตัวเองก่อนนะ');
   if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(w.to)) return bad('พิมพ์อีเมลผู้รับให้ถูกรูปแบบ เช่น ชื่อ@โดเมน.test (ต้องถามจากแต่ละคนแล้วจดเอง)');
   if (!w.subj) return bad('ใส่หัวข้ออีเมลด้วยนะ');
