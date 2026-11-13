@@ -564,3 +564,4 @@ td.pk{outline:2px dashed #3b82f6;outline-offset:-2px}
 .sheet .content .pdft{font-size:inherit}
 .doc.printed{border-top:4px solid #e0457b}.doc .sig{margin-top:10px;font-size:10px;color:#e0457b}
 .scanp .pgw{background:#fff}
+.fold .fbar2{flex:0 0 100%;display:flex;gap:8px;align-items:center;margin:-4px 0 6px;font-size:12px}.fold .fpath{flex:1;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

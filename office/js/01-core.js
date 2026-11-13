@@ -119,7 +119,10 @@ const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c
 APPS.sort((a, b) => (DAYPLAN.apps[a.id] || 1) - (DAYPLAN.apps[b.id] || 1)); // first-unlocked apps take the top slots
 deskPos.down = [3, 0];
 const CELLW = 100, CELLH = 104;
-const onDesk = id => id.startsWith('app-') || FOLDERS.some(x => x.id === id) || FILES.find(x => x.id === id)?.loc === 'desk';
+const folderOnDesk = fo => !fo.loc || fo.loc === 'desk';
+const foldPath = fo => { const p = []; for (let c = fo, n = 0; c && n < 20; c = FOLDERS.find(x => x.id === c.loc), n++) p.unshift(c.name); return p.join(' › '); };
+const folderInside = (fo, anc) => { for (let c = fo, n = 0; c && n < 20; c = FOLDERS.find(x => x.id === c.loc), n++) if (c.id === anc) return true; return false; };
+const onDesk = id => id.startsWith('app-') || FOLDERS.some(x => x.id === id && folderOnDesk(x)) || FILES.find(x => x.id === id)?.loc === 'desk';
 function firstFree() {
   const cols = Math.max(1, Math.floor((icons.clientWidth - 20) / CELLW)), rows = Math.max(1, Math.floor((icons.clientHeight - 10) / CELLH));
   for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) if (!Object.entries(deskPos).some(([id, p]) => p[0] === c && p[1] === r && onDesk(id))) return [c, r];
@@ -131,12 +134,12 @@ function fileIcon(f) {
   return h('div', { class: 'icon', 'data-id': f.id }, `${art}<span>${esc(f.name)}</span>`);
 }
 function folderIcon(fo) {
-  const n = FILES.filter(f => f.loc === fo.id).length;
+  const n = FILES.filter(f => f.loc === fo.id).length + FOLDERS.filter(x => x.loc === fo.id).length;
   return h('div', { class: 'icon', 'data-id': fo.id, 'data-folder': fo.id }, `<div class="fo" style="--c:${fo.c};--c2:${fo.c2 || '#f3b73a'}">${n ? `<i>${n}</i>` : ''}</div><span>${esc(fo.name)}</span>`);
 }
 function renderDesktop() {
   icons.innerHTML = '';
-  for (const fo of FOLDERS) { const el = folderIcon(fo); place(el, fo.id); icons.append(el); }
+  for (const fo of FOLDERS) { if (!folderOnDesk(fo)) continue; const el = folderIcon(fo); place(el, fo.id); icons.append(el); }
   for (const f of FILES) if (f.loc === 'desk') { const el = fileIcon(f); place(el, f.id); icons.append(el); }
   for (const a of APPS) { if (!appOpen(a.id)) continue; const el = h('div', { class: 'icon', 'data-id': a.id }, `<div class="ap" style="--c:${a.c}">${a.e}</div><span>${esc(a.n)}</span>`); place(el, a.id); icons.append(el); }
   for (const w of wins.values()) if (w.folder) renderFolder(w);
@@ -172,14 +175,16 @@ addEventListener('pointerup', e => {
   document.querySelectorAll('.icon.drop').forEach(x => x.classList.remove('drop'));
   if (!d.ghost) return; d.ghost.remove(); d.el.style.opacity = '';
   const t = dropTarget(e.clientX, e.clientY), f = FILES.find(x => x.id === d.id);
-  if (t && t.folder && f && t.folder !== d.id) moveFile(f, t.folder);
+  const fo2 = FOLDERS.find(x => x.id === d.id);
+  if (t && t.folder && fo2) { if (fo2.id === 'trash') S.toast('ถังขยะย้ายไม่ได้นะ', 1.6); else if (folderInside(FOLDERS.find(x => x.id === t.folder), fo2.id)) S.toast('ย้ายโฟลเดอร์เข้าไปในตัวมันเองไม่ได้', 1.8); else if (fo2.loc !== t.folder) { fo2.loc = t.folder; S.tone(520, 780, .1, .1, 'triangle'); S.toast(`ย้ายโฟลเดอร์ "${fo2.name}" ไปไว้ใน ${FOLDERS.find(x => x.id === t.folder).name} แล้ว`, 1.8); } }
+  else if (t && t.folder && f && t.folder !== d.id) { if (f.loc !== t.folder) moveFile(f, t.folder); }
   else if (t && t.chat && f) sendFile(f);
   else if (t && t.ai && f) aiAttach(f);
   else if (t && t.work && f) workPick(f);
   else if (t && t.desk) {
     const r = icons.getBoundingClientRect();
     const c = clamp(Math.round((e.clientX - r.left - 14 - 46) / CELLW), 0, Math.floor((r.width - 100) / CELLW)), row = clamp(Math.round((e.clientY - r.top - 12 - 40) / CELLH), 0, Math.floor((r.height - 100) / CELLH));
-    if (f) f.loc = 'desk';
+    if (f) f.loc = 'desk'; const fo2 = FOLDERS.find(x => x.id === d.id); if (fo2 && fo2.id !== 'trash') delete fo2.loc;
     const taken = Object.entries(deskPos).find(([id, p]) => id !== d.id && p[0] === c && p[1] === row && onDesk(id));
     if (!taken) deskPos[d.id] = [c, row];
   }
@@ -258,14 +263,16 @@ function iconMenu(id, x, y) {
   if (id === 'trash' && FILES.some(x => x.loc === 'trash')) items.push({ t: '✨ ล้างถังขยะ', f: emptyTrash });
   showCtx(x, y, items);
 }
-function newFolder() {
+function newFolder(parent) {
+  parent = typeof parent === 'string' ? parent : null;
   const n = FOLDERS.filter(x => x.custom).length, [c, c2] = FOLDER_COLORS[n % FOLDER_COLORS.length];
   let name = 'โฟลเดอร์ใหม่', k = 2; while (FOLDERS.some(x => x.name === name)) name = 'โฟลเดอร์ใหม่ ' + k++;
-  const fo = { id: 'u' + (++uid), name, c, c2, custom: true }; FOLDERS.push(fo); deskPos[fo.id] = firstFree();
+  const fo = { id: 'u' + (++uid), name, c, c2, custom: true }; if (parent) fo.loc = parent; FOLDERS.push(fo); if (!parent) deskPos[fo.id] = firstFree();
   renderDesktop(); S.tone(600, 900, .08, .08, 'triangle'); complete('newf'); startRename(fo.id);
 }
 function deleteFolder(fo) {
   FILES.filter(f => f.loc === fo.id).forEach(f => { f.loc = 'desk'; deskPos[f.id] = firstFree(); });
+  FOLDERS.filter(x => x.loc === fo.id).forEach(x => { x.loc = fo.loc || 'desk'; if (folderOnDesk(x)) deskPos[x.id] = firstFree(); });
   FOLDERS.splice(FOLDERS.indexOf(fo), 1); closeWin('files-' + fo.id, true); renderDesktop(); S.noise(.15, 1200, .05);
 }
 function emptyTrash() {
@@ -274,7 +281,7 @@ function emptyTrash() {
   S.toast(gone.length ? `ลบถาวร ${gone.length} ไฟล์` : 'ไฟล์งานสำคัญลบถาวรไม่ได้นะ ย้ายกลับไปที่เดิมก่อน', 2);
 }
 function arrangeIcons() {
-  deskPos = {}; const ids = [...FOLDERS.map(x => x.id), ...FILES.filter(f => f.loc === 'desk').map(f => f.id), ...APPS.map(a => a.id)];
+  deskPos = {}; const ids = [...FOLDERS.filter(folderOnDesk).map(x => x.id), ...FILES.filter(f => f.loc === 'desk').map(f => f.id), ...APPS.map(a => a.id)];
   for (const id of ids) deskPos[id] = firstFree();
   renderDesktop(); S.noise(.15, 1400, .05);
 }
