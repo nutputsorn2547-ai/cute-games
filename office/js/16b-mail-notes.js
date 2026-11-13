@@ -66,7 +66,7 @@ const mailUnread = () => mail.inbox.filter(m => !m.read && mail.accounts.some(a 
 const notes = []; let noteSeq = 0;
 const NOTE_COLORS = ['#fff59a', '#ffd1e1', '#c9f2d4', '#cfe6ff', '#ffe0b8'];
 function addNote(view = currentView, text = '', x, y) {
-  const sx = view === 'desk' ? 36 + Math.random() * 20 : 72 + Math.random() * 10, sy = view === 'desk' ? 20 + Math.random() * 20 : 50 + Math.random() * 12; // on the screen, start near the bottom-right corner so windows stay visible
+  const sx = view === 'desk' ? 36 + Math.random() * 20 : 72 + Math.random() * 10, sy = view === 'desk' ? 20 + Math.random() * 20 : 30 + Math.random() * 10; // on the screen, start near the bottom-right corner so windows stay visible
   const n = { id: ++noteSeq, view, x: x ?? +sx.toFixed(1), y: y ?? +sy.toFixed(1), text, c: NOTE_COLORS[noteSeq % NOTE_COLORS.length], r: +(Math.random() * 6 - 3).toFixed(1) };
   notes.push(n); renderNote(n); if (view !== currentView) setView(view);
   const ta = document.querySelector(`.pnote[data-n="${n.id}"] textarea`); if (ta && !text) setTimeout(() => ta.focus(), 50);
@@ -75,17 +75,36 @@ function addNote(view = currentView, text = '', x, y) {
 function renderNote(n) {
   let el = document.querySelector(`.pnote[data-n="${n.id}"]`);
   if (!el) {
-    el = h('div', { class: 'pnote', 'data-n': n.id }, '<div class="pnh"><span>📌</span><button data-pcol aria-label="เปลี่ยนสี" title="เปลี่ยนสี">🎨</button><button data-pdel aria-label="ทิ้งโพสต์อิท" title="ทิ้ง">✕</button></div><textarea spellcheck="false" placeholder="จดอะไรก็ได้…"></textarea>');
+    el = h('div', { class: 'pnote', 'data-n': n.id }, '<div class="pnh"><span>📌</span><button data-pcol aria-label="เปลี่ยนสี" title="เปลี่ยนสี">🎨</button><button data-pdel aria-label="ทิ้งโพสต์อิท" title="ทิ้ง">✕</button></div><textarea spellcheck="false" placeholder="จดอะไรก็ได้…"></textarea><i class="prz" title="ลากเพื่อปรับขนาด"></i>');
     (n.view === 'desk' ? $('desk') : $('vScreen')).append(el);
     const ta = el.querySelector('textarea'); ta.value = n.text;
-    ta.addEventListener('input', () => { n.text = ta.value; checkMailNote(); });
+    ta.addEventListener('input', () => { n.text = ta.value; fitNote(n); checkMailNote(); });
     el.addEventListener('click', e => {
       if (e.target.closest('[data-pcol]')) { n.c = NOTE_COLORS[(NOTE_COLORS.indexOf(n.c) + 1) % NOTE_COLORS.length]; renderNote(n); }
       if (e.target.closest('[data-pdel]')) { notes.splice(notes.indexOf(n), 1); el.remove(); S.noise(.15, 2500, .05, 'highpass'); }
     });
   }
   el.style.left = n.x + '%'; el.style.top = n.y + '%'; el.style.background = n.c; el.style.transform = `rotate(${n.r}deg)`;
+  fitNote(n);
 }
+// size: the note keeps the size the player dragged it to, and grows taller by itself so text never needs a scrollbar
+function fitNote(n) {
+  const el = document.querySelector(`.pnote[data-n="${n.id}"]`); if (!el) return;
+  const ta = el.querySelector('textarea'), w = n.w || 160, hgt = n.h || 128;
+  el.style.width = w + 'px'; ta.style.height = '0px';
+  ta.style.height = Math.max(hgt - 34, ta.scrollHeight) + 'px';
+}
+let noteSize = null;
+document.addEventListener('pointerdown', e => {
+  const hd = e.target.closest('.pnote .prz'); if (!hd) return;
+  const el = hd.parentElement, n = notes.find(x => x.id === +el.dataset.n);
+  noteSize = { n, el, x0: e.clientX, y0: e.clientY, w0: n.w || 160, h0: Math.max(n.h || 128, el.offsetHeight) }; e.preventDefault(); e.stopPropagation(); el.classList.add('lift');
+}, true);
+addEventListener('pointermove', e => {
+  if (!noteSize) return; const { n, x0, y0, w0, h0 } = noteSize;
+  n.w = Math.round(clamp(w0 + e.clientX - x0, 110, 520)); n.h = Math.round(clamp(h0 + e.clientY - y0, 80, 560)); fitNote(n);
+});
+addEventListener('pointerup', () => { if (noteSize) { noteSize.el.classList.remove('lift'); noteSize = null; } });
 let noteDrag = null;
 document.addEventListener('pointerdown', e => {
   const hd = e.target.closest('.pnote .pnh'); if (!hd || e.target.closest('button')) return;
