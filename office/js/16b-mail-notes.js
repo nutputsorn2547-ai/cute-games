@@ -5,7 +5,7 @@
 /* ================= pretend email ================= */
 const MAIL_DOMAIN = 'mewnoi.test';
 const mail = { accounts: [], inbox: [], view: 'auto', open: null, f: 'all' };
-const MAIL_CATS = [['all', 'ทั้งหมด'], ['imp', '⭐ ต้องตอบ'], ['job', '💼 สมัครงาน'], ['work', '📎 งานภายนอก'], ['news', '📰 ข่าว'], ['promo', '🏷️ โปรโมชั่น']];
+const MAIL_CATS = [['all', 'ทั้งหมด'], ['imp', '⭐ ต้องตอบ'], ['job', '💼 สมัครงาน'], ['work', '📎 งานภายนอก'], ['news', '📰 ข่าว'], ['promo', '🏷️ โปรโมชั่น'], ['sent', '📤 ส่งแล้ว']];
 const forMe = m => !m.to || mail.accounts.some(a => a.email === m.to); // mail with no address waits for whoever signs up first
 const arrived = m => forMe(m) && m.at <= gnow().getTime(); // mail stamped later today is not in the inbox yet
 const perf = { mailOk: 0, mailMiss: 0, callOk: 0, callMiss: 0 };
@@ -38,6 +38,8 @@ function paintMail(box) {
     fm.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type === 'text') { e.preventDefault(); const ins = [...fm.querySelectorAll('input[type=text]')], i = ins.indexOf(e.target); if (i < ins.length - 1) ins[i + 1].focus(); else fm.ok.focus(); } });
     return;
   }
+  if (v === 'write' && mail.accounts.length) return paintWrite(box);
+  if (v === 'inbox' && mail.f === 'sent') return paintSent(box);
   if (v === 'done') {
     const a = mail.accounts[mail.accounts.length - 1];
     box.innerHTML = `<div class="mailw"><div class="mlogo">📧 เมลน้อย</div><div class="mdone"><div style="font-size:40px">🎉</div><b>สร้างอีเมลสำเร็จ!</b><div class="mcard">อีเมล: <b>${esc(a.email)}</b><br>รหัสผ่าน: <b>${esc(a.pass)}</b></div>
@@ -49,9 +51,9 @@ function paintMail(box) {
   const cnt = k => mail.inbox.filter(m => arrived(m) && (k === 'imp' ? m.imp && !m.replied : !m.read && (k === 'all' || m.cat === k))).length;
   const dueTxt = m => m.replied ? '<span class="mtag ok">ตอบแล้ว ✓</span>' : m.missed ? '<span class="mtag bad">เลยกำหนด ⚠️</span>' : `<span class="mtag">⭐ ตอบก่อน ${thDate(m.due, { day: 'numeric', month: 'short' })}</span>`;
   box.innerHTML = `<div class="mailw"><div class="mlogo">📧 เมลน้อย <small>${mail.accounts.map(a => esc(a.email)).join(' · ')}</small></div>
-    <div class="mbar2"><button class="btn2" data-mv="new">➕ สร้างอีเมลใหม่</button><span class="mperf">ตอบเมลสำคัญแล้ว ${perf.mailOk} · พลาด ${perf.mailMiss}</span></div>
+    <div class="mbar2"><button class="btn2 pri" data-mv="write">✍️ เขียนอีเมล</button><button class="btn2" data-mv="new">👤 สร้างบัญชีใหม่</button><span class="mperf">ตอบเมลสำคัญแล้ว ${perf.mailOk} · พลาด ${perf.mailMiss}</span></div>
     ${op ? '' : `<div class="mchips">${MAIL_CATS.map(([k, n]) => `<button class="${mail.f === k ? 'on' : ''}" data-mf="${k}">${n}${cnt(k) ? ` <i>${cnt(k)}</i>` : ''}</button>`).join('')}</div>`}
-    ${op ? `<div class="mread"><a data-mback style="color:#3348b8;cursor:pointer">← กลับ</a><h3>${esc(op.subj)}</h3><small>จาก ${esc(op.from)} · ถึง ${esc(op.to || mail.accounts[0].email)} · ${thDate(op.at, { day: 'numeric', month: 'short' })}</small>${op.imp ? `<div>${dueTxt(op)}</div>` : ''}<div class="mbody">${op.body}</div>${op.replied ? `<div class="mrep"><b>↩️ คุณตอบไปว่า</b><div>${esc(op.replied.text).replace(/\n/g, '<br>')}</div>${op.replied.att ? `<small>📎 ${esc(op.replied.att)}</small>` : ''}</div>` : mail.compose === mail.open ? mailComposer(op) : `<div class="acts"><button class="btn2 pri" data-mreply>↩️ ตอบกลับ</button></div>`}</div>`
+    ${op ? `<div class="mread"><a data-mback style="color:#3348b8;cursor:pointer">← กลับ</a><h3>${esc(op.subj)}</h3><small>จาก ${esc(op.from)} · ถึง ${esc(op.to || mail.accounts[0].email)} · ${thDate(op.at, { day: 'numeric', month: 'short' })}</small>${op.imp ? `<div>${dueTxt(op)}</div>` : ''}<div class="mbody">${op.body}</div>${op.att && op.att.length ? `<div class="matts">📎 ${op.att.map((a, i) => `<button class="btn2" data-matt="${i}">💾 ${esc(a.name)}</button>`).join(' ')}</div>` : ''}${op.replied ? `<div class="mrep"><b>↩️ คุณตอบไปว่า</b><div>${esc(op.replied.text).replace(/\n/g, '<br>')}</div>${op.replied.att ? `<small>📎 ${esc(op.replied.att)}</small>` : ''}</div>` : mail.compose === mail.open ? mailComposer(op) : `<div class="acts"><button class="btn2 pri" data-mreply>↩️ ตอบกลับ</button></div>`}</div>`
       : `<div class="mlist">${mine.map(m => `<div class="mrow ${m.read ? '' : 'new'}" data-mi="${mail.inbox.indexOf(m)}"><b>${m.imp && !m.replied ? '⭐ ' : ''}${esc(m.from)}</b><span>${esc(m.subj)}${m.imp ? ' ' + dueTxt(m) : ''}</span><small>${thDate(m.at, { day: 'numeric', month: 'short' })}</small></div>`).join('') || '<p class="note">ยังไม่มีจดหมาย</p>'}</div>`}
     <p class="note" style="margin-top:10px">อีเมลในเกมทั้งหมดลงท้าย @${MAIL_DOMAIN} ซึ่งเป็นโดเมนสมมุติที่ไม่มีอยู่จริง</p></div>`;
 }
@@ -70,6 +72,7 @@ function createMail(fm) {
   S.jingle(); showMail('done');
 }
 function mailClick(e) {
+  if (typeof mailClick2 === 'function' && mailClick2(e)) return true;
   const t = e.target;
   const mv = t.closest('[data-mv]'); if (mv) { mail.open = null; showMail(mv.dataset.mv); return true; }
   const mf = t.closest('[data-mf]'); if (mf) { mail.f = mf.dataset.mf; showMail('inbox'); return true; }

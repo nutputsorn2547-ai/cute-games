@@ -3,18 +3,19 @@
 /* ================= desk ================= */
 const desk = $('desk');
 const DOCS = [
-  { id: 'inv', title: 'ใบแจ้งหนี้ INV-0425', html: `<h2>ใบแจ้งหนี้ เลขที่ INV-0425</h2><p>วันที่ 2 ม.ค. 2569<br>ถึง: บริษัท ขนมอร่อย จำกัด<br>ครบกำหนดชำระ: ภายใน 30 วันนับจากวันที่ออกเอกสาร</p><table style="width:100%;border-collapse:collapse;margin:12px 0"><tr><td>ค่าบริการทำบัญชี</td><td style="text-align:right">8,000.00</td></tr><tr><td>ค่ายื่นแบบภาษี</td><td style="text-align:right">1,500.00</td></tr><tr><td>ภาษีมูลค่าเพิ่ม 7%</td><td style="text-align:right">665.00</td></tr><tr><td><b>รวมทั้งสิ้น</b></td><td style="text-align:right"><b>10,165.00</b></td></tr></table><p>โอนเข้าบัญชีบริษัท แล้วส่งหลักฐานกลับมาทางอีเมล ขอบคุณที่ใช้บริการค่ะ</p>`, x: 20, y: 30, r: -6 },
-  { id: 'memo', title: 'บันทึกถึงทีม', html: `<h2>บันทึกถึงทีมบัญชี</h2><p>ทุกคนคะ เดือนนี้ขอให้ส่งใบเสร็จ<b>ก่อนวันที่ 3</b> นะคะ จะได้ปิดงบทัน</p><p>ใครเบิกค่าเดินทาง แนบใบเสร็จแท็กซี่หรือรูปแอปเรียกรถมาด้วย</p><p>วันศุกร์นี้มีขนมเลี้ยง หัวหน้าเลี้ยงเองค่ะ</p><p style="text-align:right">— หัวหน้าแมว</p>`, x: 25, y: 55, r: 4 },
+  { id: 'inv', title: 'ใบแจ้งหนี้ INV-0425', html: `<h2>ใบแจ้งหนี้ เลขที่ INV-0425</h2><p>วันที่ 2 ม.ค. 2569<br><b>จาก:</b> บริษัท เมล็ดดี จำกัด (คู่ค้าที่เราซื้อของ)<br><b>ถึง:</b> บริษัท เมฆน้อย จำกัด (บริษัทเรา)<br>ครบกำหนดชำระ: ภายใน 30 วันนับจากวันที่ออกเอกสาร</p><table style="width:100%;border-collapse:collapse;margin:8px 0"><tr><td>กระดาษ A4 50 รีม</td><td style="text-align:right">8,000.00</td></tr><tr><td>หมึกพิมพ์ 5 กล่อง</td><td style="text-align:right">1,500.00</td></tr><tr><td>ภาษีมูลค่าเพิ่ม 7%</td><td style="text-align:right">665.00</td></tr><tr><td><b>รวมทั้งสิ้น</b></td><td style="text-align:right"><b>10,165.00</b></td></tr></table><div style="font-size:12.5px;line-height:1.55;border:2px dashed #e0457b;border-radius:10px;padding:8px 12px"><b>📌 สิ่งที่ต้องทำ</b><ol style="margin:4px 0 0;padding-left:20px"><li>แชทบอก <b>ฝ่ายการเงิน</b> ให้โอนเงิน 10,165 บาท ให้ บ.เมล็ดดี</li><li>ส่งเอกสารให้การเงิน: <b>ตัวจริง</b> (กดปุ่ม “📤 ส่งตัวจริงให้การเงิน” ตอนหยิบกระดาษนี้) และ <b>ไฟล์ Excel สรุปยอดใบแจ้งหนี้</b> ส่งทางแชท</li><li>การเงินตรวจแล้วจะส่ง<b>หลักฐานโอน</b>และคืนตัวจริงมา: หยิบ<b>ตราปั๊ม</b>ปั๊ม “จ่ายแล้ว” บนใบแจ้งหนี้ แล้ว<b>สแกนเข้าเครื่อง</b></li><li>ถามอีเมลคุณเมล็ดในแชท <b>จดไว้เอง</b> แล้วเขียนอีเมลใหม่ในเมลน้อย แนบใบแจ้งหนี้ที่ปั๊มแล้ว + หลักฐานโอน</li></ol></div>`, x: 20, y: 30, r: -6 },
+  { id: 'memo', title: 'บันทึกถึงทีม', html: `<h2>บันทึกถึงทีมบัญชี</h2><p>ทุกคนคะ เดือนนี้ขอให้ส่งใบเสร็จ<b>ก่อนวันที่ 3</b> นะคะ จะได้ปิดงบทัน</p><p>ใครเบิกค่าเดินทาง แนบใบเสร็จแท็กซี่หรือรูปแอปเรียกรถมาด้วย</p><p>วันศุกร์นี้มีขนมเลี้ยง หัวหน้าเลี้ยงเองค่ะ</p><p style="text-align:right">— หัวหน้าแมว</p><div style="font-size:12.5px;line-height:1.55;border:2px dashed #e0457b;border-radius:10px;padding:8px 12px"><b>📌 สิ่งที่ต้องทำ</b><ol style="margin:4px 0 0;padding-left:20px"><li>ส่งเอกสารประชุมให้หัวหน้าทาง<b>อีเมล</b> (ถามอีเมลหัวหน้าในแชทก่อน แล้วจดไว้เอง)</li><li>ขอ<b>สลิปเงินเดือนแบบทางการ</b>จากพี่ HR ทางอีเมล (ถามอีเมล HR ในแชทก่อน)</li></ol></div>`, x: 25, y: 55, r: 4 },
   { id: 'rep', title: 'รายงานยอดขาย', html: `<h2>รายงานยอดขายรายเดือน</h2><div style="display:flex;align-items:flex-end;gap:16px;height:180px;margin:18px 0;border-bottom:2px solid #ccc">${[40, 62, 55, 80, 95, 70].map((v, i) => `<div style="flex:1;height:${v}%;background:${['#ffb3c1', '#ffd27f', '#9fd8ff', '#b8e6a0', '#c7b8ff', '#ffcf9f'][i]};border-radius:8px 8px 0 0"></div>`).join('')}</div><p>ยอดขายสูงสุดอยู่ในเดือนที่ 5 เพราะมีโปรโมชันขนมกลางปี</p><p>ข้อเสนอ: เพิ่มโปรโมชันช่วงปลายปีเพื่อดันยอดขายเดือนที่ 6 ให้กลับขึ้นมา</p>`, x: 66, y: 36, r: -3 },
   { id: 'trip', title: '🎉 ทริปปีใหม่บริษัท', party: true, html: `<h2>🎉 ทริปปีใหม่บริษัท</h2><p>ปีใหม่นี้บริษัทพาเที่ยว <b>2 คืน</b> (30 ธ.ค. – 1 ม.ค.)<br>พนักงาน <b>12 คน</b> พักห้องละ 2 คน = <b>6 ห้อง</b><br>งบค่าที่พักรวมไม่เกิน <b>40,000 บาท</b></p><p><b>สิ่งที่ต้องทำ</b><br>1. หาที่พักในเสิร์ชน้อย (แท็บ "ที่พัก")<br>2. กรอกลงไฟล์ ทริปปีใหม่.xlsx<br>&nbsp;&nbsp;&nbsp;ราคารวม = ราคา/ห้อง/คืน × จำนวนห้อง × จำนวนคืน<br>3. เสนอที่พักในกลุ่มแชท "ทีมบัญชีน่ารัก"<br>4. ส่งไฟล์ ทริปปีใหม่.xlsx ให้หัวหน้าแมวทางแชท</p><p style="text-align:right">— หัวหน้าแมว</p>`, x: 45, y: 56, r: 5 },
 ];
 const TOOL_ART = {
+  stamp: '<svg width="64" height="74" viewBox="0 0 64 74"><rect x="22" y="2" width="20" height="34" rx="9" fill="#b2452f"/><rect x="8" y="34" width="48" height="16" rx="4" fill="#d6304f"/><rect x="4" y="50" width="56" height="14" rx="3" fill="#7a2a22"/><rect x="10" y="64" width="44" height="6" rx="2" fill="#ff8da1"/></svg>',
   pencil: '<svg width="170" height="26" viewBox="0 0 170 26"><path d="M0 13 L24 4 V22 Z" fill="#f1cf9c"/><path d="M0 13 L9 9.6 V16.4 Z" fill="#444"/><rect x="24" y="4" width="114" height="18" fill="#ffd34d"/><rect x="24" y="10" width="114" height="6" fill="#ffe27f"/><rect x="138" y="4" width="12" height="18" fill="#c9c9d1"/><rect x="150" y="4" width="18" height="18" rx="5" fill="#ff9fb0"/></svg>',
   pen: '<svg width="170" height="26" viewBox="0 0 170 26"><path d="M0 13 L16 8 V18 Z" fill="#2b5bd7"/><rect x="16" y="6" width="22" height="14" rx="3" fill="#cfd6e6"/><rect x="38" y="5" width="128" height="16" rx="8" fill="#3d6fe8"/><rect x="100" y="2" width="56" height="5" rx="2" fill="#b9c6e6"/></svg>',
   hl: '<svg width="160" height="34" viewBox="0 0 160 34"><path d="M0 10 L14 6 V28 L0 24 Z" fill="#ffe600"/><rect x="14" y="4" width="34" height="26" rx="3" fill="#fff17a"/><rect x="48" y="2" width="110" height="30" rx="10" fill="#ffd400"/><rect x="60" y="11" width="80" height="12" rx="6" fill="#ffe866"/></svg>',
   eraser: '<svg width="86" height="44" viewBox="0 0 86 44"><rect x="2" y="2" width="82" height="40" rx="8" fill="#fff"/><rect x="2" y="2" width="30" height="40" rx="8" fill="#fff"/><rect x="26" y="2" width="58" height="40" rx="6" fill="#7cc6ff"/><text x="55" y="27" font-size="11" text-anchor="middle" fill="#fff" font-family="Mitr">ยางลบ</text></svg>',
 };
-const TOOLS = { pencil: { n: 'ดินสอ', c: '#4a4a4a', w: 2.2, a: .92 }, pen: { n: 'ปากกา', c: '#2350c8', w: 2.8, a: 1 }, hl: { n: 'ไฮไลท์', c: '#ffe100', w: 20, a: .38 }, eraser: { n: 'ยางลบ', w: 26 } };
+const TOOLS = { pencil: { n: 'ดินสอ', c: '#4a4a4a', w: 2.2, a: .92 }, pen: { n: 'ปากกา', c: '#2350c8', w: 2.8, a: 1 }, hl: { n: 'ไฮไลท์', c: '#ffe100', w: 20, a: .38 }, eraser: { n: 'ยางลบ', w: 26 }, stamp: { n: 'ตราปั๊ม', w: 0 } };
 let tool = 'pen';
 function deskItem(cls, x, y, r, html, id) { const el = h('div', { class: 'item ' + cls, 'data-id': id }, html); el.style.left = x + '%'; el.style.top = y + '%'; el.style.transform = `rotate(${r}deg)`; desk.append(el); return el; }
 for (const d of DOCS) deskItem('', d.x, d.y, d.r, `<div class="doc ${d.party ? 'party' : ''}"><h4>${esc(d.title)}</h4>${'<div class="ln"></div>'.repeat(3)}<div class="ln" style="width:60%"></div>${'<div class="ln"></div>'.repeat(5)}<div class="ln" style="width:40%"></div></div>`, 'doc:' + d.id);
@@ -23,6 +24,7 @@ deskItem('', 72, 72, -18, TOOL_ART.pencil, 'tool:pencil');
 deskItem('', 70, 81, -8, TOOL_ART.pen, 'tool:pen');
 deskItem('', 26, 88, 6, TOOL_ART.hl, 'tool:hl');
 deskItem('', 89, 62, 12, TOOL_ART.eraser, 'tool:eraser');
+deskItem('', 44, 84, -6, TOOL_ART.stamp, 'tool:stamp');
 deskItem('', 86, 18, 0, '<div class="mug"></div>', 'deco');
 deskItem('', 3, 76, 0, '<div class="plant"></div>', 'deco');
 { const s = h('div', { class: 'sticky' }, 'อย่าลืม!<br>ส่งใบแจ้งหนี้ก่อนบ่ายสาม'); s.style.left = '64%'; s.style.top = '13%'; desk.append(s); }
@@ -63,7 +65,7 @@ function overlay(sheetCls, inner, key, isNb) {
   const sheet = h('div', { class: 'sheet ' + sheetCls }, inner);
   const cv = h('canvas'); sheet.append(cv);
   const tools = h('div', { class: 'tools' });
-  for (const k of ['pencil', 'pen', 'hl', 'eraser']) { const b = h('button', { 'data-tool': k }, `<span>${TOOLS[k].n}</span>`); tools.append(b); }
+  for (const k of ['pencil', 'pen', 'hl', 'eraser', ...(isNb ? [] : ['stamp'])]) { const b = h('button', { 'data-tool': k }, `<span>${TOOLS[k].n}</span>`); tools.append(b); }
   if (isNb) tools.append(h('button', { 'data-tool': 'type' }, '<span>พิมพ์</span><small>คีย์บอร์ด</small>'));
   tools.append(h('hr'));
   if (isNb) { tools.append(h('button', { 'data-act': 'prev' }, '◀ หน้าก่อน')); tools.append(h('button', { 'data-act': 'next' }, 'หน้าถัดไป ▶')); }
@@ -83,6 +85,7 @@ function overlay(sheetCls, inner, key, isNb) {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.tool) { tool = b.dataset.tool; syncTools(); markInHand(); if (tool === 'type' && ta) ta.focus(); }
     if (b.dataset.act === 'close') closeOverlay();
+    if (b.dataset.act === 'hand') { handOver(); return; }
     if (b.dataset.act === 'pin') { pinCurrent(); return; }
     if (b.dataset.act === 'scan') scanCurrent();
     if (b.dataset.act === 'prev' || b.dataset.act === 'next') { nbPage = clamp(nbPage + (b.dataset.act === 'next' ? 1 : -1), 0, NB_PAGES - 1); openNotebook(); S.noise(.12, 3000, .06, 'highpass'); }
@@ -102,11 +105,13 @@ function closeOverlay() {
   keep.getContext('2d').drawImage(st.cv, 0, 0); canvases.set(st.key, keep);
   ov.remove(); ov = null; if (tool === 'type') tool = 'pen'; markInHand();
 }
-function openPaper(d) { overlay(d.sticky ? 'stk' : '', `<div class="content">${d.html}</div>`, 'doc:' + d.id, false); ov.state.doc = d; if (d.printed) { fitPaper(); if (tool !== 'pen' && tool !== 'pencil') { tool = 'pen'; syncTools(); markInHand(); } } }
+function openPaper(d) { overlay(d.sticky ? 'stk' : '', `<div class="content">${d.html}</div>`, 'doc:' + d.id, false); ov.state.doc = d; fitPaper(); if (d.printed && tool !== 'pen' && tool !== 'pencil' && tool !== 'stamp') { tool = 'pen'; syncTools(); markInHand(); }
+  if (d.id === 'inv') { const tb = ov.querySelector('.tools'); tb.insertBefore(h('button', { 'data-act': 'hand' }, '📤 ส่งตัวจริงให้การเงิน'), tb.lastChild); } }
 function openNotebook() { overlay('nbp', `<div class="pg">หน้า ${nbPage + 1}/${NB_PAGES}</div><textarea spellcheck="false" placeholder="เลือก 'พิมพ์' แล้วพิมพ์จากมือถือหรือคีย์บอร์ดได้เลย"></textarea>`, 'nb:' + nbPage, true); ov.state.nb = nbPage; }
 let stroke = null;
 document.addEventListener('pointerdown', e => {
   if (!ov || e.target !== ov.state.cv || tool === 'type') return;
+  if (tool === 'stamp') { drawStamp(e); return; }
   const st = ov.state, r = st.cv.getBoundingClientRect();
   stroke = { pts: [[e.clientX - r.left, e.clientY - r.top]], snap: st.g.getImageData(0, 0, st.cv.width, st.cv.height), r };
   drawStroke();
