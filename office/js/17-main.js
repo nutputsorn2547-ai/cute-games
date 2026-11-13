@@ -65,7 +65,7 @@ function loop(now) {
   const dt = Math.min(.1, (now - last) / 1000); last = now;
   S.tick(dt); pad.update(dt);
   if (pad.live) {
-    if (!phoneSeen) { phoneSeen = true; vcur.hidden = false; }
+    if (!phoneSeen) { phoneSeen = true; vcur.removeAttribute('hidden'); } // svg has no .hidden property, the attribute must be removed
     const [dx, dy] = pad.takeTouch();
     if (dx || dy) { cur.x = clamp(cur.x + dx * CURSOR_GAIN, 0, innerWidth - 2); cur.y = clamp(cur.y + dy * CURSOR_GAIN, 0, innerHeight - 2); fire('pointermove', under()); fire('mousemove', under()); }
     const press = !!pad.btn.press;

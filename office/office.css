@@ -451,7 +451,7 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 #pinDoc .ph2 button{font:inherit;border:0;background:#fff;border-radius:8px;width:26px;height:24px;cursor:pointer}
 #pinDoc .pb{overflow:auto;padding:8px}
 .chip{top:auto!important;bottom:78px}
-.vcur{position:fixed;left:0;top:0;width:22px;height:22px;pointer-events:none;z-index:100;margin:-2px 0 0 -2px}
+.vcur{position:fixed;left:0;top:0;width:30px;height:30px;pointer-events:none;z-index:100000;margin:-3px 0 0 -3px;filter:drop-shadow(0 2px 2px #0006)}
 .vcur.press path{fill:#ffd166}
 
 /* save slots */
