@@ -60,11 +60,16 @@ function dialog(W, html, buttons, withInput) {
     d.cancel = () => fin(null);
   });
 }
-function openFolder(fo) { const body = h('div', { class: 'fold' }); const W = openWin('files-' + fo.id, 'โฟลเดอร์ ' + fo.name, body, 470, 300, '#fff4d6'); W.folder = fo.id; renderFolder(W); }
+function openFolder(fo) { const body = h('div', { class: 'fold' }); const W = openWin('files-' + fo.id, 'โฟลเดอร์ ' + foldPath(fo), body, 470, 300, '#fff4d6'); W.folder = fo.id; renderFolder(W); }
 function renderFolder(W) {
-  const box = W.body.querySelector('.fold'); box.innerHTML = '';
-  const list = FILES.filter(f => f.loc === W.folder);
-  if (!list.length) box.append(h('div', { class: 'empty' }, 'ยังว่างอยู่ ลากไฟล์มาวางในหน้าต่างนี้ได้เลย'));
+  const box = W.body.querySelector('.fold'); box.innerHTML = ''; const cur = FOLDERS.find(x => x.id === W.folder); if (!cur) return;
+  const subs = FOLDERS.filter(x => x.loc === W.folder), list = FILES.filter(f => f.loc === W.folder), par = FOLDERS.find(x => x.id === cur.loc);
+  W.setTitle?.('โฟลเดอร์ ' + foldPath(cur));
+  const bar = h('div', { class: 'fbar2' }, `${par ? `<button class="btn2" data-fup="${par.id}">⬆ ขึ้นไป ${esc(par.name)}</button>` : ''}<span class="fpath">📂 ${esc(foldPath(cur))}</span><button class="btn2" data-fnew>📁 โฟลเดอร์ย่อยใหม่</button>`);
+  if (cur.id !== 'trash') box.append(bar);
+  bar.addEventListener('click', e => { if (e.target.closest('[data-fnew]')) newFolder(W.folder); const u = e.target.closest('[data-fup]'); if (u) openFolder(FOLDERS.find(x => x.id === u.dataset.fup)); });
+  if (!list.length && !subs.length) box.append(h('div', { class: 'empty' }, 'ยังว่างอยู่ ลากไฟล์หรือโฟลเดอร์มาวางในหน้าต่างนี้ได้เลย'));
+  for (const fo of subs) box.append(folderIcon(fo));
   for (const f of list) box.append(fileIcon(f));
 }
 function openFile(f) {
