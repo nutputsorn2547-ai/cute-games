@@ -51,6 +51,7 @@ function scanCap(cap) {
   let f = FILES.find(x => x.name === name && x.loc !== 'trash');
   if (!f) { f = { id: 'u' + (++uid), name, type: 'pdf', loc: 'desk' }; FILES.push(f); deskPos[f.id] = firstFree(); }
   Object.assign(f, { kind: cd ? 'cdoc' : 'scan', fields: cd, signed: !!(cap.doc && cap.doc.printed && cap.doc.signed), stamped: !!(cap.doc && cap.doc.stamped), docId: cap.doc ? cap.doc.id : null, html: `<div class="scanv">${paperHTML(cap, .5)}</div>` });
+  if (cap.doc && cap.doc.id === 'inv') invFlow.scanned = true;
   if (cap.doc && cap.doc.id === 'inv' && cap.doc.stamped) { complete('inv3'); setTimeout(() => S.toast('🖨️ สแกนใบแจ้งหนี้ที่ปั๊มแล้วเข้าเครื่อง — แนบส่งอีเมลหาคู่ค้าได้', 3.4), 2600); }
   if (cap.doc && cap.doc.printed) { if (cap.doc.signed) { complete('sign'); setTimeout(() => S.toast('✍️ สแกนเอกสารที่เซ็นแล้วเข้าเครื่องเรียบร้อย — แนบส่งอีเมลได้', 3.4), 2600); } else setTimeout(() => S.toast('เอกสารนี้ยังไม่ได้เซ็นนะ หยิบปากกามาเซ็นก่อนแล้วสแกนใหม่ได้', 3.4), 2600); }
   closeWin('view-' + f.id, true); renderDesktop(); renderWork();
