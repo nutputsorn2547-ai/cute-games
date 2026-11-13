@@ -46,7 +46,7 @@ function syncTaskbar() {
 }
 $('taskbar').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  ({ files: () => openFolder(FOLDERS[2]), sheet: () => openSheet(FILES.find(f => f.id === 'x1')), search: () => openSearch(), chat: () => openChat(), food: () => openFood(), design: () => openDesign(FILES.find(f => f.id === 'cv')), jobs: () => openJobs(), game: () => openGames(), cal: () => openCal(), bank: () => openBank(), ai: () => openAI(), work: () => openWork() })[b.dataset.app]?.();
+  ({ files: () => openFolder(FOLDERS[2]), sheet: () => openSheet(FILES.find(f => f.id === 'x1')), search: () => openSearch(), chat: () => openChat(), food: () => openFood(), design: () => openDesign(FILES.find(f => f.id === 'cv')), jobs: () => openJobs(), game: () => openGames(), cal: () => openCal(), bank: () => openBank(), ai: () => openAI(), work: () => openWork(), mail: () => openMailApp(), word: () => openWord() })[b.dataset.app]?.();
 });
 // a small modal inside a window: resolves with the clicked button's value and the input's text
 function dialog(W, html, buttons, withInput) {
@@ -68,6 +68,7 @@ function renderFolder(W) {
   for (const f of list) box.append(fileIcon(f));
 }
 function openFile(f) {
+  if (f.kind === 'worddoc') { openWord(f); return; }
   if (f.kind === 'design') { openDesign(f); return; }
   if (f.html) { openWin('view-' + f.id, f.name, h('div', { style: 'height:100%' }, zoomView(f.html)), 500, 400, '#f4f0ff'); return; }
   if (f.kind === 'resume') { openResume(f); return; }

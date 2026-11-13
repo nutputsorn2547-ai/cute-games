@@ -36,6 +36,7 @@ function syntheticClick(dbl) {
 function typeText(str) {
   for (const ch of str) {
     const el = document.activeElement, field = el && el.matches && el.matches('input,textarea') ? el : null;
+    if (el && el.isContentEditable) { if (ch === '\b') document.execCommand('delete'); else if (ch === '\n') document.execCommand('insertParagraph'); else document.execCommand('insertText', false, ch); continue; }
     if (ch === '\b') {
       if (field) { const s = field.selectionStart, e2 = field.selectionEnd; if (s !== e2) field.setRangeText('', s, e2, 'end'); else if (s > 0) field.setRangeText('', s - 1, s, 'end'); field.dispatchEvent(new Event('input', { bubbles: true })); }
       else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
@@ -83,7 +84,7 @@ function loop(now) {
     vcur.style.transform = `translate(${cur.x}px,${cur.y}px)`; vcur.classList.toggle('press', cur.down);
   }
   if (food.track && !food.track.arrived) updateTrack(now);
-  updateGame(now);
+  updateGame(now); mailTick(); hungerTick(); callTick();
   const mn = gnow().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   if (mn !== lastMin) { lastMin = mn; enforceDate(); $('clock').textContent = thDate(gnow(), { day: 'numeric', month: 'short' }) + ' ' + mn; phoneItem.querySelector('.pt').textContent = mn; const tw = wins.get('time'); if (tw && tw.body.querySelector('.hh')) { const g = gnow(); tw.body.querySelector('.hh').textContent = p2(g.getHours()); tw.body.querySelector('.mm').textContent = p2(g.getMinutes()); } applyTime(); updateDeskCal(); const slot = Math.floor((gnow() - T0) / 10800000); if (slot > jr.slot) { jr.slot = slot; juniorAsk(); } }
   if (S.pairing()) S.hint('');

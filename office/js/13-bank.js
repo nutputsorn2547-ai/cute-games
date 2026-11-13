@@ -20,7 +20,7 @@ function newDay(d) {
   }
   if (D === 10) { const hot = [2, 3, 4].includes(dt.getMonth()); addBill('⚡', `ค่าไฟ (${mon})`, Math.round((700 + Math.random() * 800) * (hot ? 1.5 : 1)), d + 5 * DAY); addBill('💧', `ค่าน้ำ (${mon})`, Math.round(120 + Math.random() * 140), d + 5 * DAY); }
   for (const b of bank.bills) if (!b.paid && !b.late && b.due < d) { b.late = true; b.amt += 100; bank.notes.push(`⚠️ ${b.n} เลยกำหนด ปรับ 100 บาท`); }
-  dailyDocs(d); livingCosts(d); if (typeof mailDaily === 'function') mailDaily(d);
+  dailyDocs(d); livingCosts(d); if (typeof mailDaily === 'function') { mailOverdue(d); mailDaily(d); }
   if (d > bank.start && Math.random() < .14) {
     const [e, n, a, b] = pick(EXP), amt = Math.round((a + Math.random() * (b - a)) / 10) * 10;
     if (bank.bal >= amt) { bankTx(`${e} ${n}`, -amt); bank.notes.push(`💳 ${n} −${baht(amt)}`); } else addBill(e, n, amt, d + 3 * DAY);

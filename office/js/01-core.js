@@ -43,6 +43,10 @@ const TASKS = [
   { id: 'note', due: 7, t: 'จดอะไรก็ได้ลงสมุดโน้ต' },
   { id: 'cal', due: 7, t: 'เปิดปฏิทินน้อย แล้วเร่งวันไปถึงอีเวนต์ถัดไป (ย้อนกลับไม่ได้!)' },
   { id: 'meet', t: 'เตรียมเอกสารใส่โฟลเดอร์ "เอกสารประชุม" ให้ครบก่อนวันประชุม (ดูในปฏิทิน)' },
+  { id: 'eat', t: 'สั่งข้าวมากินช่วงเที่ยง (11:00–14:00) ก่อนหิวจนทำงานไม่ได้ (ดูแถบ 🍚 ข้างนาฬิกา)' },
+  { id: 'call', t: 'รับสายที่โทรเข้ามา แล้วตอบลูกค้าให้ถูกใจ 1 สาย' },
+  { id: 'word', t: 'เปิดเวิร์ดน้อย สร้างเอกสารจากเทมเพลต (รายงาน/จดหมายเชิญ/ขอร่วมงาน/ข้อตกลงการค้า) แล้วกดบันทึก' },
+  { id: 'mreply', t: 'เปิดเมลน้อย ตอบอีเมลที่มี ⭐ (สำคัญ) ให้ทัน ไม่งั้นลูกค้าโทรตาม' },
   { id: 'ai', t: 'สั่งน้องเอไอ "ทำสรุปทริป" (ลากเทมเพลตและไฟล์ที่หามาให้ครบ)' },
   { id: 'work', t: 'ดาวน์โหลดเอกสารจากแชทลูกค้า แล้วบันทึกในโปรแกรมบัญชีน้อยให้ถูก 3 ใบ' },
   { id: 'scan', due: 7, t: 'หยิบเอกสารบนโต๊ะ กด "ถือไว้ข้างจอ" หรือ "สแกนเข้าคอม"' },
@@ -108,7 +112,7 @@ let deskPos = {}; // id -> [col,row] on the desktop
 FOLDERS.slice(0, 4).forEach((f, i) => deskPos[f.id] = [0, i]);
 FILES.forEach((f, i) => { f.loc = 'desk'; deskPos[f.id] = [1 + (i >> 2), i % 4]; });
 FILES.push({ id: 'cv', name: 'เรซูเม่_ฉัน.design', type: 'dsg', kind: 'design', loc: 'desk' });
-const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c: '#00c4cc' }, { id: 'app-jobs', n: 'จ๊อบน้อย หางาน', e: '💼', c: '#3b5bdb' }, { id: 'app-game', n: 'เกมน้อย', e: '🎮', c: '#ff8fab' }, { id: 'app-food', n: 'หิวแล้ว', e: '🍱', c: '#ff8a3d' }, { id: 'app-cal', n: 'ปฏิทินน้อย', e: '📅', c: '#e8669a' }, { id: 'app-bank', n: 'ธนาคารน้อย', e: '🏦', c: '#1f9d6b' }, { id: 'app-ai', n: 'น้องเอไอ', e: '🤖', c: '#7c5cff' }, { id: 'app-work', n: 'บัญชีน้อย', e: '📒', c: '#5a78e6' }];
+const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c: '#00c4cc' }, { id: 'app-jobs', n: 'จ๊อบน้อย หางาน', e: '💼', c: '#3b5bdb' }, { id: 'app-game', n: 'เกมน้อย', e: '🎮', c: '#ff8fab' }, { id: 'app-food', n: 'หิวแล้ว', e: '🍱', c: '#ff8a3d' }, { id: 'app-cal', n: 'ปฏิทินน้อย', e: '📅', c: '#e8669a' }, { id: 'app-bank', n: 'ธนาคารน้อย', e: '🏦', c: '#1f9d6b' }, { id: 'app-ai', n: 'น้องเอไอ', e: '🤖', c: '#7c5cff' }, { id: 'app-work', n: 'บัญชีน้อย', e: '📒', c: '#5a78e6' }, { id: 'app-mail', n: 'เมลน้อย', e: '📧', c: '#3b82f6' }, { id: 'app-word', n: 'เวิร์ดน้อย', e: '📝', c: '#2b6cd9' }];
 APPS.sort((a, b) => (DAYPLAN.apps[a.id] || 1) - (DAYPLAN.apps[b.id] || 1)); // first-unlocked apps take the top slots
 deskPos.down = [3, 0];
 const CELLW = 100, CELLH = 104;
@@ -201,7 +205,7 @@ document.addEventListener('dblclick', e => {
   openItem(ic.dataset.id);
 });
 function openItem(id) {
-  const app = { 'app-design': () => openDesign(FILES.find(f => f.id === 'cv')), 'app-jobs': openJobs, 'app-game': openGames, 'app-food': openFood, 'app-cal': openCal, 'app-bank': () => openBank(), 'app-ai': openAI, 'app-work': openWork }[id]; if (app) { app(); return; }
+  const app = { 'app-design': () => openDesign(FILES.find(f => f.id === 'cv')), 'app-jobs': openJobs, 'app-game': openGames, 'app-food': openFood, 'app-cal': openCal, 'app-bank': () => openBank(), 'app-ai': openAI, 'app-work': openWork, 'app-mail': openMailApp, 'app-word': () => openWord() }[id]; if (app) { app(); return; }
   const fo = FOLDERS.find(x => x.id === id), f = FILES.find(x => x.id === id);
   if (fo) openFolder(fo); else if (f) openFile(f);
 }
