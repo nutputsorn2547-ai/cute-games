@@ -162,6 +162,7 @@ document.addEventListener('pointerdown', e => {
   const B = W.book;
   if (th) { commitEdit(W); B.anchor = th.dataset.col + 1; B.sel = th.dataset.col + ROWS; paintSel(W); return; }
   const td = e.target.closest('td'); if (!td) return;
+  if (W.editor && W.editor.ref !== td.dataset.ref && refPick(W, td.dataset.ref, e)) { e.preventDefault(); return; }
   if (W.editor && W.editor.ref !== td.dataset.ref) commitEdit(W, false);
   if (!e.shiftKey) B.anchor = td.dataset.ref; B.sel = td.dataset.ref; selDrag = W; paintSel(W);
 });
@@ -173,6 +174,18 @@ addEventListener('pointermove', e => {
 addEventListener('pointerup', () => { selDrag = null; if (colDrag) { const W = colDrag.W; colDrag = null; renderSheet(W); S.tone(700, 760, .03, .04); } });
 document.addEventListener('dblclick', e => { const W = sheetOf(e.target), td = e.target.closest('td'); if (W && td) { W.book.anchor = W.book.sel = td.dataset.ref; startEdit(W, W.book.cells[td.dataset.ref] || ''); } });
 function sheetOf(el) { const w = el.closest && el.closest('.win'); const W = w && wins.get(w.dataset.id); return W && W.book ? W : null; }
+// formula editing: click a cell to insert its name (shift+click = range from the last picked cell)
+function refPick(W, ref, e) {
+  const ed = W.editor, inp = ed.inp, v = inp.value; if (v[0] !== '=') return false;
+  const pos = inp.selectionStart ?? v.length;
+  let st = pos, en = pos;
+  if (ed.ins && ed.ins.end === pos) { st = ed.ins.start; en = ed.ins.end; if (e.shiftKey && ed.ins.first) ref = ed.ins.first + ':' + ref; else ed.ins.first = ref; }
+  else { const prev = v.slice(0, pos).trimEnd().slice(-1); if (!prev || !/[=+\-*/^(,:;<>&]/.test(prev)) return false; ed.ins = { first: ref }; }
+  inp.value = v.slice(0, st) + ref + v.slice(en); const np = st + ref.length; ed.ins.start = st; ed.ins.end = np;
+  inp.focus(); inp.setSelectionRange(np, np); W.root.querySelector('.raw').textContent = inp.value;
+  W.root.querySelectorAll('td.pk').forEach(t => t.classList.remove('pk')); W.root.querySelector(`td[data-ref="${ref.split(':').pop()}"]`)?.classList.add('pk');
+  S.tone(900, 900, .02, .04); return true;
+}
 function startEdit(W, initial) {
   if (W.editor) commitEdit(W, false);
   const B = W.book; B.anchor = B.sel;
@@ -181,7 +194,7 @@ function startEdit(W, initial) {
   inp.style.left = td.offsetLeft + 'px'; inp.style.top = td.offsetTop + 'px'; inp.style.width = Math.max(td.offsetWidth, 200) + 'px'; inp.style.height = td.offsetHeight + 'px';
   grid.append(inp); inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
   W.editor = { ref: B.sel, inp };
-  inp.addEventListener('input', () => { W.root.querySelector('.raw').textContent = inp.value; });
+  inp.addEventListener('input', () => { if (W.editor) W.editor.ins = null;  W.root.querySelector('.raw').textContent = inp.value; });
 }
 function commitEdit(W, move = true, dc = 0, dr = 1) {
   if (!W || !W.editor) return; const { ref, inp } = W.editor; W.editor = null;

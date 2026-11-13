@@ -49,12 +49,12 @@ function applyJob(j, rf) {
   const mon = new Date(dayStart(gnow()) + DAY + 3 * 3600000); while (mon.getDay() !== 1) mon.setDate(mon.getDate() + 1);
   addEvent(mon, '🤝', 'สัมภาษณ์งาน ' + j.co, 'interview', { a: j.id }); renderCal();
   mailPush(null, 'HR ' + j.co, `ได้รับใบสมัครตำแหน่ง ${j.pos} แล้ว`, `<p>เรียนผู้สมัคร</p><p>ทาง ${esc(j.co)} ได้รับใบสมัครและเรซูเม่ (${esc(rf.name)}) ของคุณแล้ว กำลังพิจารณาคุณสมบัติ จะติดต่อกลับภายใน 3 วันทำการ</p><p>ขอบคุณที่สนใจร่วมงานกับเรา ${j.e}</p>`, 'job');
-  mailPush(null, 'HR ' + j.co, `นัดสัมภาษณ์งาน ${j.pos}`, `<p>ยินดีด้วย! คุณผ่านการคัดเลือกเบื้องต้น</p><p>ขอนัดสัมภาษณ์ <b>${thDate(mon.getTime(), { weekday: 'long', day: 'numeric', month: 'long' })} เวลา 10:00 น.</b> ที่ ${esc(j.where)}</p><p>โปรดเตรียมเอกสารประกอบการสมัครมาด้วย</p>`, 'job');
+  mailPush(null, 'HR ' + j.co, `นัดสัมภาษณ์งาน ${j.pos}`, `<p>ยินดีด้วย! คุณผ่านการคัดเลือกเบื้องต้น</p><p>ขอนัดสัมภาษณ์ <b>${thDate(mon.getTime(), { weekday: 'long', day: 'numeric', month: 'long' })} เวลา 10:00 น.</b> ที่ ${esc(j.where)}</p><p>โปรดเตรียมเอกสารประกอบการสมัครมาด้วย</p><p><b>⭐ กรุณาตอบกลับเพื่อยืนยันนัด</b></p>`, 'job', undefined, { imp: 1, due: mon.getTime() });
   renderChat();
 }
 
 /* ================= mini games ================= */
-const gm = { W: null, mode: null, best: { whack: 0, mem: 0, typeth: 0, typeen: 0, sudoku: 0, cards: 1000 } };
+const gm = { W: null, mode: null, best: { whack: 0, mem: 0, typeth: 0, typeen: 0, sudoku: 0, cards: 1000, m3: 0, xo: 0, sol: 0 } };
 function openGames() {
   if (gm.W && wins.has('game')) { focusWin(gm.W); return gm.W; }
   gm.W = openWin('game', 'เกมน้อย', h('div', { class: 'gm' }), 580, 500, '#ffe8f0'); gm.W.onClose = () => { gm.W = null; gm.mode = null; };
@@ -64,7 +64,7 @@ function openGames() {
 }
 function gameMenu() {
   gm.mode = null;
-  gm.W.body.firstChild.innerHTML = `<div class="menu2"><button data-g="whack"><span>🔨</span><b>ทุบตุ่น</b><small>30 วินาที · สถิติ ${gm.best.whack} แต้ม</small></button><button data-g="mem"><span>🃏</span><b>จับคู่การ์ด</b><small>${gm.best.mem ? 'ดีที่สุด ' + gm.best.mem + ' ครั้ง' : 'ยังไม่เคยเล่น'}</small></button><button data-g="card"><span>♠️</span><b>ป๊อกเด้ง</b><small>แต้มสูงสุด ${gm.best.cards}</small></button><button data-g="sudoku"><span>🔢</span><b>ซูโดกุ</b><small>${gm.best.sudoku ? 'เร็วสุด ' + fmtSec(gm.best.sudoku) : 'ยังไม่เคยชนะ'}</small></button><button data-g="typeth"><span>⌨️</span><b>พิมพ์เร็วไทย</b><small>${gm.best.typeth ? 'สถิติ ' + gm.best.typeth + ' ตัว/นาที' : 'แข่งกับเพื่อนร่วมงาน'}</small></button><button data-g="typeen"><span>🔤</span><b>Typing English</b><small>${gm.best.typeen ? 'best ' + gm.best.typeen + ' cpm' : 'แข่งกับเพื่อนร่วมงาน'}</small></button></div>`;
+  gm.W.body.firstChild.innerHTML = `<div class="menu2"><button data-g="whack"><span>🔨</span><b>ทุบตุ่น</b><small>30 วินาที · สถิติ ${gm.best.whack} แต้ม</small></button><button data-g="mem"><span>🃏</span><b>จับคู่การ์ด</b><small>${gm.best.mem ? 'ดีที่สุด ' + gm.best.mem + ' ครั้ง' : 'ยังไม่เคยเล่น'}</small></button><button data-g="card"><span>♠️</span><b>ป๊อกเด้ง</b><small>แต้มสูงสุด ${gm.best.cards}</small></button><button data-g="sudoku"><span>🔢</span><b>ซูโดกุ</b><small>${gm.best.sudoku ? 'เร็วสุด ' + fmtSec(gm.best.sudoku) : 'ยังไม่เคยชนะ'}</small></button><button data-g="typeth"><span>⌨️</span><b>พิมพ์เร็วไทย</b><small>${gm.best.typeth ? 'สถิติ ' + gm.best.typeth + ' ตัว/นาที' : 'แข่งกับเพื่อนร่วมงาน'}</small></button><button data-g="typeen"><span>🔤</span><b>Typing English</b><small>${gm.best.typeen ? 'best ' + gm.best.typeen + ' cpm' : 'แข่งกับเพื่อนร่วมงาน'}</small></button><button data-g="m3"><span>🍓</span><b>จับคู่ผลไม้</b><small>${gm.best.m3 ? 'สูงสุด ' + gm.best.m3 + ' แต้ม' : 'แนว Candy Crush'}</small></button><button data-g="xo"><span>❌</span><b>XO</b><small>${gm.best.xo ? 'ชนะรวม ' + gm.best.xo + ' ตา' : 'สู้กับเพื่อนร่วมงาน'}</small></button><button data-g="sol"><span>🂡</span><b>เรียงไพ่ (โซลิแทร์)</b><small>${gm.best.sol ? 'เร็วสุด ' + fmtSec(gm.best.sol) : 'เอาไพ่ขึ้นกองให้ครบ'}</small></button></div>`;
 }
 function startWhack() {
   gm.mode = 'whack'; gm.score = 0; gm.t0 = performance.now(); gm.next = 0; gm.holes = Array.from({ length: 9 }, () => ({ up: 0, until: 0, k: '🐹', hit: 0 }));

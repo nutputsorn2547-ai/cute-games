@@ -38,7 +38,7 @@ function renderFood() {
     const closed = gHour() >= 23 || gHour() < 6;
     main = `${closed ? '<p style="background:#ffe9d6;padding:8px 10px;border-radius:10px;margin:0 0 8px">🌙 ร้านปิดหมดแล้ว (เปิด 06:00–23:00) ลองเปลี่ยนเวลาในคอมดูนะ</p>' : ''}<p style="margin:0 0 8px;color:#8a6a4a">เที่ยงนี้กินอะไรดี? ร้านใกล้ออฟฟิศ 🏢</p><div class="shops">${SHOPS.map(s => `<button class="shop" data-shop="${s.id}" ${closed ? 'disabled style="opacity:.5"' : ''}><div class="e" style="--c:${s.c}">${s.e}</div><b style="font-weight:500">${esc(s.n)}</b><small>⭐ ${(4.3 + hash(s.id) % 7 / 10).toFixed(1)} · ${15 + hash(s.n) % 20} นาที</small></button>`).join('')}</div>`;
   } else if (food.view === 'menu') {
-    main = `<p style="margin:0 0 8px"><a data-fv="shops" style="color:#e8742b;cursor:pointer">← ร้านทั้งหมด</a> · <b>${food.shop.e} ${esc(food.shop.n)}</b></p><div class="menu">${food.shop.menu.map((m, i) => `<div class="mi"><span>${esc(m[0])}</span><b>฿${m[1]}</b><div class="qty"><button data-q="${i}" data-d="-1" aria-label="ลด">−</button><b>${food.cart[i] || 0}</b><button data-q="${i}" data-d="1" aria-label="เพิ่ม">+</button></div></div>`).join('')}</div>`;
+    main = `<p style="margin:0 0 8px"><a data-fv="shops" style="color:#e8742b;cursor:pointer">← ร้านทั้งหมด</a> · <b>${food.shop.e} ${esc(food.shop.n)}</b></p><div class="menu">${food.shop.menu.map((m, i) => `<div class="mi"><span>${esc(m[0])} <small class="fg">🍚 อิ่ม +${foodGain(m[0], m[1])}</small></span><b>฿${m[1]}</b><div class="qty"><button data-q="${i}" data-d="-1" aria-label="ลด">−</button><b>${food.cart[i] || 0}</b><button data-q="${i}" data-d="1" aria-label="เพิ่ม">+</button></div></div>`).join('')}</div>`;
     bot = `<span>🛒 ${n} รายการ · <b>฿${cartSum()}</b></span><button class="go" data-fv="addr" ${n ? '' : 'disabled'}>ไปเลือกที่อยู่ส่ง →</button>`;
   } else if (food.view === 'addr') {
     main = `<p style="margin:0 0 6px"><a data-fv="menu" style="color:#e8742b;cursor:pointer">← แก้เมนู</a> · <b>แตะบนแผนที่เพื่อปักหมุดจุดส่งอาหาร 📍</b></p>${mapHTML(true)}<label>ชื่อสถานที่ <input class="plc" type="text" value="${esc(food.place)}" spellcheck="false"></label><button class="btn2" data-pin-office style="margin-top:6px">🏢 ปักที่ออฟฟิศ</button>`;
@@ -57,7 +57,7 @@ function foodClick(e) {
   const q = t.closest('[data-q]'); if (q) { const i = +q.dataset.q; food.cart[i] = clamp((food.cart[i] || 0) + +q.dataset.d, 0, 20); renderFood(); S.tone(q.dataset.d > 0 ? 900 : 600, q.dataset.d > 0 ? 1100 : 500, .05, .05); return; }
   if (t.closest('[data-pin-office]')) { food.pin = { ...OFFICE }; food.place = 'ออฟฟิศ ชั้น 3'; renderFood(); S.tone(500, 1000, .08, .07); return; }
   const fv = t.closest('[data-fv]'); if (fv && !fv.disabled) { if ('reset' in fv.dataset) { food.cart = {}; food.track = null; } food.view = fv.dataset.fv; renderFood(); return; }
-  if (t.closest('[data-order]')) { if (!bankPay(cartSum() + fee(), `🍱 ${food.shop.n}`)) return; food.view = 'track'; food.track = { t0: performance.now(), dur: 16000, arrived: false }; S.tone(600, 1200, .2, .08, 'triangle'); renderFood(); }
+  if (t.closest('[data-order]')) { if (!bankPay(cartSum() + fee(), `🍱 ${food.shop.n}`)) return; food.view = 'track'; food.track = { t0: performance.now(), dur: 16000, arrived: false, gain: cartGain() }; S.tone(600, 1200, .2, .08, 'triangle'); renderFood(); }
 }
 function updateTrack(now) {
   if (!food.track || !food.W || food.view !== 'track') return;
@@ -70,7 +70,7 @@ function updateTrack(now) {
   const r = box.querySelector('.rider'); if (r) { r.style.left = x * 100 + '%'; r.style.top = y * 100 + '%'; }
   const eta = box.querySelector('.eta'); if (eta) eta.textContent = st === 3 ? `ถึงแล้ว! ${s.e} มาส่งที่ ${food.place}` : `อีกประมาณ ${Math.ceil((1 - p) * 16)} นาที (เวลาในเกมเร็วกว่าจริง)`;
   if (p >= 1 && !food.track.arrived) {
-    food.track.arrived = true; S.jingle(); S.big('ข้าวมาส่งแล้ว! 🍱', 2, '#ff8a3d'); complete('food'); renderFood();
+    food.track.arrived = true; eat(food.track.gain || 25); S.jingle(); S.big('ข้าวมาส่งแล้ว! 🍱', 2, '#ff8a3d'); complete('food'); renderFood();
     if (!desk.querySelector('.lunch')) deskItem('', 40, 8, -4, '<div class="lunch">🍱</div>', 'deco');
   }
 }

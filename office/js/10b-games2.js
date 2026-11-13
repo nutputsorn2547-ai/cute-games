@@ -153,8 +153,9 @@ function tyFinishTimeout() { gm.mode = 'over'; gbox().innerHTML = `<div class="m
 
 /* ================= shared click / key routing ================= */
 function g2Click(e) {
+  if (typeof g3Click === 'function' && g3Click(e)) return true;
   const t = e.target, g = t.closest('[data-g]');
-  if (g) { const k = g.dataset.g, m = { card: startCard, sudoku: () => startSudoku('mid'), typeth: () => startType('th'), typeen: () => startType('en') }[k]; if (m) { m(); S.tone(700, 900, .05, .05); return true; } return false; }
+  if (g) { const k = g.dataset.g, m = { card: startCard, sudoku: () => startSudoku('mid'), typeth: () => startType('th'), typeen: () => startType('en'), ...G3 }[k]; if (m) { m(); S.tone(700, 900, .05, .05); return true; } return false; }
   let b;
   if ((b = t.closest('[data-bet]'))) { if (gm.mode === 'card' && gm.cd.ph !== 'play') { gm.cd.bet = +b.dataset.bet; cdRender(); } return true; }
   if (t.closest('[data-deal]')) { if (gm.mode === 'card') { gm.cd.ph = 'bet'; cdDeal(); S.tone(500, 800, .06, .06); } return true; }

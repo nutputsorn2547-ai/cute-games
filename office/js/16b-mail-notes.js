@@ -5,13 +5,26 @@
 /* ================= pretend email ================= */
 const MAIL_DOMAIN = 'mewnoi.test';
 const mail = { accounts: [], inbox: [], view: 'auto', open: null, f: 'all' };
-const MAIL_CATS = [['all', 'ทั้งหมด'], ['job', '💼 สมัครงาน'], ['work', '📎 งานภายนอก'], ['news', '📰 ข่าว'], ['promo', '🏷️ โปรโมชั่น']];
+const MAIL_CATS = [['all', 'ทั้งหมด'], ['imp', '⭐ ต้องตอบ'], ['job', '💼 สมัครงาน'], ['work', '📎 งานภายนอก'], ['news', '📰 ข่าว'], ['promo', '🏷️ โปรโมชั่น']];
 const forMe = m => !m.to || mail.accounts.some(a => a.email === m.to); // mail with no address waits for whoever signs up first
+const arrived = m => forMe(m) && m.at <= gnow().getTime(); // mail stamped later today is not in the inbox yet
+const perf = { mailOk: 0, mailMiss: 0, callOk: 0, callMiss: 0 };
+const catOk = m => mail.f === 'all' || (mail.f === 'imp' ? m.imp && !m.replied : m.cat === mail.f);
 const WARN_BIG = `<div class="warnbig">⚠️ ใช้อีเมลสมมุติและรหัสผ่านสมมุติเท่านั้น<small>ห้ามใช้อีเมลหรือรหัสผ่านจริงของคุณ · ข้อมูลทั้งหมดอยู่ในเกมบนเครื่องนี้ ไม่มีการนำออกไปภายนอก แต่ขอให้ระมัดระวังไว้ก่อน</small></div>`;
-function mailPush(to, from, subj, body, cat = 'news', at) { mail.inbox.unshift({ to, from, subj, body, cat, at: at ?? gnow().getTime(), read: false }); if (mail.inbox.length > 120) mail.inbox.length = 120; }
-function showMail(view) {
-  if (view) mail.view = view;
-  const v = mail.view === 'auto' ? (mail.accounts.length ? 'inbox' : 'new') : mail.view, box = res();
+function mailPush(to, from, subj, body, cat = 'news', at, extra) { mail.inbox.unshift({ to, from, subj, body, cat, at: at ?? gnow().getTime(), read: false, ...extra }); if (mail.inbox.length > 120) mail.inbox.length = 120; }
+function mailBoxes() {
+  const out = []; if (wins.has('mail')) out.push(wins.get('mail').body.firstChild);
+  if (typeof se !== 'undefined' && se.root && se.root.isConnected && se.tab === 'mail') { const r = se.root.querySelector('.res'); if (r) out.push(r); }
+  return out;
+}
+function showMail(view) { if (view) mail.view = view; mailBoxes().forEach(paintMail); }
+function openMailApp() {
+  const W = openWin('mail', 'เมลน้อย — อีเมล', h('div', { class: 'mailapp' }), 580, 460, '#e6efff');
+  if (!W.body.firstChild.dataset.k) { W.body.firstChild.dataset.k = 1; W.body.style.overflow = 'auto'; W.body.firstChild.addEventListener('click', e => mailClick(e)); }
+  showMail(); return W;
+}
+function paintMail(box) {
+  const v = mail.view === 'auto' ? (mail.accounts.length ? 'inbox' : 'new') : mail.view;
   if (v === 'new') {
     box.innerHTML = `<div class="mailw"><div class="mlogo">📧 เมลน้อย <small>อีเมลสมมุติในเกม</small></div>${WARN_BIG}
       <form class="mf" autocomplete="off"><label>ชื่อเล่น (สมมุติ)<input name="nm" type="text" placeholder="เช่น น้องกุ้ง" spellcheck="false"></label>
@@ -32,13 +45,14 @@ function showMail(view) {
     return;
   }
   // inbox
-  const mine = mail.inbox.filter(m => forMe(m) && (mail.f === 'all' || m.cat === mail.f)).sort((a, b) => b.at - a.at), op = mail.open !== null ? mail.inbox[mail.open] : null;
-  const cnt = k => mail.inbox.filter(m => forMe(m) && !m.read && (k === 'all' || m.cat === k)).length;
+  const mine = mail.inbox.filter(m => arrived(m) && catOk(m)).sort((a, b) => b.at - a.at), op = mail.open !== null ? mail.inbox[mail.open] : null;
+  const cnt = k => mail.inbox.filter(m => arrived(m) && (k === 'imp' ? m.imp && !m.replied : !m.read && (k === 'all' || m.cat === k))).length;
+  const dueTxt = m => m.replied ? '<span class="mtag ok">ตอบแล้ว ✓</span>' : m.missed ? '<span class="mtag bad">เลยกำหนด ⚠️</span>' : `<span class="mtag">⭐ ตอบก่อน ${thDate(m.due, { day: 'numeric', month: 'short' })}</span>`;
   box.innerHTML = `<div class="mailw"><div class="mlogo">📧 เมลน้อย <small>${mail.accounts.map(a => esc(a.email)).join(' · ')}</small></div>
-    <div class="mbar2"><button class="btn2" data-mv="new">➕ สร้างอีเมลใหม่</button></div>
+    <div class="mbar2"><button class="btn2" data-mv="new">➕ สร้างอีเมลใหม่</button><span class="mperf">ตอบเมลสำคัญแล้ว ${perf.mailOk} · พลาด ${perf.mailMiss}</span></div>
     ${op ? '' : `<div class="mchips">${MAIL_CATS.map(([k, n]) => `<button class="${mail.f === k ? 'on' : ''}" data-mf="${k}">${n}${cnt(k) ? ` <i>${cnt(k)}</i>` : ''}</button>`).join('')}</div>`}
-    ${op ? `<div class="mread"><a data-mback style="color:#3348b8;cursor:pointer">← กลับ</a><h3>${esc(op.subj)}</h3><small>จาก ${esc(op.from)} · ถึง ${esc(op.to || mail.accounts[0].email)} · ${thDate(op.at, { day: 'numeric', month: 'short' })}</small><div class="mbody">${op.body}</div></div>`
-      : `<div class="mlist">${mine.map(m => `<div class="mrow ${m.read ? '' : 'new'}" data-mi="${mail.inbox.indexOf(m)}"><b>${esc(m.from)}</b><span>${esc(m.subj)}</span><small>${thDate(m.at, { day: 'numeric', month: 'short' })}</small></div>`).join('') || '<p class="note">ยังไม่มีจดหมาย</p>'}</div>`}
+    ${op ? `<div class="mread"><a data-mback style="color:#3348b8;cursor:pointer">← กลับ</a><h3>${esc(op.subj)}</h3><small>จาก ${esc(op.from)} · ถึง ${esc(op.to || mail.accounts[0].email)} · ${thDate(op.at, { day: 'numeric', month: 'short' })}</small>${op.imp ? `<div>${dueTxt(op)}</div>` : ''}<div class="mbody">${op.body}</div>${op.replied ? `<div class="mrep"><b>↩️ คุณตอบไปว่า</b><div>${esc(op.replied.text).replace(/\n/g, '<br>')}</div>${op.replied.att ? `<small>📎 ${esc(op.replied.att)}</small>` : ''}</div>` : mail.compose === mail.open ? mailComposer(op) : `<div class="acts"><button class="btn2 pri" data-mreply>↩️ ตอบกลับ</button></div>`}</div>`
+      : `<div class="mlist">${mine.map(m => `<div class="mrow ${m.read ? '' : 'new'}" data-mi="${mail.inbox.indexOf(m)}"><b>${m.imp && !m.replied ? '⭐ ' : ''}${esc(m.from)}</b><span>${esc(m.subj)}${m.imp ? ' ' + dueTxt(m) : ''}</span><small>${thDate(m.at, { day: 'numeric', month: 'short' })}</small></div>`).join('') || '<p class="note">ยังไม่มีจดหมาย</p>'}</div>`}
     <p class="note" style="margin-top:10px">อีเมลในเกมทั้งหมดลงท้าย @${MAIL_DOMAIN} ซึ่งเป็นโดเมนสมมุติที่ไม่มีอยู่จริง</p></div>`;
 }
 function createMail(fm) {
@@ -59,13 +73,63 @@ function mailClick(e) {
   const t = e.target;
   const mv = t.closest('[data-mv]'); if (mv) { mail.open = null; showMail(mv.dataset.mv); return true; }
   const mf = t.closest('[data-mf]'); if (mf) { mail.f = mf.dataset.mf; showMail('inbox'); return true; }
-  const mi = t.closest('[data-mi]'); if (mi) { mail.open = +mi.dataset.mi; mail.inbox[mail.open].read = true; showMail('inbox'); return true; }
-  if (t.closest('[data-mback]')) { mail.open = null; showMail('inbox'); return true; }
+  const mi = t.closest('[data-mi]'); if (mi) { mail.open = +mi.dataset.mi; mail.compose = null; mail.inbox[mail.open].read = true; showMail('inbox'); return true; }
+  if (t.closest('[data-mback]')) { mail.open = null; mail.compose = null; showMail('inbox'); return true; }
+  if (t.closest('[data-mreply]')) { mail.compose = mail.open; mail.draft = ''; showMail('inbox'); setTimeout(() => mailBoxes().forEach(b => b.querySelector('.mrt')?.focus()), 30); return true; }
+  if (t.closest('[data-mcancel]')) { mail.compose = null; showMail('inbox'); return true; }
+  const tp = t.closest('[data-mtpl]'); if (tp) { mailBoxes().forEach(b => { const ta = b.querySelector('.mrt'); if (ta) ta.value = MAIL_TPL(mail.inbox[mail.open])[+tp.dataset.mtpl]; }); return true; }
+  if (t.closest('[data-msend]')) { mailSend(t.closest('.mailw')); return true; }
   if (t.closest('[data-mnote]')) { const a = mail.accounts[mail.accounts.length - 1]; addNote('screen', `บัญชีอีเมลในเกม (สมมุติ)\n${a.email}\nรหัส: ${a.pass}`); S.toast('แปะโพสต์อิทไว้บนจอแล้ว ลากย้ายได้', 2); return true; }
   if (t.closest('[data-mchat]')) { openChat(); return true; }
   return false;
 }
-const mailUnread = () => mail.inbox.filter(m => !m.read && forMe(m) && mail.accounts.length).length;
+const mailUnread = () => mail.inbox.filter(m => !m.read && arrived(m) && mail.accounts.length).length;
+const MAIL_TPL = m => [
+  `เรียน ${m.from}\n\nขอบคุณที่ติดต่อมานะคะ ทางเราได้รับเรื่อง "${m.subj}" แล้ว และจะดำเนินการให้เสร็จภายใน 2 วันทำการค่ะ\n\nขอแสดงความนับถือ`,
+  `เรียน ${m.from}\n\nขออภัยที่ตอบช้า รับทราบเรื่อง "${m.subj}" แล้วค่ะ รบกวนส่งรายละเอียดเพิ่มเติมมาอีกนิด เพื่อให้เราตรวจสอบได้ครบถ้วนนะคะ\n\nขอบคุณค่ะ`,
+  `เรียน ${m.from}\n\nยืนยันตามที่แจ้งมาเรื่อง "${m.subj}" ค่ะ หากมีข้อสงสัยเพิ่มเติม โทรหาได้ตลอดเวลาทำการเลยนะคะ\n\nด้วยความเคารพ`,
+];
+function mailComposer(op) {
+  const docs = FILES.filter(f => f.kind === 'worddoc' && f.loc !== 'trash');
+  return `<div class="mcomp"><b>✍️ ตอบถึง ${esc(op.from)}</b><div class="mchips">${['สุภาพ-รับเรื่อง', 'ขอข้อมูลเพิ่ม', 'ยืนยัน'].map((n, i) => `<button data-mtpl="${i}">${n}</button>`).join('')}</div>
+    <textarea class="mrt" rows="6" spellcheck="false" placeholder="พิมพ์คำตอบ (อย่างน้อย 15 ตัวอักษร) หรือกดแม่แบบด้านบน">${esc(mail.draft || '')}</textarea>
+    ${docs.length ? `<label class="matt">📎 แนบไฟล์ <select class="mat"><option value="">ไม่แนบ</option>${docs.map(f => `<option>${esc(f.name)}</option>`).join('')}</select></label>` : ''}
+    <div class="err"></div><div class="acts"><button class="btn2 pri" data-msend>📨 ส่ง</button><button class="btn2" data-mcancel>ยกเลิก</button></div></div>`;
+}
+function mailSend(root) {
+  const op = mail.inbox[mail.open], ta = root.querySelector('.mrt'), txt = ta.value.trim(), err = root.querySelector('.err');
+  if (txt.length < 15) { err.textContent = 'สั้นไปหน่อย พิมพ์ให้สุภาพและครบความอย่างน้อย 15 ตัวอักษรนะ'; S.tone(300, 200, .15, .08); return; }
+  const att = root.querySelector('.mat')?.value || '';
+  op.replied = { text: txt, att, at: gnow().getTime() }; mail.compose = null; mail.draft = '';
+  if (op.imp) { if (!op.missed) perf.mailOk++; complete('mreply'); }
+  S.jingle(); S.toast('📨 ส่งอีเมลแล้ว', 1.6); showMail('inbox');
+  if (op.imp) mailPush(null, op.from, 'Re: ' + op.subj, `<p>ขอบคุณสำหรับการตอบกลับ${att ? ' และไฟล์แนบ' : ''}นะคะ/ครับ 🙏 ได้รับข้อมูลแล้ว</p>`, 'work', gnow().getTime() + 2 * 3600000);
+}
+/* pop-up in the bottom-right of the computer screen when new mail arrives */
+let mailLastTick = 0;
+function mailTick() {
+  const t = performance.now(); if (t - mailLastTick < 1000) return; mailLastTick = t;
+  if (!mail.accounts.length) return; const now = gnow().getTime(); let shown = 0;
+  for (const m of mail.inbox) {
+    if (m.nt || !arrived(m)) continue; m.nt = 1;
+    if (!shown && now - m.at < 4 * 3600000) { shown = 1; mailNotify(m); }
+  }
+  const mb = $('taskbar').querySelector('[data-app="mail"]'); if (mb) { mb.querySelector('.dot')?.remove(); const u = mailUnread(); if (u) mb.append(h('span', { class: 'dot' }, String(u))); }
+}
+function mailNotify(m) {
+  document.querySelectorAll('.mnoti').forEach(x => x.remove());
+  const el = h('div', { class: 'mnoti' }, `<i>📧</i><div><b>${m.imp ? '⭐ ' : ''}${esc(m.from)}</b><span>${esc(m.subj)}</span></div>`);
+  el.addEventListener('click', () => { el.remove(); mail.open = mail.inbox.indexOf(m); mail.compose = null; m.read = true; mail.view = 'inbox'; openMailApp(); });
+  $('screen').append(el); S.tone(880, 1320, .18, .07, 'triangle'); setTimeout(() => S.tone(1320, 1320, .12, .06, 'triangle'), 160);
+  if (currentView === 'desk') S.toast('📧 มีอีเมลใหม่เข้าที่หน้าจอคอม', 2);
+  setTimeout(() => el.remove(), 8000);
+}
+function mailOverdue(d) {
+  for (const m of mail.inbox) if (m.imp && !m.replied && !m.missed && m.due && m.due <= d) {
+    m.missed = true; perf.mailMiss++;
+    pushMsg('boss', 'boss', `เมล "${m.subj}" จาก ${m.from} ยังไม่ได้ตอบเลยนะ เขาโทรมาตามแล้ว 😾 รีบตอบด้วย`, 2500);
+  }
+}
 
 /* ---- daily mail from the outside world: promotions, news, and work mail from other companies (all made up) ---- */
 const MAIL_PROMO = [
@@ -96,7 +160,7 @@ const MAIL_WORK = [
 ];
 function mailDaily(d) {
   if (d < bank.start) return; const wd = new Date(d).getDay(), wk = wd !== 0 && wd !== 6, T = (h) => d + h * 3600000 + Math.random() * 3000000;
-  const add = (tpl, cat) => { const [f, s, b] = tpl(); mailPush(null, f, s, b, cat, T(7 + Math.random() * 12)); };
+  const add = (tpl, cat) => { const [f, s, b] = tpl(), imp = cat === 'work' && Math.random() < .5, at = T(7 + Math.random() * 12); mailPush(null, f, s, imp ? b + '<p><b>⭐ เรื่องสำคัญ รบกวนตอบกลับภายใน 2 วันนะคะ</b></p>' : b, cat, at, imp ? { imp: 1, due: at + 2 * 86400000 } : undefined); };
   if (wk && Math.random() < .75) add(pick(MAIL_WORK), 'work');
   if (Math.random() < .55) add(pick(MAIL_PROMO), 'promo');
   if (Math.random() < .45) add(pick(MAIL_NEWS), 'news');
