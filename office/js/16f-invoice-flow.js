@@ -67,6 +67,7 @@ function showInvPaper() { const el = desk.querySelector('.item[data-id="doc:inv"
 function handOver() {
   if (invFlow.paid) { S.toast('จ่ายเงินเสร็จแล้ว ไม่ต้องส่งตัวจริงให้การเงินอีก', 2); return; }
   if (!invFlow.asked) S.toast('อย่าลืมแชทบอกฝ่ายการเงินให้โอนเงินด้วยนะ (ใบแจ้งหนี้ยังไม่มีคนจ่าย)', 3.2);
+  if (!invFlow.scanned) S.toast('💡 ยังไม่ได้สแกนใบแจ้งหนี้เข้าเครื่องเก็บสำเนาไว้เลย (ส่งตัวจริงไปแล้วจะสแกนไม่ได้จนกว่าจะได้คืน)', 4.5);
   closeOverlay(); invFlow.orig = 'fin'; showInvPaper(); S.noise(.3, 1500, .06); S.tone(500, 700, .2, .06);
   S.toast('📤 ส่งใบแจ้งหนี้ตัวจริงให้ฝ่ายการเงินแล้ว', 2.4); finTry(1500);
 }
