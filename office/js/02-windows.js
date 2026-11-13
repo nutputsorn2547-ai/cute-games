@@ -70,7 +70,11 @@ function renderFolder(W) {
 function openFile(f) {
   if (f.kind === 'worddoc') { openWord(f); return; }
   if (f.kind === 'design') { openDesign(f); return; }
-  if (f.html) { openWin('view-' + f.id, f.name, h('div', { style: 'height:100%' }, zoomView(f.html)), 500, 400, '#f4f0ff'); return; }
+  if (f.html) {
+    const pdf = f.kind === 'pdfdoc', box = h('div', { style: 'height:100%;display:flex;flex-direction:column' }, (pdf ? '<div class="pdfbar"><button class="btn2 pri" data-pr>🖨️ ปริ้นออกมาเซ็น</button><small>PDF · ปริ้นแล้วไปหยิบปากกาที่โต๊ะ เซ็น แล้วกดสแกนกลับเข้าเครื่อง</small></div>' : '') + zoomView(f.html));
+    box.querySelector('[data-pr]')?.addEventListener('click', () => { printFile(f); });
+    openWin('view-' + f.id, f.name, box, 500, 420, '#f4f0ff'); return;
+  }
   if (f.kind === 'resume') { openResume(f); return; }
   if (f.kind === 'sheet') { openSheet(f); return; }
   if (f.src) {
