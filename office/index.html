@@ -364,6 +364,31 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .pscr .pc2{display:flex;gap:6px;padding:8px 10px 14px;border-top:1px solid #eee}
 .pscr .pc2 input{flex:1;min-width:0;font:inherit;border:1px solid #ddd;border-radius:99px;padding:6px 10px;outline:none}
 .pscr .pc2 button{font:inherit;border:0;border-radius:99px;padding:6px 12px;background:#2fbf5a;color:#fff;cursor:pointer}
+.cal{display:flex;height:100%;font-size:13px;background:#fff8fb}
+.cal .mo{flex:1;display:flex;flex-direction:column;padding:10px;min-width:0}
+.cal .mh{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.cal .mh b{flex:1;text-align:center;font-size:16px;font-weight:500}
+.cal .gr{flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:auto repeat(6,1fr);gap:3px;min-height:0}
+.cal .dn{font-size:11px;color:var(--soft);text-align:center}
+.cal .dc{border:0;border-radius:8px;background:#fff;font:inherit;font-size:12px;text-align:left;padding:3px 5px;cursor:pointer;display:flex;flex-direction:column;gap:1px;overflow:hidden;color:var(--ink);min-height:0;box-shadow:0 1px 3px -2px #0003}
+.cal .dc.out{opacity:.4}
+.cal .dc.past{background:#f1eff5;color:#a59fb3}
+.cal .dc.today{box-shadow:0 0 0 2px #ff8fab inset;background:#fff0f5;font-weight:600}
+.cal .dc.sel{box-shadow:0 0 0 2px #7c9cff inset}
+.cal .dc i{font-style:normal;font-size:10px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#eef1ff;border-radius:4px;padding:0 3px}
+.cal .sd{width:220px;flex:none;background:#fff;border-left:1px solid #f3dbe5;padding:10px;display:flex;flex-direction:column;gap:7px;overflow:auto}
+.cal .now{background:linear-gradient(135deg,#ffd7ec,#bfe3ff);border-radius:12px;padding:8px;text-align:center;font-size:12px;line-height:1.4}
+.cal .now b{display:block;font-size:30px;line-height:1.1}
+.cal .ff{display:flex;gap:6px}.cal .ff button{flex:1}
+.cal .sd h5{margin:4px 0 0;font-weight:500;color:var(--soft);font-size:12px}
+.cal .ev{display:flex;gap:6px;align-items:flex-start;font-size:12px;padding:3px 0;border-bottom:1px dashed #f0e4ea}
+.cal .ev.done{color:#a59fb3;text-decoration:line-through}
+.cal .addev{display:flex;gap:4px}
+.cal .addev input{flex:1;min-width:0;font:inherit;font-size:12px;border:1px solid #ecd9e2;border-radius:8px;padding:4px 8px;outline:none}
+.dcal{width:96px;background:#fff;border-radius:8px;overflow:hidden;text-align:center;font-family:var(--font);color:var(--ink);padding-bottom:6px}
+.dcal .mh2{background:#ff6b7d;color:#fff;font-size:13px;padding:3px 0}
+.dcal b{display:block;font-size:40px;font-weight:600;line-height:1.2}
+.dcal small{font-size:11px;color:var(--soft)}
 .chip{top:auto!important;bottom:78px}
 .vcur{position:fixed;left:0;top:0;width:22px;height:22px;pointer-events:none;z-index:100;margin:-2px 0 0 -2px}
 .vcur.press path{fill:#ffd166}
@@ -384,6 +409,7 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
         <button data-app="design" title="แคนวาน้อย"><i class="ab" style="--c:#00c4cc">แ</i><span class="lb">แคนวาน้อย</span></button>
         <button data-app="jobs" title="จ๊อบน้อย"><i class="ab" style="--c:#3b5bdb">จ</i><span class="lb">จ๊อบน้อย</span></button>
         <button data-app="game" title="เกมน้อย"><i class="ab" style="--c:#ff8fab">ก</i><span class="lb">เกมน้อย</span></button>
+        <button data-app="cal" title="ปฏิทินน้อย"><i class="ab" style="--c:#e8669a">ป</i><span class="lb">ปฏิทิน</span></button>
         <span class="clock" id="clock"></span>
       </div>
     </div></div>
@@ -434,6 +460,7 @@ const TASKS = [
   { id: 'food', t: 'สั่งข้าวเที่ยงในแอปหิวแล้ว (ปักหมุดที่อยู่ก่อนสั่ง)' },
   { id: 'hl', t: 'หยิบเอกสารบนโต๊ะมาอ่าน แล้วไฮไลท์ตรงที่สำคัญ' },
   { id: 'note', t: 'จดอะไรก็ได้ลงสมุดโน้ต' },
+  { id: 'cal', t: 'เปิดปฏิทินน้อย แล้วเร่งวันไปถึงอีเวนต์ถัดไป (ย้อนกลับไม่ได้!)' },
   { id: 'phone', t: 'หยิบมือถือบนโต๊ะขึ้นมาดูแชท', me: 1 },
   { id: 'family', t: 'ตอบแชทครอบครัว (แม่ พ่อ น้องสาว หรือพี่ชาย)', me: 1 },
   { id: 'gossip', t: 'เม้าท์กับเพื่อนในกลุ่ม "แก๊งเม้าท์มอย" (ระวังส่งผิดห้อง!)', me: 1 },
@@ -489,7 +516,7 @@ let deskPos = {}; // id -> [col,row] on the desktop
 FOLDERS.slice(0, 4).forEach((f, i) => deskPos[f.id] = [0, i]);
 FILES.forEach((f, i) => { f.loc = 'desk'; deskPos[f.id] = [1 + (i >> 2), i % 4]; });
 FILES.push({ id: 'cv', name: 'เรซูเม่_ฉัน.design', type: 'dsg', kind: 'design', loc: 'desk' });
-const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c: '#00c4cc' }, { id: 'app-jobs', n: 'จ๊อบน้อย หางาน', e: '💼', c: '#3b5bdb' }, { id: 'app-game', n: 'เกมน้อย', e: '🎮', c: '#ff8fab' }, { id: 'app-food', n: 'หิวแล้ว', e: '🍱', c: '#ff8a3d' }];
+const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c: '#00c4cc' }, { id: 'app-jobs', n: 'จ๊อบน้อย หางาน', e: '💼', c: '#3b5bdb' }, { id: 'app-game', n: 'เกมน้อย', e: '🎮', c: '#ff8fab' }, { id: 'app-food', n: 'หิวแล้ว', e: '🍱', c: '#ff8a3d' }, { id: 'app-cal', n: 'ปฏิทินน้อย', e: '📅', c: '#e8669a' }];
 deskPos.down = [3, 0];
 const CELLW = 100, CELLH = 104;
 const onDesk = id => id.startsWith('app-') || FOLDERS.some(x => x.id === id) || FILES.find(x => x.id === id)?.loc === 'desk';
@@ -577,7 +604,7 @@ document.addEventListener('dblclick', e => {
   openItem(ic.dataset.id);
 });
 function openItem(id) {
-  const app = { 'app-design': () => openDesign(FILES.find(f => f.id === 'cv')), 'app-jobs': openJobs, 'app-game': openGames, 'app-food': openFood }[id]; if (app) { app(); return; }
+  const app = { 'app-design': () => openDesign(FILES.find(f => f.id === 'cv')), 'app-jobs': openJobs, 'app-game': openGames, 'app-food': openFood, 'app-cal': openCal }[id]; if (app) { app(); return; }
   const fo = FOLDERS.find(x => x.id === id), f = FILES.find(x => x.id === id);
   if (fo) openFolder(fo); else if (f) openFile(f);
 }
@@ -730,7 +757,7 @@ function syncTaskbar() {
 }
 $('taskbar').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  ({ files: () => openFolder(FOLDERS[2]), sheet: () => openSheet(FILES.find(f => f.id === 'x1')), search: () => openSearch(), chat: () => openChat(), food: () => openFood(), design: () => openDesign(FILES.find(f => f.id === 'cv')), jobs: () => openJobs(), game: () => openGames() })[b.dataset.app]?.();
+  ({ files: () => openFolder(FOLDERS[2]), sheet: () => openSheet(FILES.find(f => f.id === 'x1')), search: () => openSearch(), chat: () => openChat(), food: () => openFood(), design: () => openDesign(FILES.find(f => f.id === 'cv')), jobs: () => openJobs(), game: () => openGames(), cal: () => openCal() })[b.dataset.app]?.();
 });
 // a small modal inside a window: resolves with the clicked button's value and the input's text
 function dialog(W, html, buttons, withInput) {
@@ -1248,7 +1275,7 @@ function react(c, m) {
       say(c, 'duck', 'เริ่ด! 😍', 1800); say(c, 'bun', 'ดีเลย 👍 ที่นี่น่าไปมาก', 3300); say(c, 'bear', 'ลองดูๆ ใครจองห้องติดกันบ้าง', 4800);
       like(c, m, 'boss', 5600);
       say(c, 'boss', tot <= 40000 ? `6 ห้อง 2 คืน รวม ${baht(tot)} บาท อยู่ในงบ เยี่ยมมาก 👍 ส่งไฟล์สรุปมาที่แชทพี่ด้วยนะ` : `สวยนะ แต่ 6 ห้อง 2 คืน รวม ${baht(tot)} บาท เกินงบ 40,000 ไปหน่อย ลองหาอีกที่ไหม`, 7000);
-      complete('propose');
+      complete('propose'); if (tot <= 40000) tripHotel = x;
     } else say(c, ppl[0], 'น่าไปมาก! ส่งในกลุ่มทีมด้วยสิ ทุกคนจะได้เห็น', 1600);
     return;
   }
@@ -1405,6 +1432,7 @@ addEventListener('pointerup', () => {
   else if (id.startsWith('doc:')) openPaper(DOCS.find(x => x.id === id.slice(4)));
   else if (id === 'nb') openNotebook();
   else if (id === 'phone') openPhone();
+  else if (id === 'dcal') { setView('screen'); setTimeout(openCal, 400); }
 });
 $('monEdge').addEventListener('click', () => setView('screen'));
 
@@ -1484,7 +1512,7 @@ function drawStroke() {
 /* ================= clock / time settings ================= */
 let timeOff = 0, lastMin = '', nightMsgSent = false;
 const p2 = n => String(n).padStart(2, '0');
-const gnow = () => new Date(Date.now() + timeOff);
+const gnow = () => new Date(Date.now() + dayOff * 86400000 + timeOff);
 const gHour = () => gnow().getHours();
 $('clock').addEventListener('click', openTime);
 $('clock').title = 'กดเพื่อตั้งเวลา';
@@ -1493,13 +1521,18 @@ function renderTime(W = wins.get('time')) {
   if (!W) return; const d = gnow(), box = W.body.firstChild;
   box.innerHTML = `<div class="big"><div class="col"><button class="btn2" data-t="60" aria-label="เพิ่มชั่วโมง">▲</button><span>${p2(d.getHours())}</span><button class="btn2" data-t="-60" aria-label="ลดชั่วโมง">▼</button></div><span>:</span><div class="col"><button class="btn2" data-t="5" aria-label="เพิ่มนาที">▲</button><span>${p2(d.getMinutes())}</span><button class="btn2" data-t="-5" aria-label="ลดนาที">▼</button></div></div>
     <div class="pre">${[['🌅 เช้า', 8, 30], ['🍚 เที่ยง', 12, 0], ['🏃 เลิกงาน', 17, 30], ['🌙 ดึก', 22, 0]].map(([n, hh, mm]) => `<button class="btn2" data-h="${hh}" data-m="${mm}">${n} ${p2(hh)}:${p2(mm)}</button>`).join('')}</div>
-    <button class="btn2 pri" data-real>ใช้เวลาจริง</button><small style="color:var(--soft)">${timeOff ? 'ตอนนี้ใช้เวลาที่ตั้งเอง' : 'ตอนนี้ใช้เวลาจริงของเครื่อง'}</small>`;
+    <div class="pre"><button class="btn2 pri" data-real>ใช้เวลาจริง</button><button class="btn2" data-cal>📅 ข้ามวันในปฏิทิน</button></div><small style="color:var(--soft)">${thDate(d)} · ${timeOff ? 'ใช้เวลาที่ตั้งเอง' : 'ใช้เวลาจริง'} · ย้อนวันไม่ได้</small>`;
   box.onclick = e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.t) timeOff += +b.dataset.t * 60000;
-    else if (b.dataset.h) { const t = gnow(); t.setHours(+b.dataset.h, +b.dataset.m, 0, 0); timeOff = t - new Date(); }
-    else if ('real' in b.dataset) timeOff = 0;
-    S.tone(700, 900, .04, .05); lastMin = ''; renderFood(); if (Math.abs(timeOff) > 30000) complete('time');
+    const g = gnow(), cur = g.getHours() * 60 + g.getMinutes();
+    let want = null;
+    if (b.dataset.t) { want = cur + +b.dataset.t; if (want < 0 || want > 1439) { S.toast(want < 0 ? 'ย้อนไปเมื่อวานไม่ได้นะ ⏳' : 'อยากข้ามวัน ใช้ปฏิทินน้อยได้เลย 📅', 1.8); want = clamp(want, 0, 1439); } }
+    else if (b.dataset.h) want = +b.dataset.h * 60 + +b.dataset.m;
+    else if ('real' in b.dataset) { const n = new Date(); want = n.getHours() * 60 + n.getMinutes(); }
+    else if ('cal' in b.dataset) { openCal(); return; }
+    if (want !== null) { const t = new Date(g); t.setHours(0, 0, 0, 0); timeOff += t.getTime() + want * 60000 + (g.getSeconds() * 1000) - g.getTime(); }
+    if ('real' in b.dataset && dayOff === 0) timeOff = 0;
+    enforceDate(); S.tone(700, 900, .04, .05); lastMin = ''; renderFood(); renderTime(W); renderCal(); if (Math.abs(timeOff) > 30000) complete('time');
   };
 }
 function applyTime() {
@@ -1516,6 +1549,7 @@ const GOSSIP = ['วันนี้หัวหน้าแมวสั่งง
 const PERSONAL = {
   mom(c, m) {
     complete('family'); like(c, m, 'mom', 700); const t = m.text || '';
+    if (/วันเกิด|สุขสันต์|hbd|happy birthday/i.test(t)) return say(c, 'mom', EVENTS.some(ev => ev.mom && ev.d === dayStart(gnow())) ? 'ขอบใจจ้าลูก จำวันเกิดแม่ได้ด้วย แม่ดีใจที่สุดเลย 🥹🎂❤️' : 'อ้าว วันเกิดแม่ยังไม่ถึงนะลูก 555 ดูในปฏิทินสิ', 1800);
     if (m.img) return say(c, 'mom', 'น่ารักจังลูก แม่ขอเซฟไปตั้งหน้าจอนะ 🥰', 1800);
     if (m.file) return say(c, 'mom', 'แม่เปิดไฟล์ไม่เป็นลูก 😅 ส่งเป็นรูปมาได้ไหม', 1800);
     if (/กิน|ข้าว/.test(t)) say(c, 'mom', 'ดีแล้วลูก กินเยอะๆ นะ อย่าลืมกินผักด้วย 🥦', 1800);
@@ -1570,7 +1604,7 @@ const PERSONAL = {
     }
     if (pct <= 0) return say(c, 'hr', 'ขอเป็นตัวเลขที่มากกว่า 0 นะคะ 😅', 1500);
     if (pct > hr.cap) return say(c, 'hr', `ขึ้น ${+pct.toFixed(1)}% สูงไปหน่อยค่ะ 😅 รอบนี้ปรับได้สูงสุด ${hr.cap}% นะคะ ลองใหม่ได้ค่ะ`, 2000);
-    const nw = Math.round(hr.base * (1 + pct / 100) / 10) * 10; hr.done = true;
+    const nw = Math.round(hr.base * (1 + pct / 100) / 10) * 10; hr.done = true; hr.newSal = nw;
     like(c, m, 'hr', 900); say(c, 'hr', `อนุมัติค่ะ 🎉 เงินเดือนใหม่ ${baht(nw)} บาท (ขึ้น ${+pct.toFixed(1)}%) มีผล 1 ม.ค. นะคะ`, 2400); complete('hr');
     pushMsg('gang', 'mint', 'ได้ข่าวว่าได้ขึ้นเงินเดือน 👀 เลี้ยงหมูกระทะด้วยนะแก 🥓', 7000);
   },
@@ -1768,6 +1802,8 @@ function applyJob(j, rf) {
   if (!chatById(pid)) chat.list.unshift({ id: pid, n: j.co, members: [pid], unread: 0, msgs: [] });
   pushMsg(pid, pid, `สวัสดีค่ะ ได้รับใบสมัครตำแหน่ง${j.pos}แล้วนะคะ เรซูเม่สวยมาก 😊 สะดวกมาสัมภาษณ์วันจันทร์ 10:00 น. ไหมคะ`, 6000);
   pushMsg('gang', 'fon', 'ได้ข่าวว่าแกไปสมัครงานที่ใหม่เหรอ 👀 อย่าทิ้งกันน้า', 11000);
+  const mon = new Date(dayStart(gnow()) + DAY + 3 * 3600000); while (mon.getDay() !== 1) mon.setDate(mon.getDate() + 1);
+  addEvent(mon, '🤝', 'สัมภาษณ์งาน ' + j.co, () => interviewDay(j)); renderCal();
   renderChat();
 }
 
@@ -1874,6 +1910,117 @@ function renderPhone() {
 }
 phoneBadge();
 
+/* ================= calendar: fast-forward days, never back ================= */
+const DAY = 86400000;
+let dayOff = 0, reachedDay = 0, tripHotel = null;
+const dayStart = t => { const x = new Date(t); x.setHours(0, 0, 0, 0); return x.getTime(); };
+const thDate = (t, o = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) => new Date(t).toLocaleDateString('th-TH', o);
+const EVENTS = [];
+const cal = { W: null, y: 0, m: 0, sel: 0 };
+function addEvent(d, e, t, fire, extra = {}) { const ev = { d: dayStart(d), e, t, fire, ...extra }; EVENTS.push(ev); EVENTS.sort((a, b) => a.d - b.d); return ev; }
+function buildEvents() {
+  const s0 = dayStart(Date.now()), y = new Date(s0).getFullYear();
+  for (let k = 0; k < 4; k++) {
+    const b = new Date(s0); b.setDate(1); b.setMonth(b.getMonth() + k);
+    addEvent(new Date(b.getFullYear(), b.getMonth(), 5), '📒', 'ปิดงบประจำเดือน', () => { pushMsg('g', 'boss', 'วันนี้ปิดงบประจำเดือนนะ ใครยังไม่ส่งใบเสร็จ ส่งด่วนเลย 📒', 1500); });
+    addEvent(new Date(b.getFullYear(), b.getMonth(), 25), '💰', 'เงินเดือนออก', salaryDay);
+  }
+  addEvent(s0 + 2 * DAY, '👥', 'ประชุมทีม 10:00', () => { pushMsg('g', 'boss', 'อย่าลืมประชุมทีม 10 โมงนะทุกคน ☕', 1500); pushMsg('gang', 'mint', 'ประชุมอีกแล้ววว 🫠', 3200); });
+  addEvent(s0 + 9 * DAY, '🎂', 'วันเกิดแม่', () => { S.big('🎂 วันนี้วันเกิดแม่!', 2.2, '#e0457b'); pushMsg('sis', 'sis', 'พี่ๆ วันนี้วันเกิดแม่นะ อย่าลืมส่งคำอวยพร 🎂', 2000); }, { mom: 1 });
+  let ny = new Date(y, 11, 30); if (ny.getTime() < s0) ny = new Date(y + 1, 11, 30);
+  addEvent(ny, '🎉', 'ทริปปีใหม่บริษัท', () => {
+    pushMsg('g', 'boss', tripHotel ? `ถึงวันทริปแล้ว! เจอกันที่ ${tripHotel.name} นะทุกคน 🚐` : 'ถึงวันทริปแล้ว แต่… เรายังไม่ได้จองที่พักเลยนี่ 😱', 1500);
+    pushMsg('g', 'duck', tripHotel ? 'เย้ๆ ไปเที่ยวแล้ว 🏖️' : 'ตายแล้วววว 😭', 3000);
+  });
+  addEvent(new Date(ny.getFullYear() + 1, 0, 1), '🎆', 'วันขึ้นปีใหม่', () => {
+    S.big('🎆 สวัสดีปีใหม่!', 2.4, '#5a78e6'); pushMsg('mom', 'mom', 'สวัสดีปีใหม่ลูก ขอให้มีความสุขมากๆ แข็งแรงๆ นะ ❤️', 1800); pushMsg('g', 'boss', 'สวัสดีปีใหม่ทุกคน ขอบคุณที่ทำงานหนักมาทั้งปี 🎆', 3200); pushMsg('sis', 'sis', 'แฮปปี้นิวเยียร์พี่ 🎉', 4500);
+  });
+  EVENTS.forEach(ev => { if (ev.d <= s0) ev.fired = true; });
+  reachedDay = s0;
+}
+buildEvents();
+function salaryDay() {
+  S.big('💰 เงินเดือนออก!', 2, '#2f9d5a');
+  pushMsg('hr', 'hr', `เงินเดือน ${baht(hr.newSal || hr.base)} บาท โอนเข้าบัญชีแล้วนะคะ 💰`, 1600);
+  pushMsg('dad', 'dad', 'เงินเดือนออกแล้วเลี้ยงข้าวพ่อด้วยนะ 555', 3600);
+}
+function interviewDay(j) {
+  const pid = 'co-' + j.id;
+  pushMsg(pid, pid, `ขอบคุณที่มาสัมภาษณ์นะคะ ผลคือ… ผ่านค่ะ 🎉 ยินดีต้อนรับสู่ ${j.co} เริ่มงาน 1 ก.พ. นะคะ`, 1800);
+  pushMsg('gang', 'fon', 'แกได้งานใหม่แล้วเหรอ!! 😭🎉 เลี้ยงส่งด้วยนะ', 4000);
+  pushMsg('mom', 'mom', 'แม่ได้ยินว่าลูกได้งานใหม่ แม่ดีใจด้วยนะ 🥹', 5500);
+}
+// keep the game date from ever going backwards (the time setter can only move within the day)
+function enforceDate() {
+  const d = dayStart(gnow()); if (d < reachedDay) dayOff += Math.round((reachedDay - d) / DAY);
+  reachedDay = Math.max(reachedDay, dayStart(gnow())); checkEvents();
+}
+function checkEvents() {
+  const today = dayStart(gnow()), hit = EVENTS.filter(ev => !ev.fired && ev.d <= today);
+  if (!hit.length) return;
+  hit.forEach((ev, i) => { ev.fired = true; setTimeout(() => ev.fire?.(ev), i * 2500); });
+  S.toast('📅 ' + hit.map(ev => `${ev.e} ${ev.t}`).join(' · '), 3); complete('cal'); renderCal();
+}
+function advanceDays(n) {
+  if (n <= 0) { S.toast('ย้อนเวลาไม่ได้นะ ⏳ ไปได้แต่ข้างหน้า', 2); S.tone(300, 200, .15, .08); return; }
+  dayOff += n; enforceDate(); lastMin = '';
+  S.big('⏩ ' + thDate(gnow(), { weekday: 'short', day: 'numeric', month: 'short' }), 1.6, '#5a78e6'); S.noise(.35, 2400, .06, 'highpass'); S.tone(500, 1200, .25, .07, 'triangle');
+  const g = gnow(); cal.y = g.getFullYear(); cal.m = g.getMonth(); cal.sel = dayStart(g); renderCal(); renderTime(); updateDeskCal();
+}
+function openCal() {
+  if (cal.W && wins.has('cal')) { focusWin(cal.W); return cal.W; }
+  const g = gnow(); cal.y = g.getFullYear(); cal.m = g.getMonth(); cal.sel = dayStart(g);
+  cal.W = openWin('cal', 'ปฏิทินน้อย', h('div', { class: 'cal' }), 760, 470, '#ffeef4'); cal.W.onClose = () => { cal.W = null; };
+  cal.W.body.style.overflow = 'hidden';
+  const box = cal.W.body.firstChild;
+  box.addEventListener('click', calClick);
+  box.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('.addev input')) { e.preventDefault(); addUserEvent(); } });
+  renderCal(); return cal.W;
+}
+function renderCal() {
+  if (!cal.W) return; const box = cal.W.body.firstChild, today = dayStart(gnow());
+  const first = new Date(cal.y, cal.m, 1), start = dayStart(new Date(cal.y, cal.m, 1 - first.getDay()));
+  let cells = '';
+  for (let i = 0; i < 42; i++) {
+    const d = dayStart(start + i * DAY + 3 * 3600000), dt = new Date(d), evs = EVENTS.filter(ev => ev.d === d);
+    const cls = [dt.getMonth() !== cal.m ? 'out' : '', d < today ? 'past' : '', d === today ? 'today' : '', d === cal.sel ? 'sel' : ''].join(' ');
+    cells += `<button class="dc ${cls}" data-day="${d}"><span>${dt.getDate()}</span>${evs.slice(0, 2).map(ev => `<i>${ev.e} ${esc(ev.t)}</i>`).join('')}${evs.length > 2 ? `<i>+${evs.length - 2}</i>` : ''}</button>`;
+  }
+  const sel = cal.sel, sEvs = EVENTS.filter(ev => ev.d === sel), next = EVENTS.find(ev => !ev.fired && ev.d > today), up = EVENTS.filter(ev => ev.d > today).slice(0, 5), g = gnow();
+  const days = Math.round((sel - today) / DAY);
+  box.innerHTML = `<div class="mo"><div class="mh"><button class="btn2" data-mv="-1" aria-label="เดือนก่อน">‹</button><b>${thDate(new Date(cal.y, cal.m, 1), { month: 'long', year: 'numeric' })}</b><button class="btn2" data-mv="1" aria-label="เดือนถัดไป">›</button><button class="btn2" data-mv="0">วันนี้</button></div>
+    <div class="gr">${['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map(x => `<div class="dn">${x}</div>`).join('')}${cells}</div></div>
+    <div class="sd"><div class="now"><small>วันนี้ในเกม</small><b>${g.getDate()}</b>${thDate(g)}<br><small>${p2(g.getHours())}:${p2(g.getMinutes())} น.</small></div>
+    <div class="ff"><button class="btn2 pri" data-adv="1">⏩ +1 วัน</button><button class="btn2 pri" data-adv="7">⏩ +7 วัน</button></div>
+    ${next ? `<button class="btn2 org" data-next>⏭ ข้ามไป ${next.e} ${esc(next.t)}<br><small>${thDate(next.d, { day: 'numeric', month: 'short' })} · อีก ${Math.round((next.d - today) / DAY)} วัน</small></button>` : ''}
+    <h5>${thDate(sel, { weekday: 'short', day: 'numeric', month: 'long' })}</h5>
+    ${sEvs.map(ev => `<div class="ev ${ev.fired && ev.d < today ? 'done' : ''}">${ev.e} ${esc(ev.t)}</div>`).join('') || '<div class="ev" style="color:var(--soft)">ไม่มีอีเวนต์</div>'}
+    ${days > 0 ? `<button class="btn2 grn" data-jump>⏩ ข้ามไปวันนี้ (อีก ${days} วัน)</button>` : days < 0 ? '<div class="ev" style="color:#e0457b;border:0">ผ่านไปแล้ว ย้อนกลับไม่ได้ 🙅</div>' : ''}
+    ${days >= 0 ? '<div class="addev"><input type="text" placeholder="เพิ่มอีเวนต์ เช่น ส่งงานลูกค้า" spellcheck="false"><button class="btn2" data-add>เพิ่ม</button></div>' : ''}
+    <h5>กำลังจะมาถึง</h5>${up.map(ev => `<div class="ev">${ev.e} ${esc(ev.t)}<span style="margin-left:auto;color:var(--soft);white-space:nowrap">${thDate(ev.d, { day: 'numeric', month: 'short' })}</span></div>`).join('')}
+    <button class="btn2" data-time>🕘 ตั้งเวลาในวันนี้</button></div>`;
+}
+function calClick(e) {
+  const t = e.target, dc = t.closest('[data-day]');
+  if (dc) { cal.sel = +dc.dataset.day; const d = new Date(cal.sel); if (d.getMonth() !== cal.m) { cal.y = d.getFullYear(); cal.m = d.getMonth(); } if (cal.sel < dayStart(gnow())) S.toast('วันนี้ผ่านไปแล้ว ย้อนกลับไม่ได้นะ ⏳', 1.6); renderCal(); S.tone(800, 900, .03, .04); return; }
+  const mv = t.closest('[data-mv]');
+  if (mv) { if (+mv.dataset.mv === 0) { const g = gnow(); cal.y = g.getFullYear(); cal.m = g.getMonth(); cal.sel = dayStart(g); } else { const d = new Date(cal.y, cal.m + +mv.dataset.mv, 1); cal.y = d.getFullYear(); cal.m = d.getMonth(); } renderCal(); return; }
+  const adv = t.closest('[data-adv]'); if (adv) { advanceDays(+adv.dataset.adv); return; }
+  if (t.closest('[data-next]')) { const today = dayStart(gnow()), nx = EVENTS.find(ev => !ev.fired && ev.d > today); if (nx) advanceDays(Math.round((nx.d - today) / DAY)); return; }
+  if (t.closest('[data-jump]')) { advanceDays(Math.round((cal.sel - dayStart(gnow())) / DAY)); return; }
+  if (t.closest('[data-add]')) { addUserEvent(); return; }
+  if (t.closest('[data-time]')) openTime();
+}
+function addUserEvent() {
+  const inp = cal.W.body.querySelector('.addev input'), txt = inp.value.trim(); if (!txt) { inp.focus(); return; }
+  const today = dayStart(gnow());
+  addEvent(cal.sel, '📌', txt, ev => { S.big('⏰ ' + ev.t, 2.2, '#e8742b'); S.jingle(); }, { mine: 1, fired: cal.sel <= today });
+  renderCal(); S.tone(700, 1100, .08, .07, 'triangle'); S.toast(cal.sel === today ? 'เพิ่มอีเวนต์ของวันนี้แล้ว' : 'เพิ่มอีเวนต์แล้ว ถึงวันจะมีแจ้งเตือน ⏰', 1.8);
+}
+const deskCal = deskItem('', 33, 4, 4, '<div class="dcal"><div class="mh2"></div><b></b><small></small></div>', 'dcal');
+function updateDeskCal() { const g = gnow(); deskCal.querySelector('.mh2').textContent = thDate(g, { month: 'short' }); deskCal.querySelector('b').textContent = g.getDate(); deskCal.querySelector('small').textContent = thDate(g, { weekday: 'short' }); }
+updateDeskCal();
+
 /* ================= views ================= */
 let currentView = 'screen';
 function setView(v) {
@@ -1959,14 +2106,14 @@ function loop(now) {
   if (food.track && !food.track.arrived) updateTrack(now);
   updateGame(now);
   const mn = gnow().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-  if (mn !== lastMin) { lastMin = mn; $('clock').textContent = mn; phoneItem.querySelector('.pt').textContent = mn; renderTime(); applyTime(); }
+  if (mn !== lastMin) { lastMin = mn; enforceDate(); $('clock').textContent = thDate(gnow(), { day: 'numeric', month: 'short' }) + ' ' + mn; phoneItem.querySelector('.pt').textContent = mn; renderTime(); applyTime(); updateDeskCal(); }
   if (S.pairing()) S.hint('');
   else if (pad.live) S.hint(currentView === 'desk' ? 'แตะของบนโต๊ะเพื่อหยิบ/เปิด · แตะค้างแล้วลาก = ย้ายของ · ปุ่มสลับบนมือถือ = กลับไปที่จอ' : 'แตะสองทีที่ว่าง = เมนู · แตะค้างแล้วลาก = ลากไฟล์/ปรับขนาดหน้าต่างที่มุมขวาล่าง · พิมพ์ในช่องคีย์บอร์ดบนมือถือ');
   else S.hint(currentView === 'desk' ? 'คลิกของบนโต๊ะเพื่อหยิบ/เปิด · ลากเพื่อย้าย · Esc ปิด · F2 สลับมุมมอง' : 'ดับเบิลคลิกที่ว่าง/คลิกขวา = เมนู · ลากมุมขวาล่างของหน้าต่างเพื่อปรับขนาด · Esc ปิด');
   requestAnimationFrame(loop);
 }
 renderDesktop();
-window.__office = { openDesign, openJobs, openGames, openPhone, openTime, phone, gm, jobs, PEOPLE, get timeOff() { return timeOff; }, feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, FOLDERS, done, setView, openSheet, openSearch, openChat, openFood, typeText, setWallpaper, desktopMenu, wins, chat, food, se, HOTELS, value, tripTotal, sheetCmd, saveBook, get tool() { return tool; }, get clip() { return clip; } };
+window.__office = { openCal, advanceDays, EVENTS, cal, get dayOff() { return dayOff; }, gnow, openDesign, openJobs, openGames, openPhone, openTime, phone, gm, jobs, PEOPLE, get timeOff() { return timeOff; }, feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, FOLDERS, done, setView, openSheet, openSearch, openChat, openFood, typeText, setWallpaper, desktopMenu, wins, chat, food, se, HOTELS, value, tripTotal, sheetCmd, saveBook, get tool() { return tool; }, get clip() { return clip; } };
 // for older tests: cells + value of the first workbook
 Object.defineProperty(window.__office, 'cells', { get: () => FILES.find(f => f.id === 'x1').book.cells });
 requestAnimationFrame(loop);
