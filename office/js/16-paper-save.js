@@ -71,11 +71,16 @@ function livingCosts(d) {
 }
 
 /* ================= save / load (autosave in this browser) ================= */
-const SAVE_KEY = 'cute-office-save-v1';
+const keyOf = n => 'cute-office-save-v1-' + n;
+let slot = 1; try { slot = Math.min(3, Math.max(1, +localStorage.getItem('cute-office-active-slot') || 1)); } catch (e) {}
+// the first version had one save without a slot number: move it into slot 1
+try { const old = localStorage.getItem('cute-office-save-v1'); if (old) { if (!localStorage.getItem(keyOf(1))) localStorage.setItem(keyOf(1), old); localStorage.removeItem('cute-office-save-v1'); } } catch (e) {}
+const SAVE_KEY = keyOf(slot);
+let saveName = '';
 let noSave = false;
 function snapshot() {
   return {
-    v: 1, at: Date.now(),
+    v: 1, at: Date.now(), name: saveName || `เซฟ ${slot}`,
     time: { el: loadOff + (Date.now() - R0) * SPEED, dayOff, timeOff, reachedDay, nightMsgSent, unlockedDay },
     done: [...done], tmin: $('tasks').classList.contains('min'),
     files: FILES, folders: FOLDERS, deskPos, uid, wallNow,
@@ -99,11 +104,12 @@ function saveGame() {
   // too big: drop handwriting images and try again
   try { s = JSON.parse(txt); s.marks = {}; s.files.forEach(f => { if (f.html) f.html = f.html.replace(/src="data:image\/png[^"]*"/g, 'src=""'); }); localStorage.setItem(SAVE_KEY, JSON.stringify(s)); markSaved(); } catch (e) {}
 }
-function markSaved() { const el = $('saveNote'); if (el) el.textContent = '💾 เซฟอัตโนมัติแล้ว ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); }
+function markSaved() { const el = $('saveNote'); if (el) el.textContent = `💾 ช่อง ${slot} · เซฟแล้ว ` + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); }
 function loadGame() {
   let s = null; try { s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (e) { s = null; }
   if (!s || s.v !== 1) return false;
   try {
+    saveName = s.name || '';
     loadOff = s.time.el; R0 = Date.now(); dayOff = s.time.dayOff; timeOff = s.time.timeOff; reachedDay = s.time.reachedDay; nightMsgSent = s.time.nightMsgSent; unlockedDay = s.time.unlockedDay || 1;
     done.clear(); s.done.forEach(x => done.add(x)); $('tasks').classList.toggle('min', !!s.tmin);
     FILES.length = 0; FILES.push(...s.files); FOLDERS.length = 0; FOLDERS.push(...s.folders); deskPos = s.deskPos; uid = s.uid;
@@ -128,9 +134,74 @@ function loadGame() {
 setInterval(saveGame, 5000);
 addEventListener('pagehide', saveGame);
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
-$('resetBtn').addEventListener('click', e => {
-  const b = e.currentTarget;
-  if (b.dataset.armed) { noSave = true; try { localStorage.removeItem(SAVE_KEY); } catch (er) {} location.reload(); return; }
-  b.dataset.armed = '1'; b.textContent = 'กดอีกครั้งเพื่อลบเซฟและเริ่มใหม่';
-  setTimeout(() => { delete b.dataset.armed; b.textContent = 'เริ่มเกมใหม่'; }, 3500);
-});
+/* ---- save slots: 3 separate games, switch / copy / export / import ---- */
+const SLOTS = 3, ACTIVE_KEY = 'cute-office-active-slot';
+function slotSummary(n) {
+  let s = null; try { s = JSON.parse(localStorage.getItem(keyOf(n)) || 'null'); } catch (e) { s = null; }
+  if (!s || s.v !== 1) return null;
+  const g = new Date(T0 + s.time.el + s.time.dayOff * DAY + s.time.timeOff);
+  return { name: s.name || `เซฟ ${n}`, game: g, day: s.time.unlockedDay || 1, done: s.done.length, bal: s.bank.bal, at: s.at, raw: s };
+}
+function switchSlot(n, fresh) {
+  saveGame(); noSave = true;
+  try { if (fresh) localStorage.removeItem(keyOf(n)); localStorage.setItem(ACTIVE_KEY, String(n)); } catch (e) {}
+  location.reload();
+}
+function writeSlot(n, data) { try { localStorage.setItem(keyOf(n), JSON.stringify(data)); return true; } catch (e) { S.toast('พื้นที่เซฟในเบราว์เซอร์เต็ม ลองลบเซฟที่ไม่ใช้ก่อนนะ', 2.5); return false; } }
+function openSaves() {
+  if (currentView !== 'screen') setView('screen');
+  const W = openWin('saves', '💾 เซฟเกม', h('div', { class: 'sv' }), 580, 500, '#fff7d6'); renderSaves(W); return W;
+}
+function renderSaves(W = wins.get('saves')) {
+  if (!W) return; saveGame();
+  const box = W.body.firstChild, rows = [];
+  for (let n = 1; n <= SLOTS; n++) {
+    const m = slotSummary(n), on = n === slot;
+    rows.push(`<div class="svr ${on ? 'on' : ''}"><div class="svn">${n}</div><div class="svi">${m ? `<b>${esc(m.name)}</b>${on ? ' <span class="svb">กำลังเล่น</span>' : ''}<br><small>ในเกม: ${thDate(m.game, { day: 'numeric', month: 'short', year: 'numeric' })} ${p2(m.game.getHours())}:${p2(m.game.getMinutes())} · วันทำงานที่ ${m.day} · ทำงานเสร็จ ${m.done} ข้อ · เงิน ${baht(m.bal)} บาท</small><br><small style="color:var(--soft)">เซฟล่าสุด ${new Date(m.at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small>` : `<b style="color:var(--soft)">ช่องว่าง</b>${on ? ' <span class="svb">กำลังเล่น</span>' : ''}`}</div>
+      <div class="sva">${on ? `<button class="btn2" data-sv="rename" data-n="${n}">✏️ ตั้งชื่อ</button><button class="btn2" data-sv="export" data-n="${n}">⬇ ส่งออกไฟล์</button><button class="btn2" data-sv="restart" data-n="${n}">🔄 เริ่มใหม่ในช่องนี้</button>`
+        : m ? `<button class="btn2 pri" data-sv="play" data-n="${n}">▶ เล่นเซฟนี้</button><button class="btn2" data-sv="copy" data-n="${n}">📋 บันทึกเกมนี้ทับ</button><button class="btn2" data-sv="rename" data-n="${n}">✏️ ตั้งชื่อ</button><button class="btn2" data-sv="export" data-n="${n}">⬇ ส่งออก</button><button class="btn2" data-sv="del" data-n="${n}" style="color:#e0457b">🗑 ลบ</button>`
+        : `<button class="btn2 pri" data-sv="new" data-n="${n}">✨ เริ่มเกมใหม่ที่นี่</button><button class="btn2" data-sv="copy" data-n="${n}">📋 คัดลอกเกมนี้มาไว้</button><button class="btn2" data-sv="import" data-n="${n}">⬆ นำเข้าไฟล์</button>`}</div></div>`);
+  }
+  box.innerHTML = rows.join('') + `<p class="svnote">เกมเซฟอัตโนมัติลงช่องที่กำลังเล่นทุก 5 วินาที · เซฟเก็บในเบราว์เซอร์เครื่องนี้ ถ้าจะย้ายไปเล่นเครื่องอื่นให้ "ส่งออกไฟล์" แล้ว "นำเข้าไฟล์" ที่เครื่องใหม่</p><input type="file" accept=".json,application/json" hidden>`;
+  box.onclick = e => { const b = e.target.closest('[data-sv]'); if (b) saveAction(W, b.dataset.sv, +b.dataset.n); };
+  box.querySelector('input[type=file]').onchange = e => importSave(W, e.target);
+}
+async function saveAction(W, act, n) {
+  const m = slotSummary(n), label = m ? `"${esc(m.name)}"` : `ช่อง ${n}`;
+  if (act === 'play') return switchSlot(n);
+  if (act === 'new') return switchSlot(n, true);
+  if (act === 'restart') { const { v } = await dialog(W, `ลบความคืบหน้าของ ${label} แล้วเริ่ม 1 ม.ค. 2569 ใหม่?`, [['ยกเลิก', null], ['เริ่มใหม่', 'ok', 'pri']]); if (v === 'ok') { noSave = true; switchSlot(n, true); } return; }
+  if (act === 'copy') {
+    if (m) { const { v } = await dialog(W, `บันทึกเกมที่กำลังเล่นทับ ${label}? ข้อมูลเดิมในช่องนั้นจะหาย`, [['ยกเลิก', null], ['บันทึกทับ', 'ok', 'pri']]); if (v !== 'ok') return; }
+    const s = snapshot(); s.name = (m && m.name) || `สำเนาจากช่อง ${slot}`;
+    if (writeSlot(n, JSON.parse(JSON.stringify(s)))) { S.toast(`บันทึกเกมนี้ลงช่อง ${n} แล้ว`, 2); S.tone(600, 900, .1, .07, 'triangle'); }
+    return renderSaves(W);
+  }
+  if (act === 'rename') {
+    const { v, text } = await dialog(W, `ตั้งชื่อเซฟช่อง ${n}`, [['ยกเลิก', null], ['บันทึก', 'ok', 'pri']], m ? m.name : `เซฟ ${n}`);
+    if (v !== 'ok' || !text) return;
+    if (n === slot) { saveName = text; saveGame(); } else if (m) { m.raw.name = text; writeSlot(n, m.raw); }
+    return renderSaves(W);
+  }
+  if (act === 'del') { const { v } = await dialog(W, `ลบเซฟ ${label} ถาวร?`, [['ยกเลิก', null], ['ลบ', 'ok', 'pri']]); if (v === 'ok') { try { localStorage.removeItem(keyOf(n)); } catch (e) {} renderSaves(W); } return; }
+  if (act === 'export') {
+    if (n === slot) saveGame();
+    const raw = localStorage.getItem(keyOf(n)); if (!raw) return;
+    const a = h('a', { download: `ออฟฟิศจำลอง-${(m ? m.name : 'เซฟ' + n).replace(/[\\/:*?"<>|]/g, '')}.json` }); a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' })); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    S.toast('ดาวน์โหลดไฟล์เซฟลงเครื่องแล้ว', 2); return;
+  }
+  if (act === 'import') { const inp = W.body.querySelector('input[type=file]'); inp.dataset.n = n; inp.click(); }
+}
+function importSave(W, inp) {
+  const f = inp.files && inp.files[0], n = +inp.dataset.n; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    let s = null; try { s = JSON.parse(rd.result); } catch (e) { s = null; }
+    inp.value = '';
+    if (!s || s.v !== 1 || !s.time || !s.files) { S.toast('ไฟล์นี้ไม่ใช่ไฟล์เซฟของออฟฟิศจำลอง', 2.5); return; }
+    if (writeSlot(n, s)) { S.toast(`นำเข้าเซฟลงช่อง ${n} แล้ว กด "เล่นเซฟนี้" เพื่อเล่นต่อ`, 2.6); renderSaves(W); }
+  };
+  rd.readAsText(f);
+}
+$('savesBtn').addEventListener('click', openSaves);
+
