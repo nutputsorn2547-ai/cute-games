@@ -113,6 +113,7 @@ function say(c, who, text, at, extra = {}) {
 function like(c, m, who, at) { later(c, at, () => { if (!m.likes.includes(who)) m.likes.push(who); renderChat(); S.tone(1200, 1500, .05, .05); }); }
 const viewing = c => (chat.W && chat.account && chat.cur === c.id) || (phone.open && phone.cur === c.id);
 function react(c, m) {
+  if (typeof emailAsk === 'function' && emailAsk(c, m)) return;
   if (m.text && /ยืม/.test(m.text) && !/คืน|ให้ยืม/.test(m.text) && !['hr', 'cust'].includes(c.id) && !c.id.startsWith('co-')) { borrowAsk(c, m); return; }
   const H = PERSONAL[c.id] || (c.id.startsWith('co-') ? PERSONAL.co : null); if (H) { H(c, m); return; }
   if (c.id === 'g' && m.text && /หัวหน้า/.test(m.text) && /สาย|ดุ|บ่น|นินทา|ขี้|เม้าท์|เบื่อ|เหวี่ยง|งานเยอะ/.test(m.text)) { say(c, 'boss', 'พี่อ่านอยู่นะ 👀', 1700); say(c, 'duck', '😳😳😳', 2800); say(c, 'bun', 'ส่งผิดห้องป่าวเนี่ย 555', 4000); return; }

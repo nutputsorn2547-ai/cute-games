@@ -50,7 +50,8 @@ function scanCap(cap) {
   const name = `สแกน-${cap.title}.pdf`, cd = cap.doc && DESK_CDOC[cap.doc.id];
   let f = FILES.find(x => x.name === name && x.loc !== 'trash');
   if (!f) { f = { id: 'u' + (++uid), name, type: 'pdf', loc: 'desk' }; FILES.push(f); deskPos[f.id] = firstFree(); }
-  Object.assign(f, { kind: cd ? 'cdoc' : 'scan', fields: cd, signed: !!(cap.doc && cap.doc.printed && cap.doc.signed), html: `<div class="scanv">${paperHTML(cap, .5)}</div>` });
+  Object.assign(f, { kind: cd ? 'cdoc' : 'scan', fields: cd, signed: !!(cap.doc && cap.doc.printed && cap.doc.signed), stamped: !!(cap.doc && cap.doc.stamped), docId: cap.doc ? cap.doc.id : null, html: `<div class="scanv">${paperHTML(cap, .5)}</div>` });
+  if (cap.doc && cap.doc.id === 'inv' && cap.doc.stamped) { complete('inv3'); setTimeout(() => S.toast('🖨️ สแกนใบแจ้งหนี้ที่ปั๊มแล้วเข้าเครื่อง — แนบส่งอีเมลหาคู่ค้าได้', 3.4), 2600); }
   if (cap.doc && cap.doc.printed) { if (cap.doc.signed) { complete('sign'); setTimeout(() => S.toast('✍️ สแกนเอกสารที่เซ็นแล้วเข้าเครื่องเรียบร้อย — แนบส่งอีเมลได้', 3.4), 2600); } else setTimeout(() => S.toast('เอกสารนี้ยังไม่ได้เซ็นนะ หยิบปากกามาเซ็นก่อนแล้วสแกนใหม่ได้', 3.4), 2600); }
   closeWin('view-' + f.id, true); renderDesktop(); renderWork();
   S.noise(.8, 1800, .06); S.tone(300, 600, .6, .04); S.toast(`🖨️ สแกนแล้ว ได้ไฟล์ "${name}" บนหน้าจอคอม`, 2.4); complete('scan');
@@ -113,7 +114,7 @@ function snapshot() {
     work: { entries: work.entries, right: work.right, batch1: work.batch1, nagged: work.nagged }, cdocs: CDOCS, cdSeq, prints: DOCS.filter(d => d.printed).map(d => ({ id: d.id, title: d.title, html: d.html, x: d.x, y: d.y, r: d.r, signed: !!d.signed })), printSeq,
     jr: { slot: jr.slot, cur: jr.cur, tries: jr.tries, right: jr.right, used: jr.used },
     ai: { tray: ai.tray, msgs: ai.msgs }, cart: se.cart, food: { pin: food.pin, place: food.place },
-    mail: { accounts: mail.accounts, inbox: mail.inbox }, perf, hunger: { v: hunger.v, day: hunger.day }, notes, noteSeq,
+    mail: { accounts: mail.accounts, inbox: mail.inbox, sent: mail.sent }, invFlow, perf, hunger: { v: hunger.v, day: hunger.day }, notes, noteSeq,
     nb: nbText, marks: Object.fromEntries([...canvases].map(([k, c]) => [k, c.toDataURL('image/png')])), dzId,
   };
 }
@@ -144,9 +145,10 @@ function loadGame() {
     work.entries = s.work.entries; work.right = s.work.right; work.batch1 = s.work.batch1; work.nagged = s.work.nagged;
     Object.assign(CDOCS, s.cdocs); cdSeq = s.cdSeq;
     for (let i = DOCS.length - 1; i >= 0; i--) if (DOCS[i].printed) { desk.querySelector(`[data-id="doc:${DOCS[i].id}"]`)?.remove(); DOCS.splice(i, 1); }
-    (s.prints || []).forEach(p => { const d = { ...p, printed: true }; DOCS.push(d); printItem(d); }); printSeq = s.printSeq || (s.prints || []).length; Object.assign(jr, s.jr);
+    (s.prints || []).forEach(p => { const d = { ...p, printed: true }; DOCS.push(d); printItem(d); }); printSeq = s.printSeq || (s.prints || []).length;
+    Object.assign(invFlow, { asked: false, orig: 'desk', xls: false, paid: false, stamped: false, busy: false, miss: '', closed: false }, s.invFlow || {}); invFlow.busy = false; const dinv = DOCS.find(x => x.id === 'inv'); if (dinv) dinv.stamped = !!invFlow.stamped; showInvPaper(); ensureFlowChats(); Object.assign(jr, s.jr);
     ai.tray = s.ai.tray; ai.msgs = s.ai.msgs; se.cart = s.cart || []; food.pin = s.food.pin; food.place = s.food.place;
-    if (s.mail) { mail.accounts = s.mail.accounts; mail.inbox = s.mail.inbox; mail.inbox.forEach(m => { m.nt = 1; }); } if (s.perf) Object.assign(perf, s.perf); if (s.hunger) { hunger.v = s.hunger.v; hunger.day = s.hunger.day; hunger.t = null; }
+    if (s.mail) { mail.accounts = s.mail.accounts; mail.inbox = s.mail.inbox; mail.sent = s.mail.sent || []; mail.inbox.forEach(m => { m.nt = 1; }); } if (s.perf) Object.assign(perf, s.perf); if (s.hunger) { hunger.v = s.hunger.v; hunger.day = s.hunger.day; hunger.t = null; }
     if (s.notes) { noteSeq = s.noteSeq || 0; s.notes.forEach(n => { notes.push(n); renderNote(n); }); }
     s.nb.forEach((t, i) => nbText[i] = t); dzId = s.dzId || dzId;
     for (const [k, url] of Object.entries(s.marks || {})) { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; c.getContext('2d').drawImage(im, 0, 0); canvases.set(k, c); }; im.src = url; }

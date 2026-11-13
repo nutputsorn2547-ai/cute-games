@@ -43,6 +43,7 @@ function printFile(f) {
   S.toast('ไฟล์นี้ปริ้นไม่ได้', 1.6);
 }
 function fitPaper() {
-  const c = ov && ov.querySelector('.content'); if (!c || !ov.state.doc || !ov.state.doc.printed) return;
-  let fs = 13; c.style.fontSize = fs + 'px'; c.style.lineHeight = '1.5'; while (c.scrollHeight > c.clientHeight + 2 && fs > 6) { fs -= .5; c.style.fontSize = fs + 'px'; }
+  const c = ov && ov.querySelector('.content'), d = ov && ov.state.doc; if (!c || !d || d.sticky) return;
+  let fs = d.printed ? 13 : 15; if (d.printed) { c.style.fontSize = fs + 'px'; c.style.lineHeight = '1.5'; }
+  while (c.scrollHeight > c.clientHeight + 2 && fs > 6) { fs -= .5; c.style.fontSize = fs + 'px'; c.style.lineHeight = '1.55'; }
 }
