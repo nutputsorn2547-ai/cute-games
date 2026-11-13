@@ -277,7 +277,7 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .tasks li.done{text-decoration:line-through;color:#9c9060}
 
 .screen{container-type:inline-size}
-@container (max-width:1040px){.taskbar button .lb{display:none}}
+@container (max-width:1240px){.taskbar button .lb{display:none}}
 .taskbar .clock{cursor:pointer;border-radius:8px;padding:3px 7px}
 .taskbar .clock:hover{background:#fff}
 .tint{position:absolute;inset:0;pointer-events:none;z-index:1;transition:background .8s}
@@ -389,6 +389,42 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .dcal .mh2{background:#ff6b7d;color:#fff;font-size:13px;padding:3px 0}
 .dcal b{display:block;font-size:40px;font-weight:600;line-height:1.2}
 .dcal small{font-size:11px;color:var(--soft)}
+.bk{display:flex;flex-direction:column;height:100%;font-size:13px;background:#f3f8f5}
+.bk .bh{background:linear-gradient(135deg,#1f9d6b,#43c59e);color:#fff;padding:12px 14px;flex:none}
+.bk .bh .bal{font:600 28px var(--font);font-variant-numeric:tabular-nums}
+.bk .tabs2{display:flex;gap:2px;padding:0 8px;background:#fff;border-bottom:1px solid #e3eee8;flex:none;overflow-x:auto}
+.bk .tabs2 button{font:inherit;font-size:13px;border:0;background:none;padding:8px 10px;cursor:pointer;color:var(--soft);border-bottom:3px solid transparent;white-space:nowrap}
+.bk .tabs2 button.on{color:#1f9d6b;border-color:#1f9d6b}
+.bk .bb2{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.bk .card3{background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 2px 6px -4px #0003}
+.bk .row3{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 0}
+.bk .row3 b{font-weight:500;text-align:right}
+.bk .neg{color:#e0457b}.bk .pos{color:#1f9d6b}
+.bk label{display:flex;gap:8px;align-items:center}
+.bk input,.bk select{flex:1;min-width:0;font:inherit;border:1px solid #d6e6dc;border-radius:8px;padding:5px 8px;outline:none}
+.bk .qa{display:flex;gap:6px;flex-wrap:wrap}
+.dart{width:110px;height:84px;border-radius:10px;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:40px;flex:none}
+.aiw{display:flex;flex-direction:column;height:100%;font-size:13px;background:#f7f3ff}
+.aiw .tray{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;background:#fff;border-bottom:1px dashed #d9ccff;min-height:30px;align-items:center;flex:none}
+.aiw .tray span{background:#efe6ff;border-radius:99px;padding:2px 4px 2px 10px;font-size:12px;display:flex;align-items:center;gap:4px}
+.aiw .tray button{border:0;background:#fff;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:1;padding:0}
+.aiw .tray .hint2{color:var(--soft);padding:0}
+.aiw .ams{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.aiw .am{display:flex;gap:6px;max-width:90%;align-items:flex-start}
+.aiw .am.me{align-self:flex-end}
+.aiw .am .bb{background:#fff;border-radius:4px 14px 14px 14px;padding:7px 11px;line-height:1.6;box-shadow:0 1px 3px -2px #0003}
+.aiw .am.me .bb{background:#d9ccff;border-radius:14px 4px 14px 14px}
+.aiw .am .bb ul{margin:4px 0;padding-left:1.2em}
+.aiw .am .bb table{border-collapse:collapse;font-size:12px;margin:4px 0}
+.aiw .am .bb td{border-bottom:1px solid #eee;padding:2px 8px 2px 0}
+.aiw .aacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.aiw .aacts button,.aiw .chips2 button{font:inherit;font-size:12px;border:1px solid #d9ccff;background:#fff;border-radius:99px;padding:3px 10px;cursor:pointer;color:var(--ink)}
+.aiw .chips2{display:flex;gap:5px;flex-wrap:wrap;padding:6px 10px 0;flex:none}
+.aiw .acomp{display:flex;gap:6px;padding:8px 10px;position:relative;flex:none}
+.aiw .acomp input{flex:1;min-width:0;font:inherit;border:1px solid #d9ccff;border-radius:99px;padding:6px 12px;outline:none}
+.aiw .acomp button{font:inherit;border:0;border-radius:99px;padding:6px 12px;cursor:pointer;background:#7c5cff;color:#fff}
+.aiw .acomp .att{background:#efe6ff;color:var(--ink)}
+.aiw .think{font-size:11px;color:#7c5cff;padding:0 12px;min-height:14px;flex:none}
 .chip{top:auto!important;bottom:78px}
 .vcur{position:fixed;left:0;top:0;width:22px;height:22px;pointer-events:none;z-index:100;margin:-2px 0 0 -2px}
 .vcur.press path{fill:#ffd166}
@@ -410,6 +446,8 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
         <button data-app="jobs" title="จ๊อบน้อย"><i class="ab" style="--c:#3b5bdb">จ</i><span class="lb">จ๊อบน้อย</span></button>
         <button data-app="game" title="เกมน้อย"><i class="ab" style="--c:#ff8fab">ก</i><span class="lb">เกมน้อย</span></button>
         <button data-app="cal" title="ปฏิทินน้อย"><i class="ab" style="--c:#e8669a">ป</i><span class="lb">ปฏิทิน</span></button>
+        <button data-app="bank" title="ธนาคารน้อย"><i class="ab" style="--c:#1f9d6b">ธ</i><span class="lb">ธนาคาร</span></button>
+        <button data-app="ai" title="น้องเอไอ"><i class="ab" style="--c:#7c5cff">อ</i><span class="lb">น้องเอไอ</span></button>
         <span class="clock" id="clock"></span>
       </div>
     </div></div>
@@ -429,7 +467,7 @@ import { setupShell, shellMarkup } from '../lib/shell.js?v=4';
 
 shellMarkup({
   title: 'ออฟฟิศจำลอง',
-  blurb: 'ลองทำงานออฟฟิศ: จัดไฟล์ ทำตาราง หาที่พักทริปปีใหม่ แชทกับทีมและครอบครัว ขอขึ้นเงินเดือน แต่งเรซูเม่หางานใหม่ สั่งข้าว เล่นเกม และจดโน้ตบนโต๊ะ',
+  blurb: 'เริ่มวันแรกของปี 1 ม.ค. 2569 เวลา 8 โมงเช้า: จัดไฟล์ ทำตาราง หาที่พักทริปปีใหม่ เตรียมเอกสารประชุม สั่งงานน้องเอไอ แชทกับทีมและครอบครัว จัดการเงินในธนาคาร ย้ายหอ หางานใหม่ และเล่นเกม',
   steps: ['มือถือจะกลายเป็น <b>ทัชแพด</b> กับ <b>คีย์บอร์ด</b>', 'ลาก 1 นิ้ว = เลื่อนเมาส์ · แตะ = คลิก · แตะสองที = ดับเบิลคลิก (บนที่ว่างของจอจะมีเมนู) · 2 นิ้ว = เลื่อนหน้า'],
 });
 const S = setupShell({ game: 'office' });
@@ -461,6 +499,8 @@ const TASKS = [
   { id: 'hl', t: 'หยิบเอกสารบนโต๊ะมาอ่าน แล้วไฮไลท์ตรงที่สำคัญ' },
   { id: 'note', t: 'จดอะไรก็ได้ลงสมุดโน้ต' },
   { id: 'cal', t: 'เปิดปฏิทินน้อย แล้วเร่งวันไปถึงอีเวนต์ถัดไป (ย้อนกลับไม่ได้!)' },
+  { id: 'meet', t: 'เตรียมเอกสารใส่โฟลเดอร์ "เอกสารประชุม" ให้ครบก่อนวันประชุม (ดูในปฏิทิน)' },
+  { id: 'ai', t: 'สั่งน้องเอไอ "ทำสรุปทริป" (ลากเทมเพลตและไฟล์ที่หามาให้ครบ)' },
   { id: 'phone', t: 'หยิบมือถือบนโต๊ะขึ้นมาดูแชท', me: 1 },
   { id: 'family', t: 'ตอบแชทครอบครัว (แม่ พ่อ น้องสาว หรือพี่ชาย)', me: 1 },
   { id: 'gossip', t: 'เม้าท์กับเพื่อนในกลุ่ม "แก๊งเม้าท์มอย" (ระวังส่งผิดห้อง!)', me: 1 },
@@ -469,6 +509,8 @@ const TASKS = [
   { id: 'apply', t: 'สมัครงานใหม่ในจ๊อบน้อย โดยแนบเรซูเม่', me: 1 },
   { id: 'game', t: 'เล่นเกมน้อย: ทุบตุ่นให้ได้ 15 แต้ม หรือจับคู่การ์ดให้ครบ', me: 1 },
   { id: 'time', t: 'กดนาฬิกามุมขวาล่างของจอ แล้วเปลี่ยนเวลา', me: 1 },
+  { id: 'bank', t: 'จ่ายบิลหรือโอนเงินในแอปธนาคารน้อย', me: 1 },
+  { id: 'move', t: 'หาหอพักใหม่ในเสิร์ชน้อย แท็บหอพัก แล้วย้ายเข้า', me: 1 },
 ];
 const done = new Set();
 function renderTasks() {
@@ -516,7 +558,7 @@ let deskPos = {}; // id -> [col,row] on the desktop
 FOLDERS.slice(0, 4).forEach((f, i) => deskPos[f.id] = [0, i]);
 FILES.forEach((f, i) => { f.loc = 'desk'; deskPos[f.id] = [1 + (i >> 2), i % 4]; });
 FILES.push({ id: 'cv', name: 'เรซูเม่_ฉัน.design', type: 'dsg', kind: 'design', loc: 'desk' });
-const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c: '#00c4cc' }, { id: 'app-jobs', n: 'จ๊อบน้อย หางาน', e: '💼', c: '#3b5bdb' }, { id: 'app-game', n: 'เกมน้อย', e: '🎮', c: '#ff8fab' }, { id: 'app-food', n: 'หิวแล้ว', e: '🍱', c: '#ff8a3d' }, { id: 'app-cal', n: 'ปฏิทินน้อย', e: '📅', c: '#e8669a' }];
+const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c: '#00c4cc' }, { id: 'app-jobs', n: 'จ๊อบน้อย หางาน', e: '💼', c: '#3b5bdb' }, { id: 'app-game', n: 'เกมน้อย', e: '🎮', c: '#ff8fab' }, { id: 'app-food', n: 'หิวแล้ว', e: '🍱', c: '#ff8a3d' }, { id: 'app-cal', n: 'ปฏิทินน้อย', e: '📅', c: '#e8669a' }, { id: 'app-bank', n: 'ธนาคารน้อย', e: '🏦', c: '#1f9d6b' }, { id: 'app-ai', n: 'น้องเอไอ', e: '🤖', c: '#7c5cff' }];
 deskPos.down = [3, 0];
 const CELLW = 100, CELLH = 104;
 const onDesk = id => id.startsWith('app-') || FOLDERS.some(x => x.id === id) || FILES.find(x => x.id === id)?.loc === 'desk';
@@ -542,7 +584,7 @@ function renderDesktop() {
   for (const w of wins.values()) if (w.folder) renderFolder(w);
   checkFiles();
 }
-function place(el, id) { if (!deskPos[id]) deskPos[id] = id.startsWith('app-') ? [Math.max(4, Math.floor((icons.clientWidth - 20) / CELLW) - 1), APPS.findIndex(a => a.id === id)] : firstFree(); const [c, r] = deskPos[id]; el.style.left = (14 + c * CELLW) + 'px'; el.style.top = (12 + r * CELLH) + 'px'; }
+function place(el, id) { if (!deskPos[id]) deskPos[id] = id.startsWith('app-') ? (() => { const i = APPS.findIndex(a => a.id === id), cols = Math.max(6, Math.floor((icons.clientWidth - 20) / CELLW)); return [cols - 1 - Math.floor(i / 5), i % 5]; })() : firstFree(); const [c, r] = deskPos[id]; el.style.left = (14 + c * CELLW) + 'px'; el.style.top = (12 + r * CELLH) + 'px'; }
 function checkFiles() {
   if (FILES.filter(f => f.kind === 'rec').every(f => f.loc === 'acc')) complete('rec');
   if (FILES.filter(f => f.kind === 'pic').every(f => f.loc === 'pics')) complete('pic');
@@ -574,6 +616,7 @@ addEventListener('pointerup', e => {
   const t = dropTarget(e.clientX, e.clientY), f = FILES.find(x => x.id === d.id);
   if (t && t.folder && f && t.folder !== d.id) moveFile(f, t.folder);
   else if (t && t.chat && f) sendFile(f);
+  else if (t && t.ai && f) aiAttach(f);
   else if (t && t.desk) {
     const r = icons.getBoundingClientRect();
     const c = clamp(Math.round((e.clientX - r.left - 14 - 46) / CELLW), 0, Math.floor((r.width - 100) / CELLW)), row = clamp(Math.round((e.clientY - r.top - 12 - 40) / CELLH), 0, Math.floor((r.height - 100) / CELLH));
@@ -589,6 +632,7 @@ function dropTarget(x, y) {
   const fw = el.closest('.win'); const W = fw && wins.get(fw.dataset.id);
   if (W && W.folder) return { folder: W.folder };
   if (W && W.chat) return { chat: true };
+  if (W && W.ai) return { ai: true };
   if (el.closest('#icons')) return { desk: true };
   return null;
 }
@@ -604,7 +648,7 @@ document.addEventListener('dblclick', e => {
   openItem(ic.dataset.id);
 });
 function openItem(id) {
-  const app = { 'app-design': () => openDesign(FILES.find(f => f.id === 'cv')), 'app-jobs': openJobs, 'app-game': openGames, 'app-food': openFood, 'app-cal': openCal }[id]; if (app) { app(); return; }
+  const app = { 'app-design': () => openDesign(FILES.find(f => f.id === 'cv')), 'app-jobs': openJobs, 'app-game': openGames, 'app-food': openFood, 'app-cal': openCal, 'app-bank': () => openBank(), 'app-ai': openAI }[id]; if (app) { app(); return; }
   const fo = FOLDERS.find(x => x.id === id), f = FILES.find(x => x.id === id);
   if (fo) openFolder(fo); else if (f) openFile(f);
 }
@@ -644,6 +688,7 @@ function desktopMenu(x, y) {
 function iconMenu(id, x, y) {
   const fo = FOLDERS.find(x => x.id === id), f = FILES.find(x => x.id === id), items = [{ t: '📂 เปิด', f: () => openItem(id) }];
   if (f && f.src) items.push({ t: '🖼️ ตั้งเป็นวอลเปเปอร์', f: () => setWallpaper(f.src) });
+  if (f) items.push({ t: '🤖 ส่งให้น้องเอไอ', f: () => aiAttach(f) });
   if (f && chat.account) items.push({ t: '💬 ส่งในแชท', f: () => { openChat(); sendFile(f); } });
   if (f || (fo && fo.custom)) items.push({ t: '✏️ เปลี่ยนชื่อ', f: () => startRename(id) });
   if (f && f.loc !== 'trash') items.push({ t: '🗑️ ย้ายไปถังขยะ', f: () => { moveFile(f, 'trash'); renderDesktop(); } });
@@ -757,7 +802,7 @@ function syncTaskbar() {
 }
 $('taskbar').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  ({ files: () => openFolder(FOLDERS[2]), sheet: () => openSheet(FILES.find(f => f.id === 'x1')), search: () => openSearch(), chat: () => openChat(), food: () => openFood(), design: () => openDesign(FILES.find(f => f.id === 'cv')), jobs: () => openJobs(), game: () => openGames(), cal: () => openCal() })[b.dataset.app]?.();
+  ({ files: () => openFolder(FOLDERS[2]), sheet: () => openSheet(FILES.find(f => f.id === 'x1')), search: () => openSearch(), chat: () => openChat(), food: () => openFood(), design: () => openDesign(FILES.find(f => f.id === 'cv')), jobs: () => openJobs(), game: () => openGames(), cal: () => openCal(), bank: () => openBank(), ai: () => openAI() })[b.dataset.app]?.();
 });
 // a small modal inside a window: resolves with the clicked button's value and the input's text
 function dialog(W, html, buttons, withInput) {
@@ -780,6 +825,7 @@ function renderFolder(W) {
 }
 function openFile(f) {
   if (f.kind === 'design') { openDesign(f); return; }
+  if (f.html) { openWin('view-' + f.id, f.name, h('div', { style: 'height:100%' }, f.html), 500, 400, '#f4f0ff'); return; }
   if (f.kind === 'resume') { openResume(f); return; }
   if (f.kind === 'sheet') { openSheet(f); return; }
   if (f.src) {
@@ -1044,7 +1090,7 @@ const PRODUCTS = [
   ['เมาส์ไร้สายรูปแมว', 299, '🖱️', 'เมาส์ ไอที แมว คอม'], ['ร่มพับลายดาว', 219, '☂️', 'ร่ม ฝน'], ['ขนมคุกกี้รวมรส', 159, '🍪', 'ขนม คุกกี้ ของกิน'],
 ];
 const EN = { แมว: 'cat', ลูกแมว: 'kitten', หมา: 'dog', สุนัข: 'dog', ลูกหมา: 'puppy', กระต่าย: 'rabbit', นก: 'bird', เป็ด: 'duck', แพนด้า: 'panda', หมี: 'bear', เพนกวิน: 'penguin', ปลา: 'fish', จิ้งจอก: 'fox', แฮมสเตอร์: 'hamster', ทะเล: 'beach', ภูเขา: 'mountain', ดอกไม้: 'flower', ซากุระ: 'cherry blossom', ท้องฟ้า: 'sky', อวกาศ: 'galaxy', ดาว: 'stars night sky', ป่า: 'forest', กาแฟ: 'coffee', ขนม: 'dessert', เค้ก: 'cake', เมือง: 'city', หิมะ: 'snow', พระอาทิตย์ตก: 'sunset', น้ำตก: 'waterfall', ทุ่งดอกไม้: 'flower field', ทะเลหมอก: 'sea of mist' };
-const TABS = [['all', 'ทั้งหมด'], ['img', 'รูปภาพ'], ['shop', 'ช็อปปิ้ง'], ['hotel', 'ที่พัก']];
+const TABS = [['all', 'ทั้งหมด'], ['img', 'รูปภาพ'], ['shop', 'ช็อปปิ้ง'], ['hotel', 'ที่พัก'], ['dorm', 'หอพัก']];
 const HOTEL_WORD = /ที่พัก|โรงแรม|รีสอร์[ทต]|โฮมสเตย์|เที่ยว|ปีใหม่|hotel|resort/i;
 const se = { W: null, tab: 'all', q: '', imgs: [], cart: [], token: 0 };
 function openSearch(tab) {
@@ -1052,14 +1098,14 @@ function openSearch(tab) {
   const root = h('div', { class: 'se landing' }, `<div class="head"><div class="logo"><i style="color:#7c9cff">เสิร์ช</i><i style="color:#ff8fab">น้</i><i style="color:#f2b24a">อ</i><i style="color:#5fc28e">ย</i></div>
     <div class="sbar"><input class="q" type="text" placeholder="พิมพ์คำที่อยากค้นหา เช่น แมว, ที่พักปีใหม่, ตุ๊กตา" autocomplete="off"><button class="go">ค้นหา</button><button class="cartb" hidden>🛒 <b>0</b></button></div>
     <div class="tabs">${TABS.map(([k, n]) => `<button data-tab="${k}">${n}</button>`).join('')}</div>
-    <div class="chips">ลองค้นหา: ${['แมว', 'ทะเล', 'ดอกไม้', 'ที่พักปีใหม่', 'ของขวัญ'].map(x => `<button data-q="${x}">${x}</button>`).join('')}</div></div><div class="out"><div class="res"></div></div>`);
+    <div class="chips">ลองค้นหา: ${['แมว', 'ทะเล', 'ที่พักปีใหม่', 'หอพักใกล้ออฟฟิศ', 'ของขวัญ'].map(x => `<button data-q="${x}">${x}</button>`).join('')}</div></div><div class="out"><div class="res"></div></div>`);
   se.W = openWin('search', 'เสิร์ชน้อย — เบราว์เซอร์', root, 700, 460, '#eef1ff'); se.root = root; se.W.body.style.overflow = 'hidden';
   se.W.onClose = () => { se.W = null; };
   const q = root.querySelector('.q');
   root.querySelector('.go').addEventListener('click', () => runSearch(q.value));
   q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runSearch(q.value); } });
   root.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
-  root.querySelector('.chips').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (!b) return; q.value = b.dataset.q; if (b.dataset.q === 'ที่พักปีใหม่') setTab('hotel'); else runSearch(b.dataset.q); });
+  root.querySelector('.chips').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (!b) return; q.value = b.dataset.q; if (b.dataset.q === 'ที่พักปีใหม่') setTab('hotel'); else if (b.dataset.q === 'หอพักใกล้ออฟฟิศ') setTab('dorm'); else runSearch(b.dataset.q); });
   root.querySelector('.cartb').addEventListener('click', showCart);
   root.querySelector('.out').addEventListener('click', onResultClick);
   syncTabs(); if (tab) setTab(tab); else setTimeout(() => q.focus(), 50);
@@ -1068,17 +1114,19 @@ function openSearch(tab) {
 function syncTabs() { se.root.querySelectorAll('.tabs [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === se.tab)); const cb = se.root.querySelector('.cartb'); cb.hidden = !se.cart.length; cb.querySelector('b').textContent = se.cart.length; }
 function setTab(t) {
   se.tab = t; syncTabs(); const q = se.root.querySelector('.q').value.trim();
-  if (q || t === 'hotel' || t === 'shop') runSearch(q); else se.root.querySelector('.q').focus();
+  if (q || t === 'hotel' || t === 'shop' || t === 'dorm') runSearch(q); else se.root.querySelector('.q').focus();
 }
 const res = () => se.root.querySelector('.res');
 async function runSearch(q) {
   q = (q || '').trim(); if (!se.root) return;
-  if (!q && se.tab !== 'hotel' && se.tab !== 'shop') return;
+  if (!q && se.tab !== 'hotel' && se.tab !== 'shop' && se.tab !== 'dorm') return;
+  if (q && se.tab === 'all' && DORM_WORD.test(q)) { se.tab = 'dorm'; syncTabs(); }
   if (q && HOTEL_WORD.test(q) && se.tab === 'all' && !/[a-z]/i.test(q) && /ที่พัก|โรงแรม|รีสอร์/.test(q)) { se.tab = 'hotel'; syncTabs(); }
   se.q = q; se.root.classList.remove('landing'); const tok = ++se.token;
   se.root.querySelector('.out').scrollTop = 0;
   if (se.tab === 'hotel') return showHotels(q);
   if (se.tab === 'shop') return showShop(q);
+  if (se.tab === 'dorm') return showDorms(q);
   res().innerHTML = '<p class="note">กำลังค้นหา…</p>';
   if (se.tab === 'img') return showImages(q, tok);
   const promo = (/หางาน|สมัครงาน|งานใหม่|ย้ายงาน|job/i.test(q) ? `<div class="promo" data-openapp="jobs"><b>💼 หางานใหม่ที่ จ๊อบน้อย</b><br><small>เปิดรับ ${JOBS.length} ตำแหน่ง กดเพื่อเปิดเว็บหางาน</small></div>` : '') + (HOTEL_WORD.test(q) ? `<div class="promo" data-go="hotel"><b>🏨 ที่พักแนะนำสำหรับ "${esc(q)}"</b><br><small>ดูที่พัก ${HOTELS.length} แห่ง ราคาต่อห้องต่อคืน กดเพื่อไปแท็บที่พัก</small></div>` : '');
@@ -1135,18 +1183,22 @@ function showHotels(q) {
 }
 function showHotel(id) {
   const x = HOTELS.find(y => y.id === id); complete('hotel');
-  res().innerHTML = `<p class="note"><a data-back="hotel">← กลับไปรายการที่พัก</a></p><div class="hd">${hotelArt(x.art)}<h3>${esc(x.name)}</h3><small>📍 จ.${esc(x.where)} · ⭐ ${x.rate} จาก 5</small><div><span class="pr" style="font-size:20px">฿${baht(x.price)}</span> ต่อห้อง ต่อคืน</div><ul>${x.feat.map(f => `<li>${esc(f)}</li>`).join('')}</ul><div class="iv"><div class="acts"><button class="btn2" data-copy="${x.id}">📋 คัดลอกชื่อและราคา</button><button class="btn2 grn" data-share="${x.id}">💬 แชร์ไปกลุ่มแชท</button></div></div></div>`;
+  res().innerHTML = `<p class="note"><a data-back="hotel">← กลับไปรายการที่พัก</a></p><div class="hd">${hotelArt(x.art)}<h3>${esc(x.name)}</h3><small>📍 จ.${esc(x.where)} · ⭐ ${x.rate} จาก 5</small><div><span class="pr" style="font-size:20px">฿${baht(x.price)}</span> ต่อห้อง ต่อคืน</div><ul>${x.feat.map(f => `<li>${esc(f)}</li>`).join('')}</ul><div class="iv"><div class="acts"><button class="btn2" data-copy="${x.id}">📋 คัดลอกชื่อและราคา</button><button class="btn2" data-savehotel="${x.id}">💾 บันทึกข้อมูลที่พัก</button><button class="btn2 grn" data-share="${x.id}">💬 แชร์ไปกลุ่มแชท</button></div></div></div>`;
 }
 async function onResultClick(e) {
   const t = e.target;
   const back = t.closest('[data-back]'); if (back) { se.tab = back.dataset.back; syncTabs(); runSearch(se.q); return; }
   const go = t.closest('[data-go]'); if (go) { setTab(go.dataset.go); return; }
+  const dm = t.closest('[data-dorm]'); if (dm) { showDorm(dm.dataset.dorm); return; }
+  const sv = t.closest('[data-savehotel]'); if (sv) { saveInfo('hotelinfo', HOTELS.find(x => x.id === sv.dataset.savehotel)); return; }
+  const sd = t.closest('[data-savedorm]'); if (sd) { saveInfo('dorminfo', DORMS.find(x => x.id === sd.dataset.savedorm)); return; }
+  const mvb = t.closest('[data-move]'); if (mvb) { moveTo(DORMS.find(x => x.id === mvb.dataset.move)); return; }
   if (t.closest('[data-openapp]')) { openJobs(); return; }
   const im = t.closest('[data-img]'); if (im) { showImage(+im.dataset.img); return; }
   const act = t.closest('[data-act]');
   if (act) { const i = +act.dataset.i; if (act.dataset.act === 'wall') { const f = downloadImg(i, true); setWallpaper(f.src); S.toast('ตั้งเป็นวอลเปเปอร์แล้ว (เก็บรูปไว้ในโฟลเดอร์ ดาวน์โหลด ด้วย)', 2.2); } if (act.dataset.act === 'dl') downloadImg(i); if (act.dataset.act === 'chat') { const f = downloadImg(i, true); if (openChat()) sendFile(f); } return; }
   const buy = t.closest('[data-buy]'); if (buy) { se.cart.push(se.shop[+buy.dataset.buy]); syncTabs(); S.tone(880, 1320, .08, .07, 'triangle'); S.toast('ใส่ตะกร้าแล้ว 🛒', 1.2); return; }
-  if (t.closest('[data-pay]')) { const tot = se.cart.reduce((s, p) => s + p[1], 0), bear = se.cart.some(p => /ตุ๊กตา/.test(p[0])); se.cart = []; if (bear && !sisBear) { sisBear = true; pushMsg('sis', 'sis', 'พี่!! เห็นว่าสั่งตุ๊กตาหมีให้แล้ว 🥹🧸 รักพี่ที่สุดในโลก', 3500); } syncTabs(); S.jingle(); res().innerHTML = `<div class="cartbox" style="text-align:center"><div style="font-size:48px;justify-content:center">📦</div><b>สั่งซื้อสำเร็จ!</b><p>ยอดชำระ ฿${baht(tot)} · ของจะมาส่งที่ออฟฟิศ (ในเกมนะ)</p></div>`; return; }
+  if (t.closest('[data-pay]')) { const tot = se.cart.reduce((s, p) => s + p[1], 0), bear = se.cart.some(p => /ตุ๊กตา/.test(p[0])); if (!bankPay(tot, '🛒 ช็อปปิ้งเสิร์ชน้อย')) return; se.cart = []; if (bear && !sisBear) { sisBear = true; pushMsg('sis', 'sis', 'พี่!! เห็นว่าสั่งตุ๊กตาหมีให้แล้ว 🥹🧸 รักพี่ที่สุดในโลก', 3500); } syncTabs(); S.jingle(); res().innerHTML = `<div class="cartbox" style="text-align:center"><div style="font-size:48px;justify-content:center">📦</div><b>สั่งซื้อสำเร็จ!</b><p>ยอดชำระ ฿${baht(tot)} · ของจะมาส่งที่ออฟฟิศ (ในเกมนะ)</p></div>`; return; }
   const hc = t.closest('[data-hotel]'); if (hc) { showHotel(hc.dataset.hotel); return; }
   const cp = t.closest('[data-copy]'); if (cp) { const x = HOTELS.find(y => y.id === cp.dataset.copy); copy(`${x.name} ราคา ${baht(x.price)} บาท/ห้อง/คืน`); return; }
   const sh = t.closest('[data-share]'); if (sh) { if (openChat()) { chat.cur = 'g'; renderChat(); sendMsg({ hotel: sh.dataset.share }); } return; }
@@ -1364,7 +1416,7 @@ function foodClick(e) {
   const q = t.closest('[data-q]'); if (q) { const i = +q.dataset.q; food.cart[i] = clamp((food.cart[i] || 0) + +q.dataset.d, 0, 20); renderFood(); S.tone(q.dataset.d > 0 ? 900 : 600, q.dataset.d > 0 ? 1100 : 500, .05, .05); return; }
   if (t.closest('[data-pin-office]')) { food.pin = { ...OFFICE }; food.place = 'ออฟฟิศ ชั้น 3'; renderFood(); S.tone(500, 1000, .08, .07); return; }
   const fv = t.closest('[data-fv]'); if (fv && !fv.disabled) { if ('reset' in fv.dataset) { food.cart = {}; food.track = null; } food.view = fv.dataset.fv; renderFood(); return; }
-  if (t.closest('[data-order]')) { food.view = 'track'; food.track = { t0: performance.now(), dur: 16000, arrived: false }; S.tone(600, 1200, .2, .08, 'triangle'); renderFood(); }
+  if (t.closest('[data-order]')) { if (!bankPay(cartSum() + fee(), `🍱 ${food.shop.n}`)) return; food.view = 'track'; food.track = { t0: performance.now(), dur: 16000, arrived: false }; S.tone(600, 1200, .2, .08, 'triangle'); renderFood(); }
 }
 function updateTrack(now) {
   if (!food.track || !food.W || food.view !== 'track') return;
@@ -1512,7 +1564,8 @@ function drawStroke() {
 /* ================= clock / time settings ================= */
 let timeOff = 0, lastMin = '', nightMsgSent = false;
 const p2 = n => String(n).padStart(2, '0');
-const gnow = () => new Date(Date.now() + dayOff * 86400000 + timeOff);
+const T0 = new Date(2026, 0, 1, 8, 0, 0).getTime(), R0 = Date.now(); // game starts 1 ม.ค. 2569 08:00 and runs in real time
+const gnow = () => new Date(T0 + (Date.now() - R0) + dayOff * 86400000 + timeOff);
 const gHour = () => gnow().getHours();
 $('clock').addEventListener('click', openTime);
 $('clock').title = 'กดเพื่อตั้งเวลา';
@@ -1521,17 +1574,16 @@ function renderTime(W = wins.get('time')) {
   if (!W) return; const d = gnow(), box = W.body.firstChild;
   box.innerHTML = `<div class="big"><div class="col"><button class="btn2" data-t="60" aria-label="เพิ่มชั่วโมง">▲</button><span>${p2(d.getHours())}</span><button class="btn2" data-t="-60" aria-label="ลดชั่วโมง">▼</button></div><span>:</span><div class="col"><button class="btn2" data-t="5" aria-label="เพิ่มนาที">▲</button><span>${p2(d.getMinutes())}</span><button class="btn2" data-t="-5" aria-label="ลดนาที">▼</button></div></div>
     <div class="pre">${[['🌅 เช้า', 8, 30], ['🍚 เที่ยง', 12, 0], ['🏃 เลิกงาน', 17, 30], ['🌙 ดึก', 22, 0]].map(([n, hh, mm]) => `<button class="btn2" data-h="${hh}" data-m="${mm}">${n} ${p2(hh)}:${p2(mm)}</button>`).join('')}</div>
-    <div class="pre"><button class="btn2 pri" data-real>ใช้เวลาจริง</button><button class="btn2" data-cal>📅 ข้ามวันในปฏิทิน</button></div><small style="color:var(--soft)">${thDate(d)} · ${timeOff ? 'ใช้เวลาที่ตั้งเอง' : 'ใช้เวลาจริง'} · ย้อนวันไม่ได้</small>`;
+    <div class="pre"><button class="btn2 pri" data-real>เวลาตามปกติ</button><button class="btn2" data-cal>📅 ข้ามวันในปฏิทิน</button></div><small style="color:var(--soft)">${thDate(d)} · ${timeOff ? 'ใช้เวลาที่ตั้งเอง' : 'เวลาเดินตามปกติ'} · ย้อนวันไม่ได้</small>`;
   box.onclick = e => {
     const b = e.target.closest('button'); if (!b) return;
     const g = gnow(), cur = g.getHours() * 60 + g.getMinutes();
     let want = null;
     if (b.dataset.t) { want = cur + +b.dataset.t; if (want < 0 || want > 1439) { S.toast(want < 0 ? 'ย้อนไปเมื่อวานไม่ได้นะ ⏳' : 'อยากข้ามวัน ใช้ปฏิทินน้อยได้เลย 📅', 1.8); want = clamp(want, 0, 1439); } }
     else if (b.dataset.h) want = +b.dataset.h * 60 + +b.dataset.m;
-    else if ('real' in b.dataset) { const n = new Date(); want = n.getHours() * 60 + n.getMinutes(); }
+    else if ('real' in b.dataset) timeOff = 0;
     else if ('cal' in b.dataset) { openCal(); return; }
     if (want !== null) { const t = new Date(g); t.setHours(0, 0, 0, 0); timeOff += t.getTime() + want * 60000 + (g.getSeconds() * 1000) - g.getTime(); }
-    if ('real' in b.dataset && dayOff === 0) timeOff = 0;
     enforceDate(); S.tone(700, 900, .04, .05); lastMin = ''; renderFood(); renderTime(W); renderCal(); if (Math.abs(timeOff) > 30000) complete('time');
   };
 }
@@ -1592,7 +1644,10 @@ const PERSONAL = {
   hr(c, m) {
     const t = m.text || '';
     if (m.file) { const f = FILES.find(x => x.id === m.file.id); return say(c, 'hr', f && f.kind === 'resume' ? 'เอ๊ะ ส่งเรซูเม่มาทำไมคะ 😳 จะสมัครงานที่อื่นเหรอ…' : 'ได้รับเอกสารแล้วค่ะ', 1800); }
-    if (hr.done) return say(c, 'hr', 'เรื่องปรับเงินเดือนเรียบร้อยแล้วนะคะ มีอะไรถามได้ค่ะ 😊', 1600);
+    if (/เงินเดือน/.test(t) && /เท่าไร|เท่าไหร่|ปัจจุบัน|ตอนนี้|สลิป|ได้กี่/.test(t)) return say(c, 'hr', `ตอนนี้เงินเดือน ${baht(hr.base)} บาท/เดือน ออกทุกวันที่ 25 ค่ะ${hr.pending ? ` และจะปรับเป็น ${baht(hr.pending)} บาท ตั้งแต่ ${thDate(hr.eff, { day: 'numeric', month: 'short', year: 'numeric' })}` : ''} 😊`, 1700);
+    if (/ยืม|เบิก/.test(t)) return say(c, 'hr', 'บริษัทไม่มีให้เบิกเงินเดือนล่วงหน้านะคะ 😅 ลองดูสินเชื่อในแอป "ธนาคารน้อย" ค่ะ', 1700);
+    if (/โบนัส/.test(t)) return say(c, 'hr', 'โบนัสพิจารณาปลายปีตามผลงานค่ะ ตั้งใจทำงานไว้นะคะ ✨', 1600);
+    if (hr.done) return say(c, 'hr', `เรื่องปรับเงินเดือนเรียบร้อยแล้วนะคะ (${baht(hr.pending || hr.base)} บาท) มีอะไรถามได้ค่ะ 😊`, 1600);
     if (/ลาออก|ย้ายงาน|ที่ใหม่|ที่อื่น/.test(t)) { hr.cap = 15; return say(c, 'hr', 'อ้าว 😢 บริษัทไม่อยากเสียคนเก่งไปเลยค่ะ ถ้าอยู่ต่อ ปรับให้ได้สูงสุด 15% นะคะ', 2000); }
     if (/ลา|วันหยุด/.test(t)) return say(c, 'hr', 'วันลาพักร้อนเหลือ 6 วันค่ะ ลาผ่านระบบได้เลยนะคะ', 1600);
     const pm = t.match(/(\d+(?:\.\d+)?)\s*(%|เปอร์)/), am = t.replace(/,/g, '').match(/\d{3,}/);
@@ -1604,8 +1659,8 @@ const PERSONAL = {
     }
     if (pct <= 0) return say(c, 'hr', 'ขอเป็นตัวเลขที่มากกว่า 0 นะคะ 😅', 1500);
     if (pct > hr.cap) return say(c, 'hr', `ขึ้น ${+pct.toFixed(1)}% สูงไปหน่อยค่ะ 😅 รอบนี้ปรับได้สูงสุด ${hr.cap}% นะคะ ลองใหม่ได้ค่ะ`, 2000);
-    const nw = Math.round(hr.base * (1 + pct / 100) / 10) * 10; hr.done = true; hr.newSal = nw;
-    like(c, m, 'hr', 900); say(c, 'hr', `อนุมัติค่ะ 🎉 เงินเดือนใหม่ ${baht(nw)} บาท (ขึ้น ${+pct.toFixed(1)}%) มีผล 1 ม.ค. นะคะ`, 2400); complete('hr');
+    const nw = Math.round(hr.base * (1 + pct / 100) / 10) * 10; hr.done = true; hr.newSal = nw; const g0 = gnow(), eff = new Date(g0.getFullYear(), g0.getMonth() + 1, 1); hr.pending = nw; hr.eff = eff.getTime(); addEvent(eff, '📈', 'เงินเดือนใหม่มีผล', () => { hr.base = hr.pending; hr.pending = 0; S.toast(`📈 เงินเดือนใหม่ ${baht(hr.base)} บาท มีผลวันนี้`, 2.5); renderBank(); }); renderCal(); renderBank();
+    like(c, m, 'hr', 900); say(c, 'hr', `อนุมัติค่ะ 🎉 เงินเดือนใหม่ ${baht(nw)} บาท (ขึ้น ${+pct.toFixed(1)}%) มีผล ${thDate(eff, { day: 'numeric', month: 'short', year: 'numeric' })} นะคะ`, 2400); complete('hr');
     pushMsg('gang', 'mint', 'ได้ข่าวว่าได้ขึ้นเงินเดือน 👀 เลี้ยงหมูกระทะด้วยนะแก 🥓', 7000);
   },
   co(c, m) {
@@ -1919,13 +1974,12 @@ const EVENTS = [];
 const cal = { W: null, y: 0, m: 0, sel: 0 };
 function addEvent(d, e, t, fire, extra = {}) { const ev = { d: dayStart(d), e, t, fire, ...extra }; EVENTS.push(ev); EVENTS.sort((a, b) => a.d - b.d); return ev; }
 function buildEvents() {
-  const s0 = dayStart(Date.now()), y = new Date(s0).getFullYear();
-  for (let k = 0; k < 4; k++) {
+  const s0 = dayStart(gnow()), y = new Date(s0).getFullYear();
+  for (let k = 0; k < 13; k++) {
     const b = new Date(s0); b.setDate(1); b.setMonth(b.getMonth() + k);
     addEvent(new Date(b.getFullYear(), b.getMonth(), 5), '📒', 'ปิดงบประจำเดือน', () => { pushMsg('g', 'boss', 'วันนี้ปิดงบประจำเดือนนะ ใครยังไม่ส่งใบเสร็จ ส่งด่วนเลย 📒', 1500); });
     addEvent(new Date(b.getFullYear(), b.getMonth(), 25), '💰', 'เงินเดือนออก', salaryDay);
   }
-  addEvent(s0 + 2 * DAY, '👥', 'ประชุมทีม 10:00', () => { pushMsg('g', 'boss', 'อย่าลืมประชุมทีม 10 โมงนะทุกคน ☕', 1500); pushMsg('gang', 'mint', 'ประชุมอีกแล้ววว 🫠', 3200); });
   addEvent(s0 + 9 * DAY, '🎂', 'วันเกิดแม่', () => { S.big('🎂 วันนี้วันเกิดแม่!', 2.2, '#e0457b'); pushMsg('sis', 'sis', 'พี่ๆ วันนี้วันเกิดแม่นะ อย่าลืมส่งคำอวยพร 🎂', 2000); }, { mom: 1 });
   let ny = new Date(y, 11, 30); if (ny.getTime() < s0) ny = new Date(y + 1, 11, 30);
   addEvent(ny, '🎉', 'ทริปปีใหม่บริษัท', () => {
@@ -1940,9 +1994,9 @@ function buildEvents() {
 }
 buildEvents();
 function salaryDay() {
-  S.big('💰 เงินเดือนออก!', 2, '#2f9d5a');
-  pushMsg('hr', 'hr', `เงินเดือน ${baht(hr.newSal || hr.base)} บาท โอนเข้าบัญชีแล้วนะคะ 💰`, 1600);
-  pushMsg('dad', 'dad', 'เงินเดือนออกแล้วเลี้ยงข้าวพ่อด้วยนะ 555', 3600);
+  bankTx('💼 เงินเดือน', hr.base); renderBank(); S.big('💰 เงินเดือนออก!', 2, '#2f9d5a');
+  pushMsg('hr', 'hr', `เงินเดือน ${baht(hr.base)} บาท โอนเข้าบัญชีแล้วนะคะ 💰 ยอดในบัญชีตอนนี้ ${baht(bank.bal)} บาท`, 1600);
+  if (Math.random() < .5) pushMsg('dad', 'dad', 'เงินเดือนออกแล้วเลี้ยงข้าวพ่อด้วยนะ 555', 3600);
 }
 function interviewDay(j) {
   const pid = 'co-' + j.id;
@@ -1953,12 +2007,16 @@ function interviewDay(j) {
 // keep the game date from ever going backwards (the time setter can only move within the day)
 function enforceDate() {
   const d = dayStart(gnow()); if (d < reachedDay) dayOff += Math.round((reachedDay - d) / DAY);
-  reachedDay = Math.max(reachedDay, dayStart(gnow())); checkEvents();
+  reachedDay = Math.max(reachedDay, dayStart(gnow())); bankTick(); checkEvents();
+}
+let txDate = null, firedAcc = [];
+function fireUpTo(day) {
+  const hit = EVENTS.filter(ev => !ev.fired && ev.d <= day);
+  hit.forEach(ev => { ev.fired = true; const keep = txDate; txDate = ev.d + 10 * 3600000; try { ev.fire?.(ev); } catch (er) { console.error(er); } txDate = keep; });
+  firedAcc.push(...hit);
 }
 function checkEvents() {
-  const today = dayStart(gnow()), hit = EVENTS.filter(ev => !ev.fired && ev.d <= today);
-  if (!hit.length) return;
-  hit.forEach((ev, i) => { ev.fired = true; setTimeout(() => ev.fire?.(ev), i * 2500); });
+  fireUpTo(dayStart(gnow())); if (!firedAcc.length) return; const hit = firedAcc; firedAcc = [];
   S.toast('📅 ' + hit.map(ev => `${ev.e} ${ev.t}`).join(' · '), 3); complete('cal'); renderCal();
 }
 function advanceDays(n) {
@@ -1984,7 +2042,7 @@ function renderCal() {
   for (let i = 0; i < 42; i++) {
     const d = dayStart(start + i * DAY + 3 * 3600000), dt = new Date(d), evs = EVENTS.filter(ev => ev.d === d);
     const cls = [dt.getMonth() !== cal.m ? 'out' : '', d < today ? 'past' : '', d === today ? 'today' : '', d === cal.sel ? 'sel' : ''].join(' ');
-    cells += `<button class="dc ${cls}" data-day="${d}"><span>${dt.getDate()}</span>${evs.slice(0, 2).map(ev => `<i>${ev.e} ${esc(ev.t)}</i>`).join('')}${evs.length > 2 ? `<i>+${evs.length - 2}</i>` : ''}</button>`;
+    cells += `<button class="dc ${cls}" data-day="${d}"><span>${dt.getDate()}</span>${evs.slice(0, 2).map(ev => `<i>${ev.e} ${esc(ev.t)}</i>`).join('')}${evs.length > 2 ? `<i>+${evs.length - 2}</i>` : ''}${bank.bills.some(b => !b.paid && b.due === d) ? '<i style="background:#ffe1e6">🧾 ครบกำหนดจ่าย</i>' : ''}</button>`;
   }
   const sel = cal.sel, sEvs = EVENTS.filter(ev => ev.d === sel), next = EVENTS.find(ev => !ev.fired && ev.d > today), up = EVENTS.filter(ev => ev.d > today).slice(0, 5), g = gnow();
   const days = Math.round((sel - today) / DAY);
@@ -1995,6 +2053,8 @@ function renderCal() {
     ${next ? `<button class="btn2 org" data-next>⏭ ข้ามไป ${next.e} ${esc(next.t)}<br><small>${thDate(next.d, { day: 'numeric', month: 'short' })} · อีก ${Math.round((next.d - today) / DAY)} วัน</small></button>` : ''}
     <h5>${thDate(sel, { weekday: 'short', day: 'numeric', month: 'long' })}</h5>
     ${sEvs.map(ev => `<div class="ev ${ev.fired && ev.d < today ? 'done' : ''}">${ev.e} ${esc(ev.t)}</div>`).join('') || '<div class="ev" style="color:var(--soft)">ไม่มีอีเวนต์</div>'}
+    ${sEvs.filter(ev => ev.meet && !ev.meet.done && !ev.fired).map(ev => `<div class="ev" style="flex-direction:column;align-items:flex-start;border:0;background:#fff6e0;border-radius:8px;padding:6px 8px"><b style="font-weight:500">📁 ต้องใส่โฟลเดอร์ "เอกสารประชุม"</b>${ev.meet.req.map(r => `<span>${FILES.some(f => f.loc === 'meet' && r.ok(f)) ? '✅' : '⬜'} ${esc(r.n)}</span>`).join('')}</div>`).join('')}
+    ${bank.bills.filter(b => !b.paid && b.due === sel).map(b => `<div class="ev">🧾 ครบกำหนด: ${esc(b.n)} ${baht(b.amt)} บาท</div>`).join('')}
     ${days > 0 ? `<button class="btn2 grn" data-jump>⏩ ข้ามไปวันนี้ (อีก ${days} วัน)</button>` : days < 0 ? '<div class="ev" style="color:#e0457b;border:0">ผ่านไปแล้ว ย้อนกลับไม่ได้ 🙅</div>' : ''}
     ${days >= 0 ? '<div class="addev"><input type="text" placeholder="เพิ่มอีเวนต์ เช่น ส่งงานลูกค้า" spellcheck="false"><button class="btn2" data-add>เพิ่ม</button></div>' : ''}
     <h5>กำลังจะมาถึง</h5>${up.map(ev => `<div class="ev">${ev.e} ${esc(ev.t)}<span style="margin-left:auto;color:var(--soft);white-space:nowrap">${thDate(ev.d, { day: 'numeric', month: 'short' })}</span></div>`).join('')}
@@ -2020,6 +2080,279 @@ function addUserEvent() {
 const deskCal = deskItem('', 33, 4, 4, '<div class="dcal"><div class="mh2"></div><b></b><small></small></div>', 'dcal');
 function updateDeskCal() { const g = gnow(); deskCal.querySelector('.mh2').textContent = thDate(g, { month: 'short' }); deskCal.querySelector('b').textContent = g.getDate(); deskCal.querySelector('small').textContent = thDate(g, { weekday: 'short' }); }
 updateDeskCal();
+
+/* ================= bank ================= */
+const bank = { bal: 0, loan: 0, tx: [], bills: [], lastDay: 0, start: 0, notes: [], tab: 'home', W: null, home: { id: 'cur', name: 'ห้องเช่าบ้านแมวน้อย', rent: 6500, km: 8 } };
+let bid = 0;
+const EXP = [['🦷', 'ทำฟัน', 800, 1500], ['📱', 'จอมือถือแตก', 1200, 2500], ['💌', 'ซองงานแต่งเพื่อน', 500, 1000], ['🐱', 'พาแมวไปหาหมอ', 600, 1800], ['🎁', 'ของขวัญวันเกิดเพื่อน', 300, 800], ['🚕', 'ค่าแท็กซี่วันฝนตก', 150, 400], ['☕', 'กาแฟทั้งสัปดาห์', 300, 600], ['🛠️', 'ซ่อมพัดลม', 350, 900], ['👟', 'รองเท้าขาด ต้องซื้อใหม่', 500, 1200], ['💊', 'ซื้อยาสามัญติดห้อง', 120, 350]];
+const XFER = [['mom', 'แม่'], ['dad', 'พ่อ'], ['sis', 'น้องสาว'], ['bro', 'พี่ชาย'], ['fon', 'ฝน'], ['mint', 'มิ้นท์']];
+const money = v => { const n = parseFloat(String(v || '').replace(/[,\s฿]/g, '')); return isFinite(n) ? Math.round(n) : NaN; };
+function bankTx(desc, amt) { bank.bal += amt; bank.tx.unshift({ d: txDate ?? gnow().getTime(), desc, amt, bal: bank.bal }); if (bank.tx.length > 80) bank.tx.pop(); }
+function bankPay(amt, desc) {
+  if (amt > bank.bal) { S.toast(`ยอดเงินไม่พอ 😢 มี ${baht(bank.bal)} บาท แต่ต้องใช้ ${baht(amt)} บาท · ลองยืมสินเชื่อในแอปธนาคารน้อย`, 3); S.tone(300, 200, .15, .08); return false; }
+  bankTx(desc, -amt); renderBank(); return true;
+}
+function addBill(e, n, amt, due) { bank.bills.push({ id: ++bid, e, n, amt, due, paid: false }); bank.notes.push(`🧾 ${n} ${baht(amt)} บาท`); }
+function newDay(d) {
+  const dt = new Date(d), D = dt.getDate(), mon = thDate(d, { month: 'short' });
+  if (D === 1) {
+    addBill('🏠', `ค่าเช่า ${bank.home.name} (${mon})`, bank.home.rent, d + 4 * DAY);
+    if (bank.loan) { const it = Math.round(bank.loan * .01); bank.loan += it; bank.notes.push(`ดอกเบี้ยสินเชื่อ +${baht(it)}`); }
+  }
+  if (D === 10) { const hot = [2, 3, 4].includes(dt.getMonth()); addBill('⚡', `ค่าไฟ (${mon})`, Math.round((700 + Math.random() * 800) * (hot ? 1.5 : 1)), d + 5 * DAY); addBill('💧', `ค่าน้ำ (${mon})`, Math.round(120 + Math.random() * 140), d + 5 * DAY); }
+  for (const b of bank.bills) if (!b.paid && !b.late && b.due < d) { b.late = true; b.amt += 100; bank.notes.push(`⚠️ ${b.n} เลยกำหนด ปรับ 100 บาท`); }
+  if (d > bank.start && Math.random() < .14) {
+    const [e, n, a, b] = pick(EXP), amt = Math.round((a + Math.random() * (b - a)) / 10) * 10;
+    if (bank.bal >= amt) { bankTx(`${e} ${n}`, -amt); bank.notes.push(`💳 ${n} −${baht(amt)}`); } else addBill(e, n, amt, d + 3 * DAY);
+  }
+}
+function bankTick(quiet) {
+  const today = dayStart(gnow());
+  while (bank.lastDay < today) { bank.lastDay = dayStart(bank.lastDay + DAY + 3 * 3600000); fireUpTo(bank.lastDay); txDate = bank.lastDay + 9 * 3600000; newDay(bank.lastDay); txDate = null; }
+  if (bank.notes.length && !quiet) { const n = bank.notes.slice(); setTimeout(() => { S.toast('🏦 ' + n.slice(-4).join(' · ') + (n.length > 4 ? ` · และอีก ${n.length - 4} รายการ` : ''), 3.5); phoneBuzz(); }, 2200); }
+  bank.notes = []; renderBank();
+}
+bank.start = dayStart(gnow()); bank.lastDay = bank.start - DAY; bankTx('ยอดยกมา', 12000); bankTick(true);
+function openBank(tab) {
+  if (tab) bank.tab = tab;
+  if (bank.W && wins.has('bank')) { focusWin(bank.W); renderBank(true); return bank.W; }
+  bank.W = openWin('bank', 'ธนาคารน้อย', h('div', { class: 'bk' }), 580, 470, '#dff5ea'); bank.W.onClose = () => { bank.W = null; };
+  bank.W.body.style.overflow = 'hidden'; bank.W.body.firstChild.addEventListener('click', bankClick);
+  renderBank(true); return bank.W;
+}
+const nextPayday = () => { const g = gnow(), d = new Date(g.getFullYear(), g.getMonth(), 25); if (dayStart(d) < dayStart(g)) d.setMonth(d.getMonth() + 1); return d; };
+function renderBank(force) {
+  if (!bank.W) return; const box = bank.W.body.firstChild;
+  if (!force && box.contains(document.activeElement) && document.activeElement.matches('input,select')) { const b = box.querySelector('.bal'); if (b) b.textContent = '฿' + baht(bank.bal); return; }
+  const unpaid = bank.bills.filter(b => !b.paid), due = unpaid.reduce((s, b) => s + b.amt, 0), today = dayStart(gnow());
+  const tabs = [['home', 'ภาพรวม'], ['bills', `บิล${unpaid.length ? ` (${unpaid.length})` : ''}`], ['xfer', 'โอนเงิน'], ['loan', 'สินเชื่อ'], ['tx', 'รายการ']];
+  const row = (a, b, cls = '') => `<div class="row3"><span>${a}</span><b class="${cls}">${b}</b></div>`;
+  let body = '';
+  if (bank.tab === 'home') body = `<div class="card3">${row('💼 เงินเดือนปัจจุบัน', baht(hr.base) + ' บาท')}${hr.pending ? row('📈 ปรับเป็น', `${baht(hr.pending)} บาท (มีผล ${thDate(hr.eff, { day: 'numeric', month: 'short' })})`, 'pos') : ''}${row('📅 เงินเดือนออกครั้งถัดไป', thDate(nextPayday(), { day: 'numeric', month: 'short', year: 'numeric' }))}</div>
+    <div class="card3">${row('🏠 ที่พักตอนนี้', esc(bank.home.name))}${row('ค่าเช่า/เดือน', baht(bank.home.rent) + ' บาท')}${row('ค่าเช่าคิดเป็น', Math.round(bank.home.rent / hr.base * 100) + '% ของเงินเดือน', bank.home.rent / hr.base > .3 ? 'neg' : 'pos')}</div>
+    <div class="card3">${row('🧾 บิลค้างจ่าย', unpaid.length ? `${unpaid.length} รายการ · ${baht(due)} บาท` : 'ไม่มี 🎉', unpaid.length ? 'neg' : 'pos')}${row('🏦 หนี้สินเชื่อ', bank.loan ? baht(bank.loan) + ' บาท' : '0', bank.loan ? 'neg' : '')}</div>
+    <small style="color:var(--soft)">เป็นธนาคารในเกม ไม่ได้คิดภาษีหรือประกันสังคม · ค่าเช่าเรียกเก็บวันที่ 1 · ค่าน้ำไฟวันที่ 10 · มีค่าใช้จ่ายสุ่มบางวัน</small>`;
+  if (bank.tab === 'bills') body = (unpaid.length ? `<button class="btn2 grn" data-payall style="align-self:flex-start">จ่ายทั้งหมด ${baht(due)} บาท</button>` : '<div class="card3">ไม่มีบิลค้าง 🎉</div>')
+    + unpaid.map(b => `<div class="card3 row3"><span>${b.e} ${esc(b.n)}<br><small class="${b.due < today ? 'neg' : ''}" style="color:${b.due < today ? '#e0457b' : 'var(--soft)'}">ครบกำหนด ${thDate(b.due, { day: 'numeric', month: 'short' })}${b.late ? ' · เลยกำหนด (ปรับแล้ว)' : ''}</small></span><span style="display:flex;gap:8px;align-items:center"><b>${baht(b.amt)}</b><button class="btn2 pri" data-paybill="${b.id}">จ่าย</button></span></div>`).join('')
+    + (bank.bills.some(b => b.paid) ? `<h5 style="margin:6px 0 0;font-weight:500;color:var(--soft)">จ่ายแล้ว</h5>${bank.bills.filter(b => b.paid).slice(-5).reverse().map(b => `<div class="row3" style="color:var(--soft)"><span>${b.e} ${esc(b.n)}</span><span>${baht(b.amt)} ✓</span></div>`).join('')}` : '');
+  if (bank.tab === 'xfer') body = `<div class="card3" style="display:flex;flex-direction:column;gap:8px"><label>โอนให้ <select class="xto">${XFER.map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></label><label>จำนวนเงิน <input class="xamt" type="text" inputmode="numeric" placeholder="เช่น 500"></label><div class="qa">${[100, 500, 1000, 2000].map(v => `<button class="btn2" data-qa="${v}">${baht(v)}</button>`).join('')}</div><label>บันทึกช่วยจำ <input class="xnote" type="text" placeholder="เช่น ค่าขนม" spellcheck="false"></label><button class="btn2 grn" data-xfer>💸 โอนเงิน</button></div>`;
+  if (bank.tab === 'loan') { const lim = hr.base * 3 - bank.loan; body = `<div class="card3">${row('วงเงินกู้ได้อีก', baht(Math.max(0, lim)) + ' บาท')}${row('หนี้ตอนนี้', baht(bank.loan) + ' บาท', bank.loan ? 'neg' : '')}<small style="color:var(--soft)">วงเงิน 3 เท่าของเงินเดือน · ดอกเบี้ย 1% ต่อเดือน คิดทุกวันที่ 1 (ในเกม)</small></div>
+    <div class="card3" style="display:flex;flex-direction:column;gap:6px"><label>ยืมเพิ่ม <input class="lamt" type="text" inputmode="numeric" placeholder="จำนวนเงิน"></label><button class="btn2 pri" data-borrow>🏦 ยืมเงิน</button></div>
+    <div class="card3" style="display:flex;flex-direction:column;gap:6px"><label>คืนเงิน <input class="ramt" type="text" inputmode="numeric" placeholder="จำนวนเงิน"></label><button class="btn2 grn" data-repay>ชำระคืน</button></div>`; }
+  if (bank.tab === 'tx') body = bank.tx.map(t => `<div class="row3"><span>${esc(t.desc)}<br><small style="color:var(--soft)">${thDate(t.d, { day: 'numeric', month: 'short', year: '2-digit' })}</small></span><b class="${t.amt < 0 ? 'neg' : 'pos'}">${t.amt < 0 ? '−' : '+'}${baht(Math.abs(t.amt))}</b></div>`).join('');
+  box.innerHTML = `<div class="bh"><small>บัญชีออมทรัพย์ · ${esc(chat.account?.name || 'ของฉัน')}</small><div class="bal">฿${baht(bank.bal)}</div><small>เงินเดือน ${baht(hr.base)} บาท/เดือน · ออกทุกวันที่ 25</small></div>
+    <div class="tabs2">${tabs.map(([k, n]) => `<button data-btab="${k}" class="${k === bank.tab ? 'on' : ''}">${n}</button>`).join('')}</div><div class="bb2">${body}</div>`;
+}
+function payBill(b) { if (!bankPay(b.amt, `${b.e} จ่าย${b.n}`)) return false; b.paid = true; complete('bank'); S.tone(800, 1200, .1, .07, 'triangle'); return true; }
+function bankClick(e) {
+  const t = e.target, box = bank.W.body.firstChild;
+  const tb = t.closest('[data-btab]'); if (tb) { bank.tab = tb.dataset.btab; renderBank(true); return; }
+  const pb = t.closest('[data-paybill]'); if (pb) { const b = bank.bills.find(x => x.id === +pb.dataset.paybill); if (b && payBill(b)) { S.toast(`จ่าย ${b.n} แล้ว`, 1.6); renderBank(true); } return; }
+  if (t.closest('[data-payall]')) { for (const b of bank.bills.filter(x => !x.paid)) if (!payBill(b)) break; renderBank(true); return; }
+  const qa = t.closest('[data-qa]'); if (qa) { box.querySelector('.xamt').value = qa.dataset.qa; return; }
+  if (t.closest('[data-xfer]')) {
+    const k = box.querySelector('.xto').value, amt = money(box.querySelector('.xamt').value), name = XFER.find(x => x[0] === k)[1], note = box.querySelector('.xnote').value.trim();
+    if (!(amt > 0)) { S.toast('ใส่จำนวนเงินก่อนนะ', 1.5); return; }
+    if (!bankPay(amt, `💸 โอนให้${name}${note ? ' · ' + note : ''}`)) return;
+    complete('bank'); S.jingle(); S.toast(`โอนให้${name} ${baht(amt)} บาท สำเร็จ`, 2); renderBank(true);
+    const R = { mom: 'ได้รับแล้วลูก ไม่ต้องส่งมาก็ได้ เก็บไว้ใช้เถอะ แต่แม่ขอบใจนะ ❤️', dad: 'ได้รับแล้วลูก 👍 พ่อเอาไปเติมน้ำมันนะ', sis: 'เย้ เงินเข้า! ขอบคุณพี่ 💸 รักพี่ที่สุด', bro: 'ได้รับละ ค่าเน็ตบ้านครบแล้วนะน้อง 555', fon: 'ได้รับแล้ว ค่าหมูกระทะใช่ป่ะ 🥓', mint: 'เงินเข้าแล้ว ขอบใจนะแก 💕' };
+    pushMsg(k === 'fon' || k === 'mint' ? 'gang' : k, k, R[k] + ` (${baht(amt)} บาท)`, 2200); return;
+  }
+  if (t.closest('[data-borrow]')) {
+    const amt = money(box.querySelector('.lamt').value), lim = hr.base * 3 - bank.loan;
+    if (!(amt > 0)) { S.toast('ใส่จำนวนเงินที่จะยืมก่อนนะ', 1.5); return; }
+    if (amt > lim) { S.toast(`ยืมได้อีกไม่เกิน ${baht(Math.max(0, lim))} บาท`, 2); return; }
+    bank.loan += amt; bankTx('🏦 สินเชื่อเงินสด', amt); S.tone(500, 900, .15, .07); S.toast(`ยืม ${baht(amt)} บาท เข้าบัญชีแล้ว · อย่าลืมคืนนะ`, 2.2); renderBank(true); return;
+  }
+  if (t.closest('[data-repay]')) {
+    const amt = money(box.querySelector('.ramt').value);
+    if (!(amt > 0) || !bank.loan) { S.toast(bank.loan ? 'ใส่จำนวนเงินก่อนนะ' : 'ไม่มีหนี้ให้คืน 🎉', 1.6); return; }
+    const pay = Math.min(amt, bank.loan); if (!bankPay(pay, '🏦 ชำระสินเชื่อ')) return;
+    bank.loan -= pay; S.toast(bank.loan ? `คืนแล้ว ${baht(pay)} เหลือหนี้ ${baht(bank.loan)} บาท` : 'ปลดหนี้สำเร็จ 🎉', 2); renderBank(true);
+  }
+}
+
+/* ================= dorms (search tab) ================= */
+const DORMS = [
+  { id: 'd1', name: 'หอแมวเหมียว เพลส', rent: 4500, size: '24 ตร.ม.', km: 3, e: '🐱', c: '#ffe1c4', feat: ['แอร์ + เครื่องทำน้ำอุ่น', 'เลี้ยงแมวได้', 'มีร้านข้าวใต้หอ'] },
+  { id: 'd2', name: 'คอนโดฟ้าคราม', rent: 8900, size: '30 ตร.ม.', km: 1.5, e: '🏙️', c: '#d9ecff', feat: ['ใกล้รถไฟฟ้า', 'สระว่ายน้ำ + ฟิตเนส', 'รปภ. 24 ชม.'] },
+  { id: 'd3', name: 'บ้านเช่าสวนกล้วย', rent: 7000, size: 'บ้านเดี่ยว 2 ห้องนอน', km: 12, e: '🏡', c: '#d8f5c8', feat: ['มีสวนหน้าบ้าน', 'เลี้ยงหมาได้', 'ที่จอดรถ 2 คัน'] },
+  { id: 'd4', name: 'หอพักหมีน้อย', rent: 3200, size: '18 ตร.ม.', km: 15, e: '🐻', c: '#f0e2d0', feat: ['ราคาประหยัด', 'พัดลม (ไม่มีแอร์)', 'ห้องน้ำในตัว'] },
+  { id: 'd5', name: 'ลอฟต์ริมน้ำ', rent: 12000, size: '35 ตร.ม.', km: 1, e: '🌊', c: '#cdeffd', feat: ['วิวแม่น้ำ', 'เฟอร์นิเจอร์ครบ', 'เดินไปออฟฟิศได้'] },
+];
+const DORM_WORD = /หอ|ห้องเช่า|คอนโด|ย้ายบ้าน|บ้านเช่า|อพาร์ต/;
+const moveCost = d => d.rent * 3 + 1500;
+function showDorms(q) {
+  const list = DORMS.filter(d => !q || DORM_WORD.test(q) || d.name.includes(q) || d.feat.some(f => f.includes(q)));
+  res().innerHTML = `<p class="note">ตอนนี้อยู่ที่ ${esc(bank.home.name)} · ค่าเช่า ${baht(bank.home.rent)} บาท/เดือน · ห่างออฟฟิศ ${bank.home.km} กม. · เว็บหาห้องในเกม</p><div class="hlist">${(list.length ? list : DORMS).map(d => `<div class="hc" data-dorm="${d.id}"><div class="dart" style="--c:${d.c}">${d.e}</div><div><h4>${esc(d.name)}${bank.home.id === d.id ? ' <small style="color:#2f9d5a">(อยู่ที่นี่)</small>' : ''}</h4><small>📍 ห่างออฟฟิศ ${d.km} กม. · ${esc(d.size)}</small><p>${esc(d.feat.join(' · '))}</p><span class="pr">฿${baht(d.rent)}</span> <small>/ เดือน</small></div></div>`).join('')}</div>`;
+}
+function showDorm(id) {
+  const d = DORMS.find(x => x.id === id), here = bank.home.id === d.id;
+  res().innerHTML = `<p class="note"><a data-back="dorm">← กลับไปรายการหอพัก</a></p><div class="hd"><div class="dart" style="--c:${d.c};width:100%;height:130px;font-size:64px">${d.e}</div><h3>${esc(d.name)}</h3><small>📍 ห่างออฟฟิศ ${d.km} กม. · ${esc(d.size)}</small><div><span class="pr" style="font-size:20px">฿${baht(d.rent)}</span> ต่อเดือน</div><ul>${d.feat.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
+    <div class="cartbox"><div><span>เงินประกัน 2 เดือน</span><span>${baht(d.rent * 2)}</span></div><div><span>ค่าเช่าล่วงหน้า 1 เดือน</span><span>${baht(d.rent)}</span></div><div><span>ค่าขนย้าย</span><span>1,500</span></div><div style="border-top:1px dashed #f3b3c8;margin-top:4px;padding-top:4px"><b>ต้องจ่ายตอนย้ายเข้า</b><b class="pr">${baht(moveCost(d))}</b></div><div><span>ยอดเงินในธนาคารตอนนี้</span><span>${baht(bank.bal)}</span></div></div>
+    <div class="iv"><div class="acts"><button class="btn2" data-savedorm="${d.id}">💾 บันทึกข้อมูลหอพัก</button>${here ? '<b style="color:#2f9d5a">อยู่ที่นี่แล้ว 🏠</b>' : `<button class="btn2 pri" data-move="${d.id}">🚚 ย้ายเข้าที่นี่</button>`}</div></div></div>`;
+}
+function saveInfo(kind, obj) {
+  const nm = kind === 'hotelinfo' ? `ที่พัก-${obj.key}.doc` : `หอพัก-${obj.name}.doc`;
+  if (FILES.some(f => f.name === nm && f.loc !== 'trash')) { S.toast(`มีไฟล์ "${nm}" อยู่แล้ว`, 1.6); return; }
+  const html = kind === 'hotelinfo'
+    ? `<div class="paper"><h3>🏨 ${esc(obj.name)}</h3><p>📍 จ.${esc(obj.where)} · ⭐ ${obj.rate}<br>ราคา <b>${baht(obj.price)}</b> บาท / ห้อง / คืน</p><ul>${obj.feat.map(f => `<li>${esc(f)}</li>`).join('')}</ul><p style="color:#888">บันทึกจากเสิร์ชน้อย</p></div>`
+    : `<div class="paper"><h3>🏠 ${esc(obj.name)}</h3><p>ค่าเช่า <b>${baht(obj.rent)}</b> บาท/เดือน · ${esc(obj.size)} · ห่างออฟฟิศ ${obj.km} กม.<br>ต้องจ่ายตอนย้ายเข้า ${baht(moveCost(obj))} บาท</p><ul>${obj.feat.map(f => `<li>${esc(f)}</li>`).join('')}</ul><p style="color:#888">บันทึกจากเสิร์ชน้อย</p></div>`;
+  FILES.push({ id: 'u' + (++uid), name: nm, type: 'doc', kind, ref: obj.id, html, loc: 'down' }); renderDesktop();
+  S.tone(400, 900, .2, .07, 'triangle'); S.toast(`บันทึก "${nm}" ไว้ในโฟลเดอร์ ดาวน์โหลด แล้ว · ลากให้น้องเอไอใช้ได้`, 2.6);
+}
+async function moveTo(d) {
+  const cost = moveCost(d);
+  const { v } = await dialog(se.W, `ย้ายไป <b>${esc(d.name)}</b>?<br>ต้องจ่าย ${baht(cost)} บาท (ยอดเงินตอนนี้ ${baht(bank.bal)} บาท)<br><small>เดือนหน้าค่าเช่าจะเป็น ${baht(d.rent)} บาท</small>`, [['ยกเลิก', null], ['ย้ายเลย', 'ok', 'pri']]);
+  if (v !== 'ok' || !bankPay(cost, `🚚 ย้ายเข้า ${d.name}`)) return;
+  bank.home = { id: d.id, name: d.name, rent: d.rent, km: d.km }; S.jingle(); S.big('🏠 ย้ายบ้านแล้ว!', 2, '#2f9d5a'); complete('move'); showDorm(d.id); renderBank();
+  pushMsg('mom', 'mom', `ย้ายไป${d.name}เหรอลูก ส่งรูปห้องมาให้แม่ดูด้วยนะ 🏠`, 2500);
+  if (d.km <= 3) pushMsg('gang', 'mint', 'ได้ข่าวว่าย้ายมาใกล้ออฟฟิศแล้ว ต่อไปห้ามมาสายนะแก 555', 5000);
+}
+
+/* ================= meetings that need documents ================= */
+FOLDERS.push({ id: 'meet', name: 'เอกสารประชุม', c: '#ffe08a', c2: '#f2c14e' });
+FILES.push({ id: 'tpl1', name: 'เทมเพลต-สรุปทริป.doc', type: 'doc', kind: 'tpl', tplType: 'trip', loc: 'work', html: `<div class="paper"><h3>📄 เทมเพลตทีม: สรุปทริปบริษัท</h3><p>1. ที่พักที่เปรียบเทียบ: {{ตารางที่พัก}}<br>2. ที่พักที่เลือก: {{ที่พัก}} · ราคารวม {{ราคารวม}}<br>3. งบคงเหลือ: {{งบคงเหลือ}}<br>4. ข้อเสนอแนะ: {{ข้อเสนอ}}</p><p style="color:#888">วิธีใช้กับน้องเอไอ: ลากเทมเพลตนี้ + ทริปปีใหม่.xlsx + ไฟล์ข้อมูลที่พักทุกไฟล์ แล้วพิมพ์ "ทำสรุปทริป"</p></div>` });
+FILES.push({ id: 'tpl2', name: 'เทมเพลต-วาระประชุม.doc', type: 'doc', kind: 'tpl', tplType: 'agenda', loc: 'work', html: `<div class="paper"><h3>📄 เทมเพลตทีม: วาระการประชุม</h3><p>หัวข้อ: {{ชื่อการประชุม}}<br>วันที่ / เวลา: {{วันเวลา}}<br>วาระ: {{รายการวาระ}}<br>เอกสารประกอบ: {{เอกสาร}}</p><p style="color:#888">วิธีใช้กับน้องเอไอ: ลากเทมเพลตนี้ไปให้ แล้วพิมพ์ "ทำวาระประชุม"</p></div>` });
+const sumOk = f => f.id === 'x1' && (f.book.cells.B8 || '')[0] === '=' && value(f.book, 'B8') === 2059;
+const MEETS = [
+  { id: 'm1', t: 'ประชุมงบประมาณประจำเดือน', short: 'งบประมาณ', d: bank.start + 5 * DAY, agenda: ['สรุปค่าใช้จ่ายสำนักงานเดือนที่ผ่านมา', 'ติดตามใบเสร็จที่ยังไม่ส่ง', 'แผนลดค่าใช้จ่าย (เช่น ปิดแอร์ตอนพักเที่ยง)'],
+    req: [{ n: 'ค่าใช้จ่าย.xlsx (ใส่สูตรรวมยอดที่ B8 แล้ว)', ok: sumOk }, { n: 'วาระประชุม-งบประมาณ.doc (ให้น้องเอไอทำ)', ok: f => f.agendaFor === 'm1' }] },
+  { id: 'm2', t: 'ประชุมวางแผนทริปปีใหม่', short: 'ทริปปีใหม่', d: bank.start + 13 * DAY, agenda: ['เลือกที่พักทริปปีใหม่', 'สรุปงบประมาณค่าที่พัก', 'แบ่งหน้าที่จองรถและห้องพัก'],
+    req: [{ n: 'ทริปปีใหม่.xlsx (มีชื่อที่พัก + สูตรราคารวม)', ok: f => f.book && f.book.tpl === 'trip' && !!tripTotal(f.book) }, { n: 'สรุปทริปปีใหม่.doc (ให้น้องเอไอทำ)', ok: f => !!f.aiTrip }, { n: 'วาระประชุม-ทริปปีใหม่.doc (ให้น้องเอไอทำ)', ok: f => f.agendaFor === 'm2' }] },
+];
+const meetMissing = mt => mt.req.filter(r => !FILES.some(f => f.loc === 'meet' && r.ok(f)));
+function scheduleMeet(mt, d, late) {
+  mt.d = d;
+  addEvent(d - DAY, '📋', 'เตรียมเอกสาร: ' + mt.short, () => { if (!mt.done) pushMsg('boss', 'boss', `พรุ่งนี้ ${mt.t} 10 โมงนะ อย่าลืมเอาเอกสารใส่โฟลเดอร์ "เอกสารประชุม" ให้ครบ 📁`, 1500); });
+  addEvent(d, '👥', mt.t + (late ? ' (เลื่อน)' : '') + ' 10:00', () => holdMeeting(mt), { meet: mt });
+}
+function holdMeeting(mt) {
+  if (mt.done) return; const miss = meetMissing(mt);
+  if (!miss.length) { mt.done = true; pushMsg('g', 'boss', `${mt.t} เรียบร้อย เอกสารครบมาก เก่งมาก 👍`, 1500); pushMsg('g', 'bun', 'ประชุมจบไว ดีใจจัง 🎉', 3000); complete('meet'); return; }
+  let nd = new Date(mt.d + 2 * DAY + 3 * 3600000); while (nd.getDay() === 0 || nd.getDay() === 6) nd = new Date(nd.getTime() + DAY);
+  scheduleMeet(mt, dayStart(nd), true); renderCal();
+  pushMsg('boss', 'boss', `เอกสาร${mt.t}ยังไม่ครบนะ 😾 ขาด: ${miss.map(r => r.n).join(', ')} · เลื่อนประชุมไป ${thDate(nd, { weekday: 'short', day: 'numeric', month: 'short' })} เตรียมให้ครบนะ`, 1500);
+  pushMsg('gang', 'fon', 'โดนเลื่อนประชุมเหรอแก 😬 สู้ๆ', 3500);
+}
+MEETS.forEach(mt => scheduleMeet(mt, mt.d));
+
+/* ================= in-game AI helper ================= */
+const ai = { W: null, tray: [], busy: false, msgs: [{ ai: 1, html: 'สวัสดีค่ะ น้องเอไอเอง 🤖✨ ช่วยทำเอกสารจากเทมเพลต เทียบราคา คำนวณ ปรึกษาทั่วไป หรือเล่นมุกก็ได้นะ<br><b>ลากไฟล์มาวางในหน้าต่างนี้</b> หรือกด 📎 เพื่อให้น้องใช้ไฟล์ได้' }] };
+const AI_CHIPS = ['ช่วยอะไรได้บ้าง', 'ทำสรุปทริป', 'ทำวาระประชุม', 'เทียบราคา', 'เล่นมุกหน่อย', 'ชมหน่อย', 'ช่วยดูเรื่องเงิน', 'อยากย้ายหอ', 'คำนวณ 2800*6*2'];
+const JOKES = ['รู้ไหมทำไมเครื่องคิดเลขไม่เคยเหงา? เพราะมีคนมากด "บวก" ให้ทุกวัน ➕😆', 'Excel บอกคอลัมน์ว่าอะไร? "เธออยู่ในเซลล์ใจฉันเสมอ" 📊💕', 'หัวหน้าถามว่างานเสร็จยัง ฉันตอบว่า "เสร็จแล้วค่ะ… ในใจ" 🫠', 'ทำไมแมวชอบนั่งบนคีย์บอร์ด? เพราะอยากช่วยกด Ctrl+S ให้ไง 🐱💾', 'เงินเดือนออกวันที่ 25 แต่หายวันที่ 26 เพราะรีบไปหาเพื่อนชื่อ "บิล" 🧾💨', 'วันจันทร์กับกาแฟเป็นอะไรกัน? เป็นคู่ที่ขาดกันไม่ได้ ☕❤️', 'ประชุมที่ยาวที่สุดในโลกคือประชุมที่สรุปว่า "เดี๋ยวนัดประชุมใหม่" 😂'];
+const PRAISE = ['วันนี้คุณทำงานเก่งมาก น้องเอไอยกนิ้วให้เลย 👍✨', 'ไฟล์เป็นระเบียบสุดๆ หัวหน้าต้องปลื้มแน่นอน 📁💖', 'คุณคือดาวเด่นของออฟฟิศวันนี้ 🌟', 'สูตร SUM ของคุณสวยที่สุดในตึก 📊😍', 'พักดื่มน้ำบ้างนะ คนเก่งต้องดูแลตัวเองด้วย 💧💕'];
+function openAI() {
+  if (ai.W && wins.has('ai')) { focusWin(ai.W); return ai.W; }
+  const root = h('div', { class: 'aiw' }, `<div class="tray"></div><div class="ams"></div><div class="think"></div><div class="chips2">${AI_CHIPS.map(c => `<button data-aq="${c}">${c}</button>`).join('')}</div><div class="acomp"><button class="att" title="แนบไฟล์">📎</button><input type="text" placeholder="สั่งงานน้องเอไอ เช่น ทำสรุปทริป" spellcheck="false"><button class="snd">ส่ง</button></div>`);
+  ai.W = openWin('ai', 'น้องเอไอ — ผู้ช่วยในเกม', root, 600, 470, '#efe6ff'); ai.W.ai = true; ai.W.onClose = () => { ai.W = null; }; ai.W.body.style.overflow = 'hidden';
+  const inp = root.querySelector('.acomp input'), send = () => { const v = inp.value.trim(); if (!v) return; inp.value = ''; aiSend(v); };
+  root.querySelector('.snd').addEventListener('click', send);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+  root.addEventListener('click', e => {
+    const t = e.target, q = t.closest('[data-aq]'); if (q) { aiSend(q.dataset.aq); return; }
+    const rm = t.closest('[data-rm]'); if (rm) { ai.tray = ai.tray.filter(id => id !== rm.dataset.rm); renderAI(); return; }
+    const op = t.closest('[data-open]'); if (op) { const f = FILES.find(x => x.id === op.dataset.open); if (f) openFile(f); return; }
+    const tm = t.closest('[data-tomeet]'); if (tm) { const f = FILES.find(x => x.id === tm.dataset.tomeet); if (f) { moveFile(f, 'meet'); renderDesktop(); } return; }
+    if (t.closest('.att')) aiPicker();
+    const pf = t.closest('.pick [data-f]'); if (pf) { t.closest('.pick').remove(); aiAttach(FILES.find(f => f.id === pf.dataset.f)); }
+  });
+  renderAI(); setTimeout(() => inp.focus(), 50); return ai.W;
+}
+function aiPicker() {
+  const comp = ai.W.body.querySelector('.acomp'), old = comp.querySelector('.pick'); if (old) { old.remove(); return; }
+  const files = FILES.filter(f => f.loc !== 'trash' && !ai.tray.includes(f.id));
+  comp.append(h('div', { class: 'pick' }, `<h5>เลือกไฟล์ให้น้องเอไอ</h5>${files.map(f => `<button data-f="${f.id}"><i class="ab" style="--c:${TYPES[f.type][1]}">${TYPES[f.type][0]}</i><span>${esc(f.name)}</span></button>`).join('')}`));
+}
+function aiAttach(f) {
+  if (!f) return; openAI(); if (!ai.tray.includes(f.id)) ai.tray.push(f.id);
+  S.tone(700, 1000, .06, .05); renderAI();
+}
+const trayFiles = () => ai.tray.map(id => FILES.find(f => f.id === id)).filter(Boolean);
+function renderAI() {
+  if (!ai.W) return; const root = ai.W.body.firstChild, tf = trayFiles();
+  root.querySelector('.tray').innerHTML = tf.length ? '📂 ' + tf.map(f => `<span>${esc(f.name)}<button data-rm="${f.id}" aria-label="เอาออก">×</button></span>`).join('') : '<span class="hint2" style="background:none">📂 ลากไฟล์มาวางในหน้าต่างนี้ เพื่อให้น้องเอไอใช้</span>';
+  const ms = root.querySelector('.ams');
+  ms.innerHTML = ai.msgs.map(m => `<div class="am ${m.ai ? '' : 'me'}">${m.ai ? '<div class="av" style="--c:#e3d8ff">🤖</div>' : ''}<div class="bb">${m.ai ? m.html : esc(m.text)}</div></div>`).join('');
+  ms.scrollTop = ms.scrollHeight;
+  root.querySelector('.think').textContent = ai.busy ? 'น้องเอไอกำลังคิด…' : '';
+}
+function aiSend(text) {
+  openAI(); ai.msgs.push({ text }); ai.busy = true; renderAI(); S.tone(900, 1100, .04, .04);
+  setTimeout(() => { ai.busy = false; ai.msgs.push({ ai: 1, html: aiReply(text) }); renderAI(); S.tone(1046, 1318, .07, .06, 'triangle'); }, 700 + Math.random() * 600);
+}
+function aiDoc(name, html, extra) {
+  let f = FILES.find(x => x.name === name && x.loc !== 'trash');
+  if (!f) { f = { id: 'u' + (++uid), name, type: 'doc', kind: 'aidoc', loc: 'desk' }; FILES.push(f); deskPos[f.id] = firstFree(); }
+  Object.assign(f, { html, ...extra }); closeWin('view-' + f.id, true); renderDesktop(); return f;
+}
+const docActs = f => `<div class="aacts"><button data-open="${f.id}">📄 เปิดดู</button><button data-tomeet="${f.id}">📁 ใส่โฟลเดอร์เอกสารประชุม</button></div>`;
+function aiReply(raw) {
+  const t = raw.trim(), tf = trayFiles();
+  if (/ช่วยอะไร|ทำอะไรได้|help|เมนู/i.test(t)) return 'น้องเอไอทำได้หลายอย่างเลย ✨<ul><li><b>ทำสรุปทริป</b> — ใช้เทมเพลตทีม + ทริปปีใหม่.xlsx + ไฟล์ข้อมูลที่พักทั้งหมด</li><li><b>ทำวาระประชุม</b> — ใช้เทมเพลตวาระประชุม กับนัดประชุมถัดไปในปฏิทิน</li><li><b>เทียบราคา</b> — ที่พักหรือหอพักจากไฟล์ที่ลากมา</li><li><b>คำนวณ</b> เช่น "คำนวณ 2800*6*2"</li><li>ปรึกษาเรื่องเงิน ย้ายหอ งาน หรือขอกำลังใจ เล่นมุก</li></ul>เทมเพลตอยู่ในโฟลเดอร์ <b>งานด่วน</b> นะ';
+  if (/สรุป.*ทริป|ทริป.*สรุป/.test(t)) return aiTrip(tf);
+  if (/วาระ|เอกสารประชุม|เตรียมประชุม/.test(t)) return aiAgenda(tf);
+  if (/คำนวณ|^[\d\s.,+\-*/x×÷()]+$/.test(t) && /\d\s*[+\-*/x×÷]\s*\d/.test(t)) return aiCalc(t);
+  if (/เทียบ|เปรียบเทียบ|ถูกสุด|ถูกที่สุด/.test(t)) return aiCompare(tf);
+  if (/มุก|ตลก|ขำ|joke/i.test(t)) return pick(JOKES);
+  if (/ชม|กำลังใจ|เก่งไหม/.test(t)) return pick(PRAISE);
+  if (/เงิน|ออม|ใช้จ่าย|บิล|หนี้|งบ/.test(t)) return aiMoney();
+  if (DORM_WORD.test(t) || /ย้าย/.test(t)) return aiDorm();
+  if (/เหนื่อย|เครียด|ท้อ|เบื่อ/.test(t)) return 'เหนื่อยก็พักก่อนได้นะ 🫶 ลุกไปยืดเส้น ดื่มน้ำ แล้วค่อยทำต่อทีละอย่าง น้องเอไอเป็นกำลังใจให้เสมอ 💜';
+  if (/หัวหน้า/.test(t)) return 'เรื่องหัวหน้า… น้องเอไอแนะนำให้คุยกันตรงๆ แบบสุภาพ และส่งงานให้ครบก่อนประชุมนะ 😺 แล้วอย่าเผลอนินทาในกลุ่มทีมล่ะ!';
+  if (/งานใหม่|หางาน|ลาออก|สัมภาษณ์|เรซูเม่/.test(t)) return 'ถ้าจะหางานใหม่: อัปเดตเรซูเม่ในแคนวาน้อย → ส่งออก PDF → สมัครในจ๊อบน้อย 💼 ส่วนวันสัมภาษณ์จะขึ้นในปฏิทินให้เองนะ';
+  if (/สวัสดี|หวัดดี|hello|hi\b/i.test(t)) return 'สวัสดีค่ะ 👋 วันนี้อยากให้น้องเอไอช่วยอะไรดี?';
+  if (/ขอบคุณ|ขอบใจ|thank/i.test(t)) return 'ยินดีเสมอเลย 💜';
+  return 'น้องเอไอเป็นผู้ช่วยในเกม ยังตอบเรื่องนี้ไม่ได้นะ 🙏 ลองพิมพ์ "ช่วยอะไรได้บ้าง" ดู';
+}
+function aiTrip(tf) {
+  const tpl = tf.find(f => f.kind === 'tpl' && f.tplType === 'trip'), sheet = tf.find(f => f.book && f.book.tpl === 'trip'), hs = tf.filter(f => f.kind === 'hotelinfo'), miss = [];
+  if (!tpl) miss.push('📄 เทมเพลต-สรุปทริป.doc (อยู่ในโฟลเดอร์ งานด่วน)');
+  if (!sheet) miss.push('📊 ทริปปีใหม่.xlsx');
+  else if (!tripTotal(sheet.book)) miss.push('📊 ทริปปีใหม่.xlsx ยังไม่มีชื่อที่พักกับสูตรราคารวม');
+  if (hs.length < 2) miss.push(`🏨 ไฟล์ข้อมูลที่พักอย่างน้อย 2 แห่ง (ตอนนี้มี ${hs.length}) · กด "บันทึกข้อมูลที่พัก" ในเสิร์ชน้อย แท็บที่พัก`);
+  if (miss.length) return `ยังทำไม่ได้นะ ไฟล์ยังไม่ครบ 🙏 ขาด:<ul>${miss.map(x => `<li>${x}</li>`).join('')}</ul>ลากไฟล์มาวางในหน้าต่างนี้ แล้วสั่งใหม่ได้เลย`;
+  const tt = tripTotal(sheet.book), rows = hs.map(f => HOTELS.find(x => x.id === f.ref)).filter(Boolean).map(x => ({ x, tot: HOTEL_TOTAL(x) })).sort((a, b) => a.tot - b.tot);
+  if (!rows.some(r => r.x.id === tt.ho.id)) rows.push({ x: tt.ho, tot: tt.total });
+  const best = rows.find(r => r.tot <= 40000);
+  const html = `<div class="paper"><h3>สรุปทริปปีใหม่บริษัท</h3><p style="color:#888;margin:0 0 8px">จากเทมเพลตทีม · จัดทำโดยน้องเอไอ · ${thDate(gnow(), { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+    <p><b>1. ที่พักที่เปรียบเทียบ</b> (12 คน · 6 ห้อง · 2 คืน · งบ 40,000 บาท)</p><table><tr><th>ที่พัก</th><th>ห้อง/คืน</th><th>รวม</th></tr>${rows.map(r => `<tr><td>${esc(r.x.name)} ${r.tot <= 40000 ? '✅' : '❌ เกินงบ'}</td><td>${baht(r.x.price)}</td><td>${baht(r.tot)}</td></tr>`).join('')}</table>
+    <p><b>2. ที่พักที่เลือก:</b> ${esc(tt.ho.name)} · ราคารวม ${baht(tt.total)} บาท</p><p><b>3. งบคงเหลือ:</b> ${baht(40000 - tt.total)} บาท ${tt.total > 40000 ? '(เกินงบ!)' : ''}</p>
+    <p><b>4. ข้อเสนอแนะ:</b> ${best ? (best.x.id === tt.ho.id ? 'ที่พักที่เลือกถูกที่สุดในงบแล้ว เยี่ยมมาก 👍' : `ถ้าอยากประหยัด ${esc(best.x.name)} ถูกกว่า ${baht(tt.total - best.tot)} บาท`) : 'ทุกที่เกินงบ ลองหาที่พักเพิ่ม'}</p></div>`;
+  const f = aiDoc('สรุปทริปปีใหม่.doc', html, { aiTrip: true }); complete('ai');
+  return `เสร็จแล้ว! ✨ ทำ <b>สรุปทริปปีใหม่.doc</b> จากเทมเพลตทีมให้แล้ว (อยู่บนหน้าจอ)<br>เทียบ ${rows.length} ที่ · ที่เลือก ${esc(tt.ho.name)} รวม ${baht(tt.total)} บาท${docActs(f)}`;
+}
+function aiAgenda(tf) {
+  const tpl = tf.find(f => f.kind === 'tpl' && f.tplType === 'agenda');
+  if (!tpl) return 'ลากไฟล์ <b>เทมเพลต-วาระประชุม.doc</b> (อยู่ในโฟลเดอร์ งานด่วน) มาให้ก่อนนะ แล้วพิมพ์ "ทำวาระประชุม" อีกครั้ง 📄';
+  const today = dayStart(gnow()), mt = MEETS.filter(m => !m.done && m.d >= today).sort((a, b) => a.d - b.d)[0];
+  if (!mt) return 'ตอนนี้ไม่มีนัดประชุมในปฏิทินเลย 🎉';
+  const html = `<div class="paper"><h3>วาระการประชุม: ${esc(mt.t)}</h3><p style="color:#888;margin:0 0 8px">จากเทมเพลตทีม · จัดทำโดยน้องเอไอ</p><p>วันที่ ${thDate(mt.d)} เวลา 10:00 น. · ห้องประชุมแมวเหมียว</p><p><b>วาระ</b></p><ol>${mt.agenda.map(a => `<li>${esc(a)}</li>`).join('')}</ol><p><b>เอกสารประกอบ</b></p><ul>${mt.req.map(r => `<li>${esc(r.n)}</li>`).join('')}</ul></div>`;
+  const f = aiDoc(`วาระประชุม-${mt.short}.doc`, html, { agendaFor: mt.id });
+  return `ทำ <b>วาระประชุม-${esc(mt.short)}.doc</b> ให้แล้ว 📋 สำหรับ ${esc(mt.t)} (${thDate(mt.d, { day: 'numeric', month: 'short' })})<br>อย่าลืมเอาเอกสารเหล่านี้ใส่โฟลเดอร์ <b>เอกสารประชุม</b>:<ul>${mt.req.map(r => `<li>${FILES.some(x => x.loc === 'meet' && r.ok(x)) ? '✅' : '⬜'} ${esc(r.n)}</li>`).join('')}</ul>${docActs(f)}`;
+}
+function aiCalc(t) {
+  const ex = t.replace(/คำนวณ|เท่ากับ|=|\?/g, '').replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/,/g, '').trim();
+  if (!/^[\d\s.+\-*/()]+$/.test(ex)) return 'น้องเอไอคำนวณได้แค่ตัวเลขกับ + − × ÷ นะ เช่น "คำนวณ 2800*6*2"';
+  try { const r = Function('"use strict";return (' + ex + ')')(); if (typeof r !== 'number' || !isFinite(r)) throw 0; return `${esc(ex)} = <b>${r.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</b> 🧮`; } catch (e) { return 'สูตรนี้น้องเอไออ่านไม่ออก ลองใหม่นะ 🙏'; }
+}
+function aiCompare(tf) {
+  let hs = tf.filter(f => f.kind === 'hotelinfo').map(f => HOTELS.find(x => x.id === f.ref)).filter(Boolean);
+  const ds = tf.filter(f => f.kind === 'dorminfo').map(f => DORMS.find(x => x.id === f.ref)).filter(Boolean);
+  let out = '', note = '';
+  if (!hs.length && !ds.length) { hs = HOTELS.slice(); note = '<small>(ยังไม่ได้ลากไฟล์มา เลยเทียบที่พักทั้งหมดจากเสิร์ชน้อยให้ก่อนนะ)</small><br>'; }
+  if (hs.length) { const r = hs.map(x => ({ x, tot: HOTEL_TOTAL(x) })).sort((a, b) => a.tot - b.tot); out += `<b>🏨 ที่พักทริป (6 ห้อง × 2 คืน)</b><table>${r.map((o, i) => `<tr><td>${i === 0 ? '🥇 ' : ''}${esc(o.x.name)}</td><td>${baht(o.tot)}</td><td>${o.tot <= 40000 ? '✅' : '❌'}</td></tr>`).join('')}</table>ถูกสุดคือ <b>${esc(r[0].x.name)}</b>${r.find(o => o.tot <= 40000 && o.x.rate >= 4.7) ? ` · ถ้าเอาคะแนนดีด้วย ลอง ${esc(r.find(o => o.tot <= 40000 && o.x.rate >= 4.7).x.name)}` : ''}<br>`; }
+  if (ds.length) { const r = ds.slice().sort((a, b) => a.rent - b.rent); out += `<b>🏠 หอพัก</b><table>${r.map((d, i) => `<tr><td>${i === 0 ? '🥇 ' : ''}${esc(d.name)}</td><td>${baht(d.rent)}/ด.</td><td>${d.km} กม.</td></tr>`).join('')}</table>ถูกสุด <b>${esc(r[0].name)}</b> · ใกล้ออฟฟิศสุด <b>${esc(ds.slice().sort((a, b) => a.km - b.km)[0].name)}</b>`; }
+  return note + out;
+}
+function aiMoney() {
+  const unpaid = bank.bills.filter(b => !b.paid), due = unpaid.reduce((s, b) => s + b.amt, 0);
+  return `ข้อมูลจากธนาคารน้อย 🏦<ul><li>เงินในบัญชี <b>${baht(bank.bal)}</b> บาท</li><li>เงินเดือน ${baht(hr.base)} บาท/เดือน${hr.pending ? ` (จะเป็น ${baht(hr.pending)})` : ''}</li><li>ค่าเช่า ${baht(bank.home.rent)} บาท = ${Math.round(bank.home.rent / hr.base * 100)}% ของเงินเดือน</li><li>${unpaid.length ? `บิลค้าง ${unpaid.length} รายการ รวม ${baht(due)} บาท จ่ายก่อนครบกำหนดจะไม่โดนปรับ` : 'ไม่มีบิลค้าง เยี่ยม! 🎉'}</li>${bank.loan ? `<li>หนี้สินเชื่อ ${baht(bank.loan)} บาท ดอกเบี้ย 1%/เดือน รีบคืนได้จะดี</li>` : ''}</ul>ลองแบ่งเก็บ 10–20% ของเงินเดือน = ${baht(Math.round(hr.base * .1))}–${baht(Math.round(hr.base * .2))} บาท/เดือน 💰 <small>(คำแนะนำในเกมนะ)</small>`;
+}
+function aiDorm() {
+  const cheap = DORMS.slice().sort((a, b) => a.rent - b.rent)[0], near = DORMS.slice().sort((a, b) => a.km - b.km)[0], pct = Math.round(bank.home.rent / hr.base * 100);
+  return `ตอนนี้ค่าเช่า ${baht(bank.home.rent)} บาท = ${pct}% ของเงินเดือน ${pct > 30 ? '(ค่อนข้างสูงนะ)' : '(โอเคเลย)'}<br>หอที่ถูกสุด: <b>${esc(cheap.name)}</b> ${baht(cheap.rent)} บาท แต่ห่าง ${cheap.km} กม.<br>ใกล้ออฟฟิศสุด: <b>${esc(near.name)}</b> ${baht(near.rent)} บาท<br>ย้ายเข้าต้องเตรียมเงินประมาณ 3 เท่าของค่าเช่า + ค่าขนย้าย ดูได้ในเสิร์ชน้อย แท็บ <b>หอพัก</b> 🏠`;
+}
 
 /* ================= views ================= */
 let currentView = 'screen';
@@ -2113,7 +2446,7 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 renderDesktop();
-window.__office = { openCal, advanceDays, EVENTS, cal, get dayOff() { return dayOff; }, gnow, openDesign, openJobs, openGames, openPhone, openTime, phone, gm, jobs, PEOPLE, get timeOff() { return timeOff; }, feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, FOLDERS, done, setView, openSheet, openSearch, openChat, openFood, typeText, setWallpaper, desktopMenu, wins, chat, food, se, HOTELS, value, tripTotal, sheetCmd, saveBook, get tool() { return tool; }, get clip() { return clip; } };
+window.__office = { bank, ai, MEETS, DORMS, openBank, openAI, aiSend, aiAttach, openCal, advanceDays, EVENTS, cal, get dayOff() { return dayOff; }, gnow, openDesign, openJobs, openGames, openPhone, openTime, phone, gm, jobs, PEOPLE, get timeOff() { return timeOff; }, feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, FOLDERS, done, setView, openSheet, openSearch, openChat, openFood, typeText, setWallpaper, desktopMenu, wins, chat, food, se, HOTELS, value, tripTotal, sheetCmd, saveBook, get tool() { return tool; }, get clip() { return clip; } };
 // for older tests: cells + value of the first workbook
 Object.defineProperty(window.__office, 'cells', { get: () => FILES.find(f => f.id === 'x1').book.cells });
 requestAnimationFrame(loop);
