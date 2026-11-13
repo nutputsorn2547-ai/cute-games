@@ -164,11 +164,11 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .ch{display:flex;height:100%;font-size:13px}
 .ch .side{width:190px;flex:none;background:#f3fbf5;border-right:1px solid #e3efe6;overflow:auto}
 .ch .meb{padding:10px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #e3efe6}
-.ch .it{display:flex;gap:8px;align-items:center;padding:8px 10px;cursor:pointer;position:relative}
-.ch .it.on{background:#d9f3e1}
+.ch .it,.pscr .it{display:flex;gap:8px;align-items:center;padding:8px 10px;cursor:pointer;position:relative}
+.ch .it.on,.pscr .it.on{background:#d9f3e1}
 .av{width:30px;height:30px;border-radius:50%;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
-.ch .it small{display:block;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}
-.ch .badge{position:absolute;right:8px;top:12px;background:#ff5a6e;color:#fff;border-radius:99px;font-size:11px;padding:0 6px}
+.ch .it small,.pscr .it small{display:block;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}
+.ch .badge,.pscr .badge{position:absolute;right:8px;top:12px;background:#ff5a6e;color:#fff;border-radius:99px;font-size:11px;padding:0 6px}
 .ch .conv{flex:1;display:flex;flex-direction:column;min-width:0;background:#d8ecf5}
 .ch .ttl{padding:8px 12px;background:#fff;border-bottom:1px solid #e5e5e5;font-weight:500}
 .ch .msgs{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
@@ -271,10 +271,99 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .switch{position:fixed;right:20px;bottom:20px;z-index:30;font:inherit;font-size:15px;border:0;border-radius:14px;padding:10px 16px;background:var(--ink);color:#fff;cursor:pointer;box-shadow:0 10px 20px -12px #000a}
 .tasks{position:fixed;left:16px;top:16px;width:236px;padding:12px 14px;background:#fff59a;border-radius:4px;transform:rotate(-1.2deg);box-shadow:0 12px 20px -14px #5a341c;font-size:12px;z-index:30;color:#4f4416;max-height:calc(100vh - 120px);overflow:auto;box-sizing:border-box}
 .tasks h3{margin:0 0 6px;font:600 16px var(--hand);cursor:pointer;display:flex;justify-content:space-between}
-.tasks.min ol{display:none}
+.tasks.min #taskList{display:none}
 .tasks ol{margin:0;padding-left:1.3em;line-height:1.5}
 .tasks li{margin-bottom:2px}
 .tasks li.done{text-decoration:line-through;color:#9c9060}
+
+.screen{container-type:inline-size}
+@container (max-width:1040px){.taskbar button .lb{display:none}}
+.taskbar .clock{cursor:pointer;border-radius:8px;padding:3px 7px}
+.taskbar .clock:hover{background:#fff}
+.tint{position:absolute;inset:0;pointer-events:none;z-index:1;transition:background .8s}
+.screen.eve .tint{background:#ff8a3c26}
+.screen.night .tint{background:#141a4a70}
+.ap{width:52px;height:52px;border-radius:15px;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 3px 6px -3px #0006;margin-top:4px}
+.tasks .tsec{font:600 13px var(--hand);margin:6px 0 2px;color:#7a6a20}
+.tm{padding:16px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.tm .big{font:600 46px var(--font);font-variant-numeric:tabular-nums;display:flex;gap:8px;align-items:center}
+.tm .col{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tm .pre{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+/* design app */
+.dz{display:flex;height:100%;font-size:12px;background:#eef1f6}
+.dz .lt{width:122px;flex:none;background:#fff;border-right:1px solid #e3e6ee;padding:8px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.dz h5{margin:4px 0 0;font-weight:500;color:var(--soft);font-size:11px}
+.dz .lt button,.dz .rt button{font:inherit;font-size:12px;border:1px solid #e3e6ee;background:#fff;border-radius:8px;padding:4px 6px;cursor:pointer;color:var(--ink)}
+.dz .emo{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.dz .lt .emo button{padding:2px;font-size:17px;border:0}
+.dz .sws{display:flex;flex-wrap:wrap;gap:5px}
+.dz .sws button{width:20px;height:20px;padding:0!important;border-radius:50%!important;background:var(--s)!important;border:2px solid #fff!important;box-shadow:0 0 0 1px #ccd}
+.dz .mid{flex:1;display:flex;flex-direction:column;min-width:0}
+.dz .dtop{display:flex;gap:6px;align-items:center;padding:6px 8px;background:#fff;border-bottom:1px solid #e3e6ee}
+.dz .dtop b{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dz .stage{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:14px;min-height:0}
+.dz .rt{width:150px;flex:none;background:#fff;border-left:1px solid #e3e6ee;padding:8px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.dz .rt textarea{font:inherit;font-size:12px;border:1px solid #dfe3ec;border-radius:8px;min-height:90px;resize:vertical;padding:6px;outline:none}
+.dz .rt textarea:focus{border-color:#00b5c8}
+.dz .row2{display:flex;gap:4px;align-items:center}
+.pgw{flex:none;position:relative}
+.dpage{position:absolute;left:0;top:0;width:420px;height:594px;background:#fff;box-shadow:0 10px 24px -12px #0005;transform-origin:top left;overflow:hidden}
+.del{position:absolute;box-sizing:border-box;cursor:move;touch-action:none;white-space:pre-wrap;line-height:1.45;font-family:var(--font);user-select:none}
+.del.on{outline:2px solid #00b5c8;outline-offset:1px}
+.del .hd{position:absolute;right:-7px;bottom:-7px;width:12px;height:12px;background:#fff;border:2px solid #00b5c8;border-radius:50%;cursor:nwse-resize}
+.pdfv{height:100%;overflow:auto;display:flex;justify-content:center;padding:12px;box-sizing:border-box;background:#eceaf2}
+.pdfv .del{cursor:default}
+/* job site */
+.jb{display:flex;flex-direction:column;height:100%;font-size:13px;background:#f6f8ff}
+.jb .hdr{display:flex;gap:10px;align-items:center;padding:10px 12px;background:#3b5bdb;color:#fff}
+.jb .hdr b{font-size:17px;white-space:nowrap}
+.jb .hdr input{flex:1;min-width:0;font:inherit;border:0;border-radius:99px;padding:6px 12px;outline:none}
+.jb .flt{display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap}
+.jb .flt button{font:inherit;font-size:12px;border:1px solid #d5dcf5;background:#fff;border-radius:99px;padding:2px 10px;cursor:pointer;color:var(--ink)}
+.jb .flt button.on{background:#3b5bdb;color:#fff;border-color:#3b5bdb}
+.jb .lst2{flex:1;overflow:auto;padding:0 12px 12px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.job{background:#fff;border-radius:12px;padding:10px 12px;border:1px solid #e3e8fb;cursor:pointer;display:flex;gap:10px;align-items:center}
+.job:hover{border-color:#aebcf5}
+.job .lg{width:42px;height:42px;border-radius:10px;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.job h4{margin:0;font-weight:500;color:#2b44b0}
+.job .sal{color:#2f9d5a;font-weight:500}
+.job .tag2{font-size:11px;background:#e3f4e7;border-radius:6px;padding:0 6px;margin-left:6px;color:#2f9d5a;font-weight:400}
+.jd{background:#fff;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;line-height:1.6}
+.jd select{font:inherit;border:1px solid #d5dcf5;border-radius:8px;padding:4px;margin-left:6px}
+/* games */
+.gm{height:100%;display:flex;flex-direction:column;background:#fff8ec;font-size:13px}
+.gm .menu2{display:flex;gap:14px;justify-content:center;align-items:center;flex:1;flex-wrap:wrap;padding:12px}
+.gm .menu2 button{font:inherit;border:0;border-radius:16px;padding:14px 18px;background:#fff;box-shadow:0 6px 14px -8px #0005;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:150px;color:var(--ink)}
+.gm .menu2 button span{font-size:40px}
+.gm .bar2{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#ffe8c2;flex:none}
+.gm .bar2 b{margin-left:auto;font-variant-numeric:tabular-nums}
+.holes{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;min-height:0}
+.hole{border:0;border-radius:50%/42%;background:radial-gradient(ellipse at 50% 72%,#6b4226 0 40%,#8bc06a 41%);cursor:pointer;font-size:clamp(26px,4.6cqw,48px);position:relative;overflow:hidden;min-height:40px;padding:0}
+.hole span{position:absolute;left:50%;bottom:22%;transform:translate(-50%,260%);transition:transform .12s;line-height:1}
+.hole.up span{transform:translate(-50%,0)}
+.hole.hit span{filter:grayscale(1) brightness(1.4)}
+.cards{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px;min-height:0}
+.card2{border:0;border-radius:12px;background:#7c9cff;cursor:pointer;font:600 clamp(18px,3.4cqw,34px) var(--font);color:#fff;transition:background .2s}
+.card2.op{background:#fff;box-shadow:0 0 0 2px #7c9cff inset}
+.card2.ok{background:#d4f5d4}
+/* desk phone */
+.phone{width:84px;height:156px;border-radius:16px;background:#2b2a36;padding:6px;box-sizing:border-box;position:relative}
+.phone .scr{width:100%;height:100%;border-radius:11px;background:linear-gradient(160deg,#ffd7ec,#bfe3ff);display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 17px var(--font);color:#3a3245;gap:4px;text-align:center}
+.phone .scr small{font-size:9px;font-weight:400;line-height:1.2}
+.phone .nb2{position:absolute;right:-7px;top:-7px;background:#ff5a6e;color:#fff;border-radius:99px;font:600 11px var(--font);padding:0 6px;line-height:19px}
+.item.buzz{animation:buzz .5s}
+@keyframes buzz{0%,100%{translate:0}20%{translate:-4px 0}40%{translate:4px 0}60%{translate:-4px 0}80%{translate:4px 0}}
+.phov{position:fixed;inset:0;background:#3a2a1a66;display:flex;align-items:center;justify-content:center;z-index:40}
+.pframe{width:min(330px,80vw);height:min(640px,88vh);background:#2b2a36;border-radius:40px;padding:12px;box-sizing:border-box;box-shadow:0 30px 60px -20px #000a;display:flex}
+.pscr{flex:1;border-radius:30px;overflow:hidden;background:#fff;display:flex;flex-direction:column;font-size:13px;min-width:0}
+.pscr .sb{display:flex;justify-content:space-between;padding:9px 20px 4px;font-size:12px;font-weight:500}
+.pscr .ph{display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid #eee;font-weight:500;min-height:30px}
+.pscr .ph button{font:inherit;border:0;background:none;cursor:pointer;font-size:22px;color:var(--ink);padding:0 4px;line-height:1}
+.pscr .pl{flex:1;overflow:auto}
+.pscr .pm{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#d8ecf5;min-height:0}
+.pscr .pc2{display:flex;gap:6px;padding:8px 10px 14px;border-top:1px solid #eee}
+.pscr .pc2 input{flex:1;min-width:0;font:inherit;border:1px solid #ddd;border-radius:99px;padding:6px 10px;outline:none}
+.pscr .pc2 button{font:inherit;border:0;border-radius:99px;padding:6px 12px;background:#2fbf5a;color:#fff;cursor:pointer}
 .chip{top:auto!important;bottom:78px}
 .vcur{position:fixed;left:0;top:0;width:22px;height:22px;pointer-events:none;z-index:100;margin:-2px 0 0 -2px}
 .vcur.press path{fill:#ffd166}
@@ -285,13 +374,16 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 <div class="views" id="views">
   <section class="view" id="vScreen" aria-label="จอคอม">
     <div class="monitor"><div class="screen" id="screen">
-      <div class="icons" id="icons"></div>
+      <div class="icons" id="icons"></div><div class="tint"></div>
       <div class="taskbar" id="taskbar">
-        <button data-app="files"><i class="ab" style="--c:#f3b73a">ไ</i>ไฟล์</button>
-        <button data-app="sheet"><i class="ab" style="--c:#2f9d5a">ต</i>ตาราง</button>
-        <button data-app="search"><i class="ab" style="--c:#7c9cff">ค</i>เสิร์ชน้อย</button>
-        <button data-app="chat"><i class="ab" style="--c:#2fbf5a">ช</i>แชทน้อย</button>
-        <button data-app="food"><i class="ab" style="--c:#ff8a3d">ห</i>หิวแล้ว</button>
+        <button data-app="files" title="ไฟล์"><i class="ab" style="--c:#f3b73a">ไ</i><span class="lb">ไฟล์</span></button>
+        <button data-app="sheet" title="ตาราง"><i class="ab" style="--c:#2f9d5a">ต</i><span class="lb">ตาราง</span></button>
+        <button data-app="search" title="เสิร์ชน้อย"><i class="ab" style="--c:#7c9cff">ค</i><span class="lb">เสิร์ชน้อย</span></button>
+        <button data-app="chat" title="แชทน้อย"><i class="ab" style="--c:#2fbf5a">ช</i><span class="lb">แชทน้อย</span></button>
+        <button data-app="food" title="หิวแล้ว"><i class="ab" style="--c:#ff8a3d">ห</i><span class="lb">หิวแล้ว</span></button>
+        <button data-app="design" title="แคนวาน้อย"><i class="ab" style="--c:#00c4cc">แ</i><span class="lb">แคนวาน้อย</span></button>
+        <button data-app="jobs" title="จ๊อบน้อย"><i class="ab" style="--c:#3b5bdb">จ</i><span class="lb">จ๊อบน้อย</span></button>
+        <button data-app="game" title="เกมน้อย"><i class="ab" style="--c:#ff8fab">ก</i><span class="lb">เกมน้อย</span></button>
         <span class="clock" id="clock"></span>
       </div>
     </div></div>
@@ -303,7 +395,7 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
   </section>
 </div>
 <button class="switch" id="switchBtn">ไปที่โต๊ะ ↓</button>
-<div class="tasks" id="tasks"><h3 id="taskHead"></h3><ol id="taskList"></ol></div>
+<div class="tasks" id="tasks"><h3 id="taskHead"></h3><div id="taskList"></div></div>
 <svg class="vcur" id="vcur" viewBox="0 0 22 22" hidden><path d="M2 2 L2 18 L6.5 13.8 L9.6 20.4 L12.6 19 L9.6 12.6 L15.6 12.6 Z" fill="#fff" stroke="#3a3245" stroke-width="1.6" stroke-linejoin="round"/></svg>
 <script src="../lib/qrcode.js"></script>
 <script type="module">
@@ -311,7 +403,7 @@ import { setupShell, shellMarkup } from '../lib/shell.js?v=4';
 
 shellMarkup({
   title: 'ออฟฟิศจำลอง',
-  blurb: 'ลองทำงานออฟฟิศ: จัดไฟล์ ทำตาราง ค้นหาที่พักทริปปีใหม่ คุยแชทกับทีม สั่งข้าว แล้วจดโน้ตบนโต๊ะ',
+  blurb: 'ลองทำงานออฟฟิศ: จัดไฟล์ ทำตาราง หาที่พักทริปปีใหม่ แชทกับทีมและครอบครัว ขอขึ้นเงินเดือน แต่งเรซูเม่หางานใหม่ สั่งข้าว เล่นเกม และจดโน้ตบนโต๊ะ',
   steps: ['มือถือจะกลายเป็น <b>ทัชแพด</b> กับ <b>คีย์บอร์ด</b>', 'ลาก 1 นิ้ว = เลื่อนเมาส์ · แตะ = คลิก · แตะสองที = ดับเบิลคลิก (บนที่ว่างของจอจะมีเมนู) · 2 นิ้ว = เลื่อนหน้า'],
 });
 const S = setupShell({ game: 'office' });
@@ -342,11 +434,20 @@ const TASKS = [
   { id: 'food', t: 'สั่งข้าวเที่ยงในแอปหิวแล้ว (ปักหมุดที่อยู่ก่อนสั่ง)' },
   { id: 'hl', t: 'หยิบเอกสารบนโต๊ะมาอ่าน แล้วไฮไลท์ตรงที่สำคัญ' },
   { id: 'note', t: 'จดอะไรก็ได้ลงสมุดโน้ต' },
+  { id: 'phone', t: 'หยิบมือถือบนโต๊ะขึ้นมาดูแชท', me: 1 },
+  { id: 'family', t: 'ตอบแชทครอบครัว (แม่ พ่อ น้องสาว หรือพี่ชาย)', me: 1 },
+  { id: 'gossip', t: 'เม้าท์กับเพื่อนในกลุ่ม "แก๊งเม้าท์มอย" (ระวังส่งผิดห้อง!)', me: 1 },
+  { id: 'hr', t: 'คุยกับพี่ HR ขอขึ้นเงินเดือน (ขอเยอะไปจะโดนต่อรองนะ)', me: 1 },
+  { id: 'resume', t: 'แก้เรซูเม่ในแคนวาน้อย แล้วกด "ส่งออก PDF"', me: 1 },
+  { id: 'apply', t: 'สมัครงานใหม่ในจ๊อบน้อย โดยแนบเรซูเม่', me: 1 },
+  { id: 'game', t: 'เล่นเกมน้อย: ทุบตุ่นให้ได้ 15 แต้ม หรือจับคู่การ์ดให้ครบ', me: 1 },
+  { id: 'time', t: 'กดนาฬิกามุมขวาล่างของจอ แล้วเปลี่ยนเวลา', me: 1 },
 ];
 const done = new Set();
 function renderTasks() {
   $('taskHead').innerHTML = `<span>งานวันนี้</span><span>${done.size}/${TASKS.length} ${$('tasks').classList.contains('min') ? '▸' : '▾'}</span>`;
-  $('taskList').innerHTML = TASKS.map(t => `<li class="${done.has(t.id) ? 'done' : ''}">${esc(t.t)}</li>`).join('');
+  const li = list => list.map(t => `<li class="${done.has(t.id) ? 'done' : ''}">${esc(t.t)}</li>`).join('');
+  $('taskList').innerHTML = `<div class="tsec">💼 งานบริษัท</div><ol>${li(TASKS.filter(t => !t.me))}</ol><div class="tsec">🏠 เรื่องส่วนตัว</div><ol>${li(TASKS.filter(t => t.me))}</ol>`;
 }
 $('taskHead').addEventListener('click', () => { $('tasks').classList.toggle('min'); renderTasks(); });
 function complete(id) {
@@ -360,6 +461,7 @@ const PIC_SVG = {
   cat: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260"><rect width="400" height="260" fill="#ffe9c7"/><circle cx="200" cy="150" r="80" fill="#ffa64d"/><path d="M135 105 L150 40 L185 85 Z M265 105 L250 40 L215 85 Z" fill="#ffa64d"/><circle cx="172" cy="145" r="9" fill="#3a3245"/><circle cx="228" cy="145" r="9" fill="#3a3245"/><path d="M190 170 Q200 180 210 170" stroke="#3a3245" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="150" cy="172" rx="13" ry="7" fill="#ff8fab88"/><ellipse cx="250" cy="172" rx="13" ry="7" fill="#ff8fab88"/></svg>`,
   sea: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260"><rect width="400" height="260" fill="#9fd8ff"/><circle cx="320" cy="60" r="30" fill="#ffe27a"/><path d="M0 150 Q50 135 100 150 T200 150 T300 150 T400 150 V260 H0 Z" fill="#3fa4e8"/><path d="M0 185 Q50 170 100 185 T200 185 T300 185 T400 185 V260 H0 Z" fill="#2b86cc"/><path d="M0 225 Q120 205 260 225 T400 220 V260 H0 Z" fill="#ffe0a8"/></svg>`,
 };
+const FLOWER = svgURI(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260"><rect width="400" height="260" fill="#fff4c2"/>${[[80, 120], [200, 100], [320, 120]].map(([x, y], i) => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map(a => `<ellipse cx="0" cy="-28" rx="17" ry="28" fill="${['#ff8fab', '#ffb84d', '#c39bff'][i]}" transform="rotate(${a})"/>`).join('')}<circle r="15" fill="#ffe066"/></g>`).join('')}<text x="200" y="226" text-anchor="middle" font-family="Mitr,sans-serif" font-size="34" fill="#d8467a">สวัสดีวันศุกร์</text></svg>`);
 // offline stand-in picture for a search word: soft sky, hills and a sun, tinted by the word
 function artFor(q, i) {
   const hu = (hash(q) + i * 47) % 360, h2 = (hu + 40) % 360;
@@ -368,7 +470,7 @@ function artFor(q, i) {
 const ANIMAL = /แมว|หมา|สุนัข|กระต่าย|นก|เป็ด|ไก่|ช้าง|ม้า|วัว|หมู|ปลา|เพนกวิน|หมี|แพนด้า|จิ้งจอก|สัตว์|cat|kitten|dog|pupp|bunny|rabbit|bird|duck|panda|bear|penguin|fox|animal|hamster|แฮมสเตอร์/i;
 
 /* ================= files & folders ================= */
-const TYPES = { pdf: ['PDF', '#ff6b6b'], png: ['PNG', '#4fb3ff'], jpg: ['JPG', '#36a3d9'], xls: ['XLS', '#2f9d5a'], doc: ['DOC', '#7c6cff'] };
+const TYPES = { dsg: ['DSN', '#00c4cc'], pdf: ['PDF', '#ff6b6b'], png: ['PNG', '#4fb3ff'], jpg: ['JPG', '#36a3d9'], xls: ['XLS', '#2f9d5a'], doc: ['DOC', '#7c6cff'] };
 const FOLDERS = [{ id: 'acc', name: 'บัญชี', c: '#ffcf5a' }, { id: 'pics', name: 'รูปภาพ', c: '#8fd3ff', c2: '#5fb6ea' }, { id: 'work', name: 'งานด่วน', c: '#ffb0c8', c2: '#f08aa8' }, { id: 'trash', name: 'ถังขยะ', c: '#c9c3d6', c2: '#a9a1ba' }, { id: 'down', name: 'ดาวน์โหลด', c: '#b7e4a8', c2: '#8fcf7c' }];
 const FOLDER_COLORS = [['#ffd6a5', '#f4b878'], ['#cdb4ff', '#a98bf0'], ['#a0e7e5', '#6fcfcc'], ['#ffc6ff', '#ee9cee'], ['#fdffb6', '#e6e88a']];
 const FILES = [
@@ -386,9 +488,11 @@ const icons = $('icons'), screen = $('screen');
 let deskPos = {}; // id -> [col,row] on the desktop
 FOLDERS.slice(0, 4).forEach((f, i) => deskPos[f.id] = [0, i]);
 FILES.forEach((f, i) => { f.loc = 'desk'; deskPos[f.id] = [1 + (i >> 2), i % 4]; });
+FILES.push({ id: 'cv', name: 'เรซูเม่_ฉัน.design', type: 'dsg', kind: 'design', loc: 'desk' });
+const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c: '#00c4cc' }, { id: 'app-jobs', n: 'จ๊อบน้อย หางาน', e: '💼', c: '#3b5bdb' }, { id: 'app-game', n: 'เกมน้อย', e: '🎮', c: '#ff8fab' }, { id: 'app-food', n: 'หิวแล้ว', e: '🍱', c: '#ff8a3d' }];
 deskPos.down = [3, 0];
 const CELLW = 100, CELLH = 104;
-const onDesk = id => FOLDERS.some(x => x.id === id) || FILES.find(x => x.id === id)?.loc === 'desk';
+const onDesk = id => id.startsWith('app-') || FOLDERS.some(x => x.id === id) || FILES.find(x => x.id === id)?.loc === 'desk';
 function firstFree() {
   const cols = Math.max(1, Math.floor((icons.clientWidth - 20) / CELLW)), rows = Math.max(1, Math.floor((icons.clientHeight - 10) / CELLH));
   for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) if (!Object.entries(deskPos).some(([id, p]) => p[0] === c && p[1] === r && onDesk(id))) return [c, r];
@@ -407,10 +511,11 @@ function renderDesktop() {
   icons.innerHTML = '';
   for (const fo of FOLDERS) { const el = folderIcon(fo); place(el, fo.id); icons.append(el); }
   for (const f of FILES) if (f.loc === 'desk') { const el = fileIcon(f); place(el, f.id); icons.append(el); }
+  for (const a of APPS) { const el = h('div', { class: 'icon', 'data-id': a.id }, `<div class="ap" style="--c:${a.c}">${a.e}</div><span>${esc(a.n)}</span>`); place(el, a.id); icons.append(el); }
   for (const w of wins.values()) if (w.folder) renderFolder(w);
   checkFiles();
 }
-function place(el, id) { if (!deskPos[id]) deskPos[id] = firstFree(); const [c, r] = deskPos[id]; el.style.left = (14 + c * CELLW) + 'px'; el.style.top = (12 + r * CELLH) + 'px'; }
+function place(el, id) { if (!deskPos[id]) deskPos[id] = id.startsWith('app-') ? [Math.max(4, Math.floor((icons.clientWidth - 20) / CELLW) - 1), APPS.findIndex(a => a.id === id)] : firstFree(); const [c, r] = deskPos[id]; el.style.left = (14 + c * CELLW) + 'px'; el.style.top = (12 + r * CELLH) + 'px'; }
 function checkFiles() {
   if (FILES.filter(f => f.kind === 'rec').every(f => f.loc === 'acc')) complete('rec');
   if (FILES.filter(f => f.kind === 'pic').every(f => f.loc === 'pics')) complete('pic');
@@ -472,6 +577,7 @@ document.addEventListener('dblclick', e => {
   openItem(ic.dataset.id);
 });
 function openItem(id) {
+  const app = { 'app-design': () => openDesign(FILES.find(f => f.id === 'cv')), 'app-jobs': openJobs, 'app-game': openGames, 'app-food': openFood }[id]; if (app) { app(); return; }
   const fo = FOLDERS.find(x => x.id === id), f = FILES.find(x => x.id === id);
   if (fo) openFolder(fo); else if (f) openFile(f);
 }
@@ -534,7 +640,7 @@ function emptyTrash() {
   S.toast(gone.length ? `ลบถาวร ${gone.length} ไฟล์` : 'ไฟล์งานสำคัญลบถาวรไม่ได้นะ ย้ายกลับไปที่เดิมก่อน', 2);
 }
 function arrangeIcons() {
-  deskPos = {}; const ids = [...FOLDERS.map(x => x.id), ...FILES.filter(f => f.loc === 'desk').map(f => f.id)];
+  deskPos = {}; const ids = [...FOLDERS.map(x => x.id), ...FILES.filter(f => f.loc === 'desk').map(f => f.id), ...APPS.map(a => a.id)];
   for (const id of ids) deskPos[id] = firstFree();
   renderDesktop(); S.noise(.15, 1400, .05);
 }
@@ -624,7 +730,7 @@ function syncTaskbar() {
 }
 $('taskbar').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  ({ files: () => openFolder(FOLDERS[2]), sheet: () => openSheet(FILES.find(f => f.id === 'x1')), search: () => openSearch(), chat: () => openChat(), food: () => openFood() })[b.dataset.app]?.();
+  ({ files: () => openFolder(FOLDERS[2]), sheet: () => openSheet(FILES.find(f => f.id === 'x1')), search: () => openSearch(), chat: () => openChat(), food: () => openFood(), design: () => openDesign(FILES.find(f => f.id === 'cv')), jobs: () => openJobs(), game: () => openGames() })[b.dataset.app]?.();
 });
 // a small modal inside a window: resolves with the clicked button's value and the input's text
 function dialog(W, html, buttons, withInput) {
@@ -646,6 +752,8 @@ function renderFolder(W) {
   for (const f of list) box.append(fileIcon(f));
 }
 function openFile(f) {
+  if (f.kind === 'design') { openDesign(f); return; }
+  if (f.kind === 'resume') { openResume(f); return; }
   if (f.kind === 'sheet') { openSheet(f); return; }
   if (f.src) {
     const v = h('div', { class: 'viewer' }, `<div class="pic"><img src="${esc(f.src)}" alt="${esc(f.name)}" referrerpolicy="no-referrer"></div><div class="acts"><button class="btn2 pri" data-a="wall">🖼️ ตั้งเป็นวอลเปเปอร์</button><button class="btn2 grn" data-a="chat">💬 ส่งในแชท</button></div>`);
@@ -946,7 +1054,7 @@ async function runSearch(q) {
   if (se.tab === 'shop') return showShop(q);
   res().innerHTML = '<p class="note">กำลังค้นหา…</p>';
   if (se.tab === 'img') return showImages(q, tok);
-  const promo = HOTEL_WORD.test(q) ? `<div class="promo" data-go="hotel"><b>🏨 ที่พักแนะนำสำหรับ "${esc(q)}"</b><br><small>ดูที่พัก ${HOTELS.length} แห่ง ราคาต่อห้องต่อคืน กดเพื่อไปแท็บที่พัก</small></div>` : '';
+  const promo = (/หางาน|สมัครงาน|งานใหม่|ย้ายงาน|job/i.test(q) ? `<div class="promo" data-openapp="jobs"><b>💼 หางานใหม่ที่ จ๊อบน้อย</b><br><small>เปิดรับ ${JOBS.length} ตำแหน่ง กดเพื่อเปิดเว็บหางาน</small></div>` : '') + (HOTEL_WORD.test(q) ? `<div class="promo" data-go="hotel"><b>🏨 ที่พักแนะนำสำหรับ "${esc(q)}"</b><br><small>ดูที่พัก ${HOTELS.length} แห่ง ราคาต่อห้องต่อคืน กดเพื่อไปแท็บที่พัก</small></div>` : '');
   for (const lang of ['th', 'en']) {
     try {
       const r = await fetch(`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*&srlimit=6`);
@@ -1006,11 +1114,12 @@ async function onResultClick(e) {
   const t = e.target;
   const back = t.closest('[data-back]'); if (back) { se.tab = back.dataset.back; syncTabs(); runSearch(se.q); return; }
   const go = t.closest('[data-go]'); if (go) { setTab(go.dataset.go); return; }
+  if (t.closest('[data-openapp]')) { openJobs(); return; }
   const im = t.closest('[data-img]'); if (im) { showImage(+im.dataset.img); return; }
   const act = t.closest('[data-act]');
   if (act) { const i = +act.dataset.i; if (act.dataset.act === 'wall') { const f = downloadImg(i, true); setWallpaper(f.src); S.toast('ตั้งเป็นวอลเปเปอร์แล้ว (เก็บรูปไว้ในโฟลเดอร์ ดาวน์โหลด ด้วย)', 2.2); } if (act.dataset.act === 'dl') downloadImg(i); if (act.dataset.act === 'chat') { const f = downloadImg(i, true); if (openChat()) sendFile(f); } return; }
   const buy = t.closest('[data-buy]'); if (buy) { se.cart.push(se.shop[+buy.dataset.buy]); syncTabs(); S.tone(880, 1320, .08, .07, 'triangle'); S.toast('ใส่ตะกร้าแล้ว 🛒', 1.2); return; }
-  if (t.closest('[data-pay]')) { const tot = se.cart.reduce((s, p) => s + p[1], 0); se.cart = []; syncTabs(); S.jingle(); res().innerHTML = `<div class="cartbox" style="text-align:center"><div style="font-size:48px;justify-content:center">📦</div><b>สั่งซื้อสำเร็จ!</b><p>ยอดชำระ ฿${baht(tot)} · ของจะมาส่งที่ออฟฟิศ (ในเกมนะ)</p></div>`; return; }
+  if (t.closest('[data-pay]')) { const tot = se.cart.reduce((s, p) => s + p[1], 0), bear = se.cart.some(p => /ตุ๊กตา/.test(p[0])); se.cart = []; if (bear && !sisBear) { sisBear = true; pushMsg('sis', 'sis', 'พี่!! เห็นว่าสั่งตุ๊กตาหมีให้แล้ว 🥹🧸 รักพี่ที่สุดในโลก', 3500); } syncTabs(); S.jingle(); res().innerHTML = `<div class="cartbox" style="text-align:center"><div style="font-size:48px;justify-content:center">📦</div><b>สั่งซื้อสำเร็จ!</b><p>ยอดชำระ ฿${baht(tot)} · ของจะมาส่งที่ออฟฟิศ (ในเกมนะ)</p></div>`; return; }
   const hc = t.closest('[data-hotel]'); if (hc) { showHotel(hc.dataset.hotel); return; }
   const cp = t.closest('[data-copy]'); if (cp) { const x = HOTELS.find(y => y.id === cp.dataset.copy); copy(`${x.name} ราคา ${baht(x.price)} บาท/ห้อง/คืน`); return; }
   const sh = t.closest('[data-share]'); if (sh) { if (openChat()) { chat.cur = 'g'; renderChat(); sendMsg({ hotel: sh.dataset.share }); } return; }
@@ -1024,13 +1133,19 @@ async function onResultClick(e) {
 
 /* ================= chat app ================= */
 const ACCOUNT = { email: 'fahnai@gmail.com', pass: '12345' };
-const PEOPLE = { boss: { n: 'หัวหน้าแมว', c: '#ffd2a6', e: '🐱' }, bear: { n: 'น้องหมี', c: '#e8cfb4', e: '🐻' }, bun: { n: 'พี่กระต่าย', c: '#ffd6e3', e: '🐰' }, duck: { n: 'เป็ดน้อย', c: '#fff1a8', e: '🐥' } };
+const PEOPLE = { boss: { n: 'หัวหน้าแมว', c: '#ffd2a6', e: '🐱' }, bear: { n: 'น้องหมี', c: '#e8cfb4', e: '🐻' }, bun: { n: 'พี่กระต่าย', c: '#ffd6e3', e: '🐰' }, duck: { n: 'เป็ดน้อย', c: '#fff1a8', e: '🐥' }, mom: { n: 'แม่', c: '#ffd6e3', e: '👩' }, dad: { n: 'พ่อ', c: '#d9ecff', e: '👨' }, sis: { n: 'น้องสาว', c: '#ffe1f0', e: '👧' }, bro: { n: 'พี่ชาย', c: '#dfe8ff', e: '🧑' }, hr: { n: 'พี่ HR', c: '#e6dcff', e: '👩‍💼' }, fon: { n: 'ฝน (ฝ่ายขาย)', c: '#ffe0c8', e: '🦊' }, mint: { n: 'มิ้นท์ (การตลาด)', c: '#e0f5e0', e: '🐼' } };
 const chat = {
   account: null, cur: 'g', W: null,
   list: [
     { id: 'g', n: 'ทีมบัญชีน่ารัก', group: true, members: ['boss', 'bear', 'bun', 'duck'], unread: 2, msgs: [{ from: 'boss', text: 'ทุกคน ปีใหม่นี้ไปเที่ยวกัน 🎉 ใครหาที่พักได้ ส่งมาในกลุ่มเลยนะ งบรวมไม่เกิน 40,000' }, { from: 'duck', text: 'เย้ๆๆ อยากไปทะเล 🏖️' }] },
     { id: 'boss', n: 'หัวหน้าแมว', members: ['boss'], unread: 1, msgs: [{ from: 'boss', text: 'หาที่พักเสร็จแล้ว ส่งไฟล์สรุปราคามาให้พี่ทางนี้นะ' }] },
     { id: 'bear', n: 'น้องหมี', members: ['bear'], unread: 1, msgs: [{ from: 'bear', text: 'พี่ๆ เที่ยงนี้กินอะไรดี 🍜 สั่งในแอปหิวแล้วกันไหม' }] },
+    { id: 'gang', n: 'แก๊งเม้าท์มอย', group: true, e: '🤫', members: ['fon', 'mint'], unread: 2, msgs: [{ from: 'fon', text: 'เมื่อเช้าหัวหน้าแมวมาสายอีกแล้ว แต่ไปดุคนอื่นเรื่องมาสาย 🙄' }, { from: 'mint', text: 'ชู่ว เบาๆ 555 แกระวังส่งผิดห้องนะ' }] },
+    { id: 'hr', n: 'พี่ HR', members: ['hr'], unread: 1, msgs: [{ from: 'hr', text: 'สวัสดีค่ะ ช่วงนี้ประเมินผลประจำปีแล้วนะคะ ถ้าอยากคุยเรื่องปรับเงินเดือน พิมพ์มาได้เลยค่ะ 😊' }] },
+    { id: 'mom', n: 'แม่ 💕', members: ['mom'], unread: 2, msgs: [{ from: 'mom', text: 'ลูก กินข้าวเที่ยงยัง 🍚' }, { from: 'mom', text: 'วันหยุดกลับบ้านไหม แม่จะทำแกงเขียวหวานให้' }] },
+    { id: 'dad', n: 'พ่อ', members: ['dad'], unread: 2, msgs: [{ from: 'dad', img: FLOWER }, { from: 'dad', text: 'สวัสดีวันศุกร์ครับ ขอให้ลูกมีความสุข' }] },
+    { id: 'sis', n: 'น้องสาว', members: ['sis'], unread: 1, msgs: [{ from: 'sis', text: 'พี่ๆ ปีใหม่ซื้อตุ๊กตาหมีให้หน่อยได้ม้าย 🥺 มีในเสิร์ชน้อยแท็บช็อปปิ้งเลย' }] },
+    { id: 'bro', n: 'พี่ชาย', members: ['bro'], unread: 1, msgs: [{ from: 'bro', text: 'คืนนี้ว่างป่าว ทุบตุ่นใน "เกมน้อย" พี่ได้ 30 แต้มนะ 😎 แข่งกันมะ' }] },
   ],
 };
 const curChat = () => chat.list.find(c => c.id === chat.cur);
@@ -1091,10 +1206,13 @@ function msgHTML(m) {
   const p = PEOPLE[m.from], mine = m.from === 'me';
   return `<div class="m ${mine ? 'mine' : ''}">${mine ? '' : `<div class="av" style="--c:${p.c}">${p.e}</div>`}<div class="col">${mine ? '' : `<div class="who">${p.n}</div>`}<div class="bb">${body}</div>${m.likes && m.likes.length ? `<span class="lk">❤️ ${m.likes.length} · ${m.likes.map(k => PEOPLE[k].e).join('')}</span>` : ''}</div></div>`;
 }
+function chatListHTML(cur, attr) {
+  return chat.list.map(x => { const last = x.msgs[x.msgs.length - 1]; const lt = !last ? '' : last.text || (last.img ? '[รูปภาพ]' : last.file ? '[ไฟล์] ' + last.file.name : last.hotel ? '[ที่พัก]' : ''); const P = PEOPLE[x.id]; return `<div class="it ${x.id === cur ? 'on' : ''}" ${attr}="${x.id}"><div class="av" style="--c:${x.group ? '#c8f0d4' : P.c}">${x.group ? x.e || '👥' : P.e}</div><div><b style="font-weight:500">${esc(x.n)}</b><small>${esc(lt)}</small></div>${x.unread ? `<span class="badge">${x.unread}</span>` : ''}</div>`; }).join('');
+}
 function renderChat() {
-  syncTaskbar(); if (!chat.W || !chat.account) return;
+  renderPhone(); syncTaskbar(); if (!chat.W || !chat.account) return;
   const box = chat.W.body, c = curChat(); c.unread = 0; syncTaskbar();
-  box.querySelector('.lst').innerHTML = chat.list.map(x => { const last = x.msgs[x.msgs.length - 1]; const lt = !last ? '' : last.text || (last.img ? '[รูปภาพ]' : last.file ? '[ไฟล์] ' + last.file.name : last.hotel ? '[ที่พัก]' : ''); return `<div class="it ${x.id === chat.cur ? 'on' : ''}" data-c="${x.id}"><div class="av" style="--c:${x.group ? '#c8f0d4' : PEOPLE[x.id].c}">${x.group ? '👥' : PEOPLE[x.id].e}</div><div><b style="font-weight:500">${esc(x.n)}</b><small>${esc(lt)}</small></div>${x.unread ? `<span class="badge">${x.unread}</span>` : ''}</div>`; }).join('');
+  box.querySelector('.lst').innerHTML = chatListHTML(chat.cur, 'data-c');
   box.querySelector('.ttl').textContent = c.n + (c.group ? ` (${c.members.length + 1})` : '');
   const ms = box.querySelector('.msgs'); ms.innerHTML = c.msgs.map(msgHTML).join(''); ms.scrollTop = ms.scrollHeight;
   box.querySelector('.typing').textContent = c.typing ? `${PEOPLE[c.typing].n} กำลังพิมพ์…` : '';
@@ -1103,8 +1221,8 @@ function sendFile(f) {
   if (!chat.account) { openChat(); return; }
   if (f.src) sendMsg({ img: f.src, tag: f.tag || f.name }); else sendMsg({ file: { id: f.id, name: f.name, type: f.type } });
 }
-function sendMsg(m) {
-  const c = curChat(); m.from = 'me'; m.likes = []; c.msgs.push(m); renderChat(); S.tone(900, 1200, .06, .06);
+function sendMsg(m, c = curChat()) {
+  if (!c) return; m.from = 'me'; m.likes = []; c.msgs.push(m); renderChat(); S.tone(900, 1200, .06, .06);
   react(c, m);
 }
 // friendly bot replies: likes + a few words, a short "typing…" first
@@ -1113,12 +1231,15 @@ function say(c, who, text, at, extra = {}) {
   later(c, at - 900, () => { c.typing = who; if (chat.cur === c.id) renderChat(); });
   later(c, at, () => {
     c.typing = null; c.msgs.push({ from: who, text, likes: [], ...extra });
-    if (!(chat.W && chat.cur === c.id)) { c.unread++; S.toast(`💬 ${PEOPLE[who].n}: ${text}`, 2.4); }
+    if (!viewing(c)) { c.unread++; S.toast(`💬 ${PEOPLE[who].n}: ${text}`, 2.4); phoneBuzz(); }
     renderChat(); S.tone(1046, 1318, .07, .07, 'triangle');
   });
 }
 function like(c, m, who, at) { later(c, at, () => { if (!m.likes.includes(who)) m.likes.push(who); renderChat(); S.tone(1200, 1500, .05, .05); }); }
+const viewing = c => (chat.W && chat.account && chat.cur === c.id) || (phone.open && phone.cur === c.id);
 function react(c, m) {
+  const H = PERSONAL[c.id] || (c.id.startsWith('co-') ? PERSONAL.co : null); if (H) { H(c, m); return; }
+  if (c.id === 'g' && m.text && /หัวหน้า/.test(m.text) && /สาย|ดุ|บ่น|นินทา|ขี้|เม้าท์|เบื่อ|เหวี่ยง|งานเยอะ/.test(m.text)) { say(c, 'boss', 'พี่อ่านอยู่นะ 👀', 1700); say(c, 'duck', '😳😳😳', 2800); say(c, 'bun', 'ส่งผิดห้องป่าวเนี่ย 555', 4000); return; }
   const ppl = c.members, hotelId = m.hotel || (m.text && HOTELS.find(x => m.text.includes(x.key))?.id);
   if (hotelId) {
     const x = HOTELS.find(y => y.id === hotelId), tot = HOTEL_TOTAL(x);
@@ -1194,7 +1315,8 @@ function renderFood() {
   if (!food.W) return; const box = food.W.body.firstChild, n = cartItems().reduce((s, x) => s + x[1], 0);
   let main = '', bot = '';
   if (food.view === 'shops') {
-    main = `<p style="margin:0 0 8px;color:#8a6a4a">เที่ยงนี้กินอะไรดี? ร้านใกล้ออฟฟิศ 🏢</p><div class="shops">${SHOPS.map(s => `<button class="shop" data-shop="${s.id}"><div class="e" style="--c:${s.c}">${s.e}</div><b style="font-weight:500">${esc(s.n)}</b><small>⭐ ${(4.3 + hash(s.id) % 7 / 10).toFixed(1)} · ${15 + hash(s.n) % 20} นาที</small></button>`).join('')}</div>`;
+    const closed = gHour() >= 23 || gHour() < 6;
+    main = `${closed ? '<p style="background:#ffe9d6;padding:8px 10px;border-radius:10px;margin:0 0 8px">🌙 ร้านปิดหมดแล้ว (เปิด 06:00–23:00) ลองเปลี่ยนเวลาในคอมดูนะ</p>' : ''}<p style="margin:0 0 8px;color:#8a6a4a">เที่ยงนี้กินอะไรดี? ร้านใกล้ออฟฟิศ 🏢</p><div class="shops">${SHOPS.map(s => `<button class="shop" data-shop="${s.id}" ${closed ? 'disabled style="opacity:.5"' : ''}><div class="e" style="--c:${s.c}">${s.e}</div><b style="font-weight:500">${esc(s.n)}</b><small>⭐ ${(4.3 + hash(s.id) % 7 / 10).toFixed(1)} · ${15 + hash(s.n) % 20} นาที</small></button>`).join('')}</div>`;
   } else if (food.view === 'menu') {
     main = `<p style="margin:0 0 8px"><a data-fv="shops" style="color:#e8742b;cursor:pointer">← ร้านทั้งหมด</a> · <b>${food.shop.e} ${esc(food.shop.n)}</b></p><div class="menu">${food.shop.menu.map((m, i) => `<div class="mi"><span>${esc(m[0])}</span><b>฿${m[1]}</b><div class="qty"><button data-q="${i}" data-d="-1" aria-label="ลด">−</button><b>${food.cart[i] || 0}</b><button data-q="${i}" data-d="1" aria-label="เพิ่ม">+</button></div></div>`).join('')}</div>`;
     bot = `<span>🛒 ${n} รายการ · <b>฿${cartSum()}</b></span><button class="go" data-fv="addr" ${n ? '' : 'disabled'}>ไปเลือกที่อยู่ส่ง →</button>`;
@@ -1282,6 +1404,7 @@ addEventListener('pointerup', () => {
   if (id.startsWith('tool:')) { tool = id.slice(5); markInHand(); S.tone(880, 1100, .05, .07); S.toast(`หยิบ${TOOLS[tool].n}แล้ว · กดที่เอกสารหรือสมุดเพื่อใช้`, 2); }
   else if (id.startsWith('doc:')) openPaper(DOCS.find(x => x.id === id.slice(4)));
   else if (id === 'nb') openNotebook();
+  else if (id === 'phone') openPhone();
 });
 $('monEdge').addEventListener('click', () => setView('screen'));
 
@@ -1358,12 +1481,405 @@ function drawStroke() {
   if (tool !== 'hl' && tool !== 'eraser' && p.length % 3 === 0) S.noise(.03, tool === 'pencil' ? 4200 : 2600, .025, 'highpass');
 }
 
+/* ================= clock / time settings ================= */
+let timeOff = 0, lastMin = '', nightMsgSent = false;
+const p2 = n => String(n).padStart(2, '0');
+const gnow = () => new Date(Date.now() + timeOff);
+const gHour = () => gnow().getHours();
+$('clock').addEventListener('click', openTime);
+$('clock').title = 'กดเพื่อตั้งเวลา';
+function openTime() { const W = openWin('time', 'ตั้งเวลาเครื่อง', h('div', { class: 'tm' }), 420, 370, '#eef6ff'); renderTime(W); }
+function renderTime(W = wins.get('time')) {
+  if (!W) return; const d = gnow(), box = W.body.firstChild;
+  box.innerHTML = `<div class="big"><div class="col"><button class="btn2" data-t="60" aria-label="เพิ่มชั่วโมง">▲</button><span>${p2(d.getHours())}</span><button class="btn2" data-t="-60" aria-label="ลดชั่วโมง">▼</button></div><span>:</span><div class="col"><button class="btn2" data-t="5" aria-label="เพิ่มนาที">▲</button><span>${p2(d.getMinutes())}</span><button class="btn2" data-t="-5" aria-label="ลดนาที">▼</button></div></div>
+    <div class="pre">${[['🌅 เช้า', 8, 30], ['🍚 เที่ยง', 12, 0], ['🏃 เลิกงาน', 17, 30], ['🌙 ดึก', 22, 0]].map(([n, hh, mm]) => `<button class="btn2" data-h="${hh}" data-m="${mm}">${n} ${p2(hh)}:${p2(mm)}</button>`).join('')}</div>
+    <button class="btn2 pri" data-real>ใช้เวลาจริง</button><small style="color:var(--soft)">${timeOff ? 'ตอนนี้ใช้เวลาที่ตั้งเอง' : 'ตอนนี้ใช้เวลาจริงของเครื่อง'}</small>`;
+  box.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.t) timeOff += +b.dataset.t * 60000;
+    else if (b.dataset.h) { const t = gnow(); t.setHours(+b.dataset.h, +b.dataset.m, 0, 0); timeOff = t - new Date(); }
+    else if ('real' in b.dataset) timeOff = 0;
+    S.tone(700, 900, .04, .05); lastMin = ''; renderFood(); if (Math.abs(timeOff) > 30000) complete('time');
+  };
+}
+function applyTime() {
+  const hh = gHour(); screen.classList.toggle('eve', hh >= 17 && hh < 19); screen.classList.toggle('night', hh >= 19 || hh < 6);
+  if ((hh >= 21 || hh < 5) && !nightMsgSent) { nightMsgSent = true; pushMsg('mom', 'mom', 'ดึกแล้วนะลูก ยังไม่กลับบ้านอีกเหรอ 🌙 อย่าทำงานดึกนัก', 2500); }
+}
+
+/* ================= personal chats ================= */
+const chatById = id => chat.list.find(c => c.id === id);
+function pushMsg(id, who, text, at = 1500, extra) { const c = chatById(id); if (c) say(c, who, text, at, extra); }
+let sisBear = false, broTold = false;
+const hr = { base: 25000, cap: 10, done: false };
+const GOSSIP = ['วันนี้หัวหน้าแมวสั่งงานตอนห้าโมงเย็นอีกแล้ว 😩', 'ประชุมสองชั่วโมง สรุปว่านัดประชุมใหม่ 🫠', 'หัวหน้าบอกงานง่ายๆ แต่ให้แก้ 7 รอบ 555', 'แต่หัวหน้าเลี้ยงขนมทุกวันศุกร์ ก็ใจดีอยู่นะ 🍰', 'เมื่อกี้หัวหน้าเดินผ่าน เกือบเห็นจอ 😱'];
+const PERSONAL = {
+  mom(c, m) {
+    complete('family'); like(c, m, 'mom', 700); const t = m.text || '';
+    if (m.img) return say(c, 'mom', 'น่ารักจังลูก แม่ขอเซฟไปตั้งหน้าจอนะ 🥰', 1800);
+    if (m.file) return say(c, 'mom', 'แม่เปิดไฟล์ไม่เป็นลูก 😅 ส่งเป็นรูปมาได้ไหม', 1800);
+    if (/กิน|ข้าว/.test(t)) say(c, 'mom', 'ดีแล้วลูก กินเยอะๆ นะ อย่าลืมกินผักด้วย 🥦', 1800);
+    else if (/กลับ|บ้าน|วันหยุด/.test(t)) say(c, 'mom', 'เย้ แม่จะทำแกงเขียวหวานรอนะลูก 🍛', 1800);
+    else if (/รัก|คิดถึง/.test(t)) say(c, 'mom', 'แม่ก็รักลูกที่สุด ❤️', 1600);
+    else if (/เหนื่อย|งานเยอะ|ท้อ/.test(t)) say(c, 'mom', 'สู้ๆ นะลูก เหนื่อยก็พักบ้าง แม่เป็นกำลังใจให้ 💪', 1800);
+    else if (/ย้ายงาน|หางาน|ลาออก|สมัคร/.test(t)) say(c, 'mom', 'คิดให้ดีๆ นะลูก แม่สนับสนุนทุกทาง 😊', 1800);
+    else if (/เงินเดือน/.test(t)) say(c, 'mom', 'ได้ขึ้นเงินเดือนเหรอลูก เก่งมาก แม่ภูมิใจ 🥹', 1800);
+    else say(c, 'mom', pick(['จ้าลูก 😊', 'อย่าทำงานหนักเกินไปนะลูก', 'อากาศเย็นแล้ว ใส่เสื้อหนาวด้วยนะ', 'แม่ส่งกำลังใจให้ 💕']), 1700);
+  },
+  dad(c, m) {
+    complete('family'); like(c, m, 'dad', 1000); const t = m.text || '';
+    if (/เงิน|โอน|ค่า/.test(t)) return say(c, 'dad', 'โอนให้แล้วนะลูก 💸 ใช้ประหยัดๆ', 2200);
+    if (m.img) { say(c, 'dad', 'สวยครับ 👍', 2000); say(c, 'dad', '', 3600, { img: FLOWER }); return; }
+    say(c, 'dad', pick(['ครับ 👍', 'ดีมากลูก', 'พ่อภูมิใจในตัวลูกนะ', 'ขับรถกลับบ้านระวังๆ นะลูก']), 2200);
+  },
+  sis(c, m) {
+    complete('family'); const t = m.text || '';
+    if (m.img) return say(c, 'sis', ANIMAL.test(m.tag || '') ? 'น่ารักกก อยากเลี้ยงบ้าง 🥺' : 'สวยอะ ส่งมาอีกๆ', 1500);
+    if (sisBear) return say(c, 'sis', pick(['ขอบคุณพี่อีกรอบ 🧸💕', 'กอดตุ๊กตาหมีทุกคืนเลย 🥰']), 1500);
+    if (/ไม่ได้|ไม่ซื้อ|ไม่เอา/.test(t)) return say(c, 'sis', 'งื้ออออ 🥺 นะๆๆๆ', 1400);
+    if (/ซื้อ|ได้|โอเค|ok|จัดให้|จ้า/i.test(t)) return say(c, 'sis', 'เย้ รักพี่ที่สุดในโลก 🥰 สั่งในเสิร์ชน้อยแท็บช็อปปิ้งเลยน้า', 1500);
+    say(c, 'sis', pick(['พี่ขาาา ตุ๊กตาหมีน้า 🧸', 'ปีใหม่กลับบ้านไหมพี่', '555 พี่ตลกอะ']), 1500);
+  },
+  bro(c, m) {
+    complete('family'); const t = m.text || '', n = t.replace(/,/g, '').match(/\d+/);
+    if (n) return say(c, 'bro', +n[0] > 30 ? 'โม้ป่าว 😏 ไปเล่นให้ดูในเกมน้อยดิ' : `${n[0]} เองเหรอ พี่ได้ 30 นะ 😎`, 1600);
+    if (/เกม|เล่น|ทุบ|แข่ง/.test(t)) return say(c, 'bro', 'เข้า "เกมน้อย" ในคอมดิ ทุบตุ่นมาแข่งกัน 🔨', 1600);
+    say(c, 'bro', pick(['ว่าไงน้อง', 'คืนนี้ว่างป่าว', 'ได้ข่าวว่าจะย้ายงานเหรอ 👀', 'อย่าลืมโอนค่าเน็ตบ้านนะ 555']), 1600);
+  },
+  gang(c, m) {
+    complete('gossip'); const t = m.text || '';
+    if (m.img) { like(c, m, 'mint', 700); return say(c, 'fon', '555 อะไรเนี่ย น่ารักดี', 1500); }
+    if (m.file) return say(c, 'mint', 'ส่งงานมาทำไมแก ห้องนี้ห้องเม้าท์ 555', 1500);
+    if (/หัวหน้า|แมว/.test(t)) { like(c, m, 'fon', 600); say(c, 'fon', 'จริงงง 555 เห็นด้วยสุดๆ', 1500); say(c, 'mint', 'ชู่ว เบาๆ เดี๋ยวหัวหน้าเห็น 🤭', 2900); return; }
+    if (/ย้ายงาน|หางาน|ลาออก|สมัคร/.test(t)) { say(c, 'fon', 'แกจะไปจริงดิ 😱 อย่าทิ้งกันน้า', 1500); say(c, 'mint', 'ไปแล้วชวนด้วย 555', 2900); return; }
+    if (/เงินเดือน|ขึ้น/.test(t)) return say(c, 'mint', 'ได้ขึ้นเงินเดือนเลี้ยงหมูกระทะด้วยนะ 🥓', 1500);
+    say(c, pick(['fon', 'mint']), pick(GOSSIP), 1600);
+  },
+  hr(c, m) {
+    const t = m.text || '';
+    if (m.file) { const f = FILES.find(x => x.id === m.file.id); return say(c, 'hr', f && f.kind === 'resume' ? 'เอ๊ะ ส่งเรซูเม่มาทำไมคะ 😳 จะสมัครงานที่อื่นเหรอ…' : 'ได้รับเอกสารแล้วค่ะ', 1800); }
+    if (hr.done) return say(c, 'hr', 'เรื่องปรับเงินเดือนเรียบร้อยแล้วนะคะ มีอะไรถามได้ค่ะ 😊', 1600);
+    if (/ลาออก|ย้ายงาน|ที่ใหม่|ที่อื่น/.test(t)) { hr.cap = 15; return say(c, 'hr', 'อ้าว 😢 บริษัทไม่อยากเสียคนเก่งไปเลยค่ะ ถ้าอยู่ต่อ ปรับให้ได้สูงสุด 15% นะคะ', 2000); }
+    if (/ลา|วันหยุด/.test(t)) return say(c, 'hr', 'วันลาพักร้อนเหลือ 6 วันค่ะ ลาผ่านระบบได้เลยนะคะ', 1600);
+    const pm = t.match(/(\d+(?:\.\d+)?)\s*(%|เปอร์)/), am = t.replace(/,/g, '').match(/\d{3,}/);
+    let pct = null;
+    if (pm) pct = +pm[1]; else if (am) { const v = +am[0]; pct = v > hr.base ? (v - hr.base) / hr.base * 100 : v / hr.base * 100; }
+    if (pct === null) {
+      if (/เงินเดือน|ขึ้น|ปรับ|ขอ/.test(t)) return say(c, 'hr', `ตอนนี้เงินเดือน ${baht(hr.base)} บาท ผลงานปีนี้ได้เกรด A ค่ะ อยากปรับขึ้นกี่เปอร์เซ็นต์ หรือเป็นเงินเท่าไรคะ`, 1800);
+      return say(c, 'hr', 'สวัสดีค่ะ มีเรื่องเงินเดือน สวัสดิการ หรือวันลา สอบถามได้เลยนะคะ', 1600);
+    }
+    if (pct <= 0) return say(c, 'hr', 'ขอเป็นตัวเลขที่มากกว่า 0 นะคะ 😅', 1500);
+    if (pct > hr.cap) return say(c, 'hr', `ขึ้น ${+pct.toFixed(1)}% สูงไปหน่อยค่ะ 😅 รอบนี้ปรับได้สูงสุด ${hr.cap}% นะคะ ลองใหม่ได้ค่ะ`, 2000);
+    const nw = Math.round(hr.base * (1 + pct / 100) / 10) * 10; hr.done = true;
+    like(c, m, 'hr', 900); say(c, 'hr', `อนุมัติค่ะ 🎉 เงินเดือนใหม่ ${baht(nw)} บาท (ขึ้น ${+pct.toFixed(1)}%) มีผล 1 ม.ค. นะคะ`, 2400); complete('hr');
+    pushMsg('gang', 'mint', 'ได้ข่าวว่าได้ขึ้นเงินเดือน 👀 เลี้ยงหมูกระทะด้วยนะแก 🥓', 7000);
+  },
+  co(c, m) {
+    const t = m.text || '', who = c.members[0];
+    if (m.file) return say(c, who, 'ได้รับเอกสารเพิ่มเติมแล้วค่ะ ขอบคุณนะคะ', 1700);
+    say(c, who, /สะดวก|ได้|โอเค|ok|ค่ะ|ครับ|ยินดี/i.test(t) ? 'เยี่ยมเลยค่ะ แล้วพบกันวันจันทร์ 10:00 น. นะคะ อย่าลืมพกเอกสารมาด้วย 📁' : 'ถ้าไม่สะดวก เลือกวันอื่นได้นะคะ 😊', 1800);
+  },
+};
+
+/* ================= design app (resume) ================= */
+const DZ_THEMES = ['#00b5c8', '#ff7aa2', '#7c6cff', '#2f9d5a', '#f2994a', '#3a3245'];
+const DZ_COLORS = ['#3a3245', '#ffffff', '#6b6478', '#00b5c8', '#ff7aa2', '#7c6cff', '#2f9d5a', '#f2b24a', '#ffd166', '#e8f8fb', '#fff1f6', '#efeaff'];
+const DZ_EMO = ['⭐', '💼', '📊', '🎓', '💡', '❤️', '🌸', '✨', '📞', '✉️', '🏠', '🐱'];
+let dzId = 0, dzDrag = null;
+const dzText = (text, x, y, w, size, extra = {}) => ({ id: ++dzId, t: 'text', text, x, y, w, h: 0, size, color: '#3a3245', ...extra });
+function defaultResume() {
+  return { theme: '#00b5c8', els: [
+    { id: ++dzId, t: 'rect', x: 0, y: 0, w: 420, h: 124, fill: '#00b5c8', th: 'fill' },
+    { id: ++dzId, t: 'circle', x: 26, y: 22, w: 80, h: 80, fill: '#ffffff' },
+    dzText('🙂', 42, 32, 52, 42),
+    dzText('กุ้ง ใจดี', 122, 30, 280, 26, { bold: 1, color: '#ffffff' }),
+    dzText('นักบัญชี · ประสบการณ์ 3 ปี', 122, 70, 280, 14, { color: '#e6fbff' }),
+    dzText('📞 08x-xxx-xxxx   ✉️ kung.jaidee@email.com', 26, 138, 370, 11, { color: '#6b6478' }),
+    dzText('ประสบการณ์ทำงาน', 26, 170, 300, 16, { bold: 1, color: '#00b5c8', th: 'color' }),
+    dzText('• บริษัท น่ารัก จำกัด (2566 – ปัจจุบัน)\n   ทำบัญชี ปิดงบรายเดือน ยื่นภาษี\n• สำนักงานบัญชีดาวเล็ก (2564 – 2566)\n   บันทึกบัญชี ทำเงินเดือน', 26, 196, 370, 12),
+    dzText('ทักษะ', 26, 298, 300, 16, { bold: 1, color: '#00b5c8', th: 'color' }),
+    dzText('Excel · ภาษีอากร · ปิดงบ · ทำงานเป็นทีม · ใจเย็น', 26, 324, 370, 12),
+    dzText('การศึกษา', 26, 366, 300, 16, { bold: 1, color: '#00b5c8', th: 'color' }),
+    dzText('ปริญญาตรี บัญชีบัณฑิต มหาวิทยาลัยแมวเหมียว', 26, 392, 370, 12),
+    { id: ++dzId, t: 'rect', x: 26, y: 438, w: 368, h: 2, fill: '#00b5c8', th: 'fill' },
+    dzText('"ตั้งใจ รับผิดชอบ และพร้อมเรียนรู้สิ่งใหม่"', 26, 450, 370, 13, { color: '#6b6478', it: 1 }),
+  ] };
+}
+FILES.find(f => f.id === 'cv').design = defaultResume();
+function elStyle(e) {
+  let st = `left:${e.x}px;top:${e.y}px;width:${e.w}px;`;
+  if (e.t === 'text') st += `font-size:${e.size}px;color:${e.color};font-weight:${e.bold ? 600 : 400};${e.it ? 'font-style:italic;' : ''}`;
+  else st += `height:${e.h}px;background:${e.fill};border-radius:${e.t === 'circle' ? '50%' : '4px'};`;
+  return st;
+}
+const pageHTML = d => d.els.map(e => `<div class="del" data-el="${e.id}" style="${elStyle(e)}">${e.t === 'text' ? esc(e.text) : ''}</div>`).join('');
+function openDesign(f) {
+  const wid = 'design-' + f.id; if (wins.has(wid)) { focusWin(wins.get(wid)); return wins.get(wid); }
+  const root = h('div', { class: 'dz' }, `<div class="lt"><h5>เพิ่ม</h5><button data-add="text">＋ ข้อความ</button><button data-add="rect">▭ สี่เหลี่ยม</button><button data-add="circle">◯ วงกลม</button>
+    <h5>สติกเกอร์</h5><div class="emo">${DZ_EMO.map(e => `<button data-emo="${e}">${e}</button>`).join('')}</div>
+    <h5>ธีมสี</h5><div class="sws">${DZ_THEMES.map(c => `<button data-theme="${c}" style="--s:${c}" aria-label="ธีม ${c}"></button>`).join('')}</div></div>
+    <div class="mid"><div class="dtop"><b>${esc(f.name)}</b><button class="btn2" data-x="png" title="ดาวน์โหลดลงเครื่องจริง">⬇ PNG</button><button class="btn2 pri" data-x="pdf" title="สร้างไฟล์ PDF ในคอมจำลอง ใช้แนบสมัครงาน">📄 ส่งออก PDF</button></div><div class="stage"><div class="pgw"><div class="dpage"></div></div></div></div>
+    <div class="rt"></div>`);
+  const W = openWin(wid, f.name + ' — แคนวาน้อย', root, 820, 500, '#d9f7f8'); W.dz = { f, sel: null, s: 1 }; W.body.style.overflow = 'hidden';
+  W.onResize = () => renderDesign(W);
+  root.addEventListener('click', e => dzClick(W, e));
+  root.querySelector('.dpage').addEventListener('pointerdown', e => dzDown(W, e));
+  root.querySelector('.stage').addEventListener('pointerdown', e => { if (!e.target.isConnected || e.target.closest('.dpage')) return; if (W.dz.sel !== null) { W.dz.sel = null; renderDesign(W); renderDzPanel(W); } });
+  renderDesign(W); renderDzPanel(W);
+  return W;
+}
+function renderDesign(W) {
+  const d = W.dz.f.design, pg = W.body.querySelector('.dpage'), st = W.body.querySelector('.stage');
+  const s = clamp((st.clientWidth - 28) / 420, .3, 1.2); W.dz.s = s;
+  pg.style.transform = `scale(${s})`; const pw = W.body.querySelector('.pgw'); pw.style.width = 420 * s + 'px'; pw.style.height = 594 * s + 'px';
+  pg.innerHTML = pageHTML(d);
+  const sel = pg.querySelector(`[data-el="${W.dz.sel}"]`); if (sel) { sel.classList.add('on'); sel.append(h('i', { class: 'hd' })); }
+}
+function renderDzPanel(W) {
+  const rt = W.body.querySelector('.rt'), d = W.dz.f.design, ob = d.els.find(x => x.id === W.dz.sel);
+  if (!ob) { rt.innerHTML = `<h5>วิธีใช้</h5><p style="margin:0;line-height:1.6;color:var(--soft)">คลิกชิ้นส่วนเพื่อเลือก · ลากเพื่อย้าย · ลากจุดมุมขวาล่างเพื่อปรับขนาด<br><br>เลือกข้อความแล้วแก้ได้ที่ช่องนี้ (พิมพ์จากมือถือได้)<br><br>เสร็จแล้วกด "ส่งออก PDF" เพื่อเอาไปสมัครงาน</p>`; return; }
+  const sw = k => `<div class="sws">${DZ_COLORS.map(c => `<button data-${k}="${c}" style="--s:${c}" aria-label="สี ${c}"></button>`).join('')}</div>`;
+  rt.innerHTML = (ob.t === 'text' ? `<h5>ข้อความ</h5><textarea spellcheck="false"></textarea><h5>ขนาด ${ob.size}px</h5><div class="row2"><button data-sz="-2">A−</button><button data-sz="2">A+</button><button data-bold>${ob.bold ? '<b>B</b>✓' : '<b>B</b>'}</button><button data-ital><em>I</em>${ob.it ? '✓' : ''}</button></div><h5>สีตัวอักษร</h5>${sw('color')}` : `<h5>สีพื้น</h5>${sw('fill')}`)
+    + `<h5>จัดการ</h5><div class="row2" style="flex-wrap:wrap"><button data-z="1">ขึ้นหน้า</button><button data-z="-1">ไปหลัง</button><button data-dup>ทำสำเนา</button><button data-del style="color:#e0457b">ลบ</button></div>`;
+  const ta = rt.querySelector('textarea');
+  if (ta) {
+    ta.value = ob.text;
+    ta.addEventListener('input', () => { ob.text = ta.value; d.touched = true; const el = W.body.querySelector(`[data-el="${ob.id}"]`); if (!el) return; if (el.firstChild && el.firstChild.nodeType === 3) el.firstChild.nodeValue = ob.text; else el.prepend(document.createTextNode(ob.text)); });
+  }
+}
+function dzDown(W, e) {
+  const el = e.target.closest('.del'), d = W.dz.f.design;
+  if (!el) { if (W.dz.sel !== null) { W.dz.sel = null; renderDesign(W); renderDzPanel(W); } return; }
+  const id = +el.dataset.el, ob = d.els.find(x => x.id === id), rs = !!e.target.closest('.hd');
+  if (W.dz.sel !== id) { W.dz.sel = id; renderDesign(W); renderDzPanel(W); }
+  dzDrag = { W, ob, rs, x0: e.clientX, y0: e.clientY, ox: ob.x, oy: ob.y, ow: ob.w, oh: ob.h, moved: false };
+  e.preventDefault();
+}
+addEventListener('pointermove', e => {
+  if (!dzDrag) return; const { W, ob, rs } = dzDrag, s = W.dz.s, dx = (e.clientX - dzDrag.x0) / s, dy = (e.clientY - dzDrag.y0) / s;
+  if (!dzDrag.moved && Math.hypot(dx, dy) < 2) return; dzDrag.moved = true;
+  if (rs) { ob.w = clamp(Math.round(dzDrag.ow + dx), 16, 440); if (ob.t !== 'text') ob.h = clamp(Math.round(dzDrag.oh + dy), 2, 600); }
+  else { ob.x = clamp(Math.round(dzDrag.ox + dx), -ob.w + 12, 408); ob.y = clamp(Math.round(dzDrag.oy + dy), -20, 584); }
+  const el = W.body.querySelector(`[data-el="${ob.id}"]`); if (el) el.style.cssText = elStyle(ob);
+});
+addEventListener('pointerup', () => { if (dzDrag) { if (dzDrag.moved) { dzDrag.W.dz.f.design.touched = true; S.noise(.05, 1500, .03); } dzDrag = null; } });
+function dzClick(W, e) {
+  const b = e.target.closest('button'); if (!b) return; const d = W.dz.f.design, ob = d.els.find(x => x.id === W.dz.sel), ds = b.dataset;
+  const add = o => { d.els.push(o); W.dz.sel = o.id; d.touched = true; renderDesign(W); renderDzPanel(W); S.tone(800, 1000, .05, .05); };
+  if (ds.add === 'text') return add(dzText('ข้อความใหม่', 60, 490, 220, 14));
+  if (ds.add === 'rect') return add({ id: ++dzId, t: 'rect', x: 150, y: 250, w: 120, h: 70, fill: '#ffd166' });
+  if (ds.add === 'circle') return add({ id: ++dzId, t: 'circle', x: 170, y: 250, w: 80, h: 80, fill: '#ffd6e3' });
+  if (ds.emo) return add(dzText(ds.emo, 340, 140 + (d.els.length * 23) % 300, 54, 32));
+  if (ds.theme) { d.theme = ds.theme; d.els.forEach(x => { if (x.th === 'fill') x.fill = ds.theme; if (x.th === 'color') x.color = ds.theme; }); d.touched = true; renderDesign(W); S.tone(600, 900, .08, .06); return; }
+  if (ds.x === 'png') return dzPNG(W);
+  if (ds.x === 'pdf') return dzPDF(W);
+  if (!ob) return;
+  if (ds.color) { ob.color = ds.color; delete ob.th; }
+  if (ds.fill) { ob.fill = ds.fill; delete ob.th; }
+  if (ds.sz) ob.size = clamp(ob.size + +ds.sz, 8, 72);
+  if ('bold' in ds) ob.bold = ob.bold ? 0 : 1;
+  if ('ital' in ds) ob.it = ob.it ? 0 : 1;
+  if (ds.z) { d.els.splice(d.els.indexOf(ob), 1); if (+ds.z > 0) d.els.push(ob); else d.els.unshift(ob); }
+  if ('dup' in ds) { const c = { ...ob, id: ++dzId, x: ob.x + 14, y: ob.y + 14 }; d.els.push(c); W.dz.sel = c.id; }
+  if ('del' in ds) { d.els.splice(d.els.indexOf(ob), 1); W.dz.sel = null; }
+  d.touched = true; renderDesign(W); renderDzPanel(W); S.tone(760, 760, .03, .04);
+}
+document.addEventListener('keydown', e => {
+  const W = topWin(); if (!W || !W.dz || currentView !== 'screen' || (e.target.closest && e.target.closest('input,textarea'))) return;
+  const d = W.dz.f.design, ob = d.els.find(x => x.id === W.dz.sel); if (!ob) return;
+  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); d.els.splice(d.els.indexOf(ob), 1); W.dz.sel = null; renderDesign(W); renderDzPanel(W); return; }
+  const mv = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
+  if (mv) { e.preventDefault(); const k = e.shiftKey ? 10 : 2; ob.x += mv[0] * k; ob.y += mv[1] * k; d.touched = true; renderDesign(W); }
+});
+async function dzPNG(W) {
+  const d = W.dz.f.design, cv = document.createElement('canvas'); cv.width = 840; cv.height = 1188; const g = cv.getContext('2d'); g.scale(2, 2);
+  try { await document.fonts.load('16px Mitr'); await document.fonts.load('600 16px Mitr'); } catch (e) {}
+  const seg = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter('th', { granularity: 'word' }) : null;
+  g.fillStyle = '#fff'; g.fillRect(0, 0, 420, 594);
+  for (const e of d.els) {
+    if (e.t === 'rect') { g.fillStyle = e.fill; g.beginPath(); if (g.roundRect) g.roundRect(e.x, e.y, e.w, e.h, 4); else g.rect(e.x, e.y, e.w, e.h); g.fill(); continue; }
+    if (e.t === 'circle') { g.fillStyle = e.fill; g.beginPath(); g.ellipse(e.x + e.w / 2, e.y + e.h / 2, e.w / 2, e.h / 2, 0, 0, Math.PI * 2); g.fill(); continue; }
+    g.fillStyle = e.color; g.font = `${e.it ? 'italic ' : ''}${e.bold ? 600 : 400} ${e.size}px Mitr, sans-serif`; g.textBaseline = 'top';
+    const lh = e.size * 1.45; let y = e.y + (lh - e.size) / 2;
+    for (const para of e.text.split('\n')) {
+      const words = seg ? [...seg.segment(para)].map(x => x.segment) : [...para]; let line = '';
+      for (const wd of words) { if (line && g.measureText(line + wd).width > e.w) { g.fillText(line, e.x, y); y += lh; line = wd.trimStart(); } else line += wd; }
+      g.fillText(line, e.x, y); y += lh;
+    }
+  }
+  cv.toBlob(b => { const a = h('a', { download: W.dz.f.name.replace(/\.design$/, '') + '.png' }); a.href = URL.createObjectURL(b); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); });
+  S.toast('ดาวน์โหลดเรซูเม่เป็นรูป PNG ลงเครื่องแล้ว', 2);
+}
+function dzPDF(W) {
+  const src = W.dz.f, name = src.name.replace(/\.design$/, '') + '.pdf';
+  let f = FILES.find(x => x.kind === 'resume' && x.name === name);
+  if (!f) { f = { id: 'u' + (++uid), name, type: 'pdf', kind: 'resume', loc: 'desk' }; FILES.push(f); deskPos[f.id] = firstFree(); }
+  f.design = JSON.parse(JSON.stringify(src.design)); renderDesktop(); closeWin('view-' + f.id, true);
+  S.tone(500, 1000, .15, .08, 'triangle'); S.toast(`ส่งออก "${name}" ไว้บนหน้าจอแล้ว ใช้แนบสมัครงานได้เลย`, 2.4); complete('resume');
+}
+function openResume(f) {
+  const s = .66;
+  openWin('view-' + f.id, f.name, h('div', { class: 'pdfv' }, `<div class="pgw" style="width:${420 * s}px;height:${594 * s}px"><div class="dpage" style="transform:scale(${s})">${pageHTML(f.design)}</div></div>`), 340, 460, '#f4f0ff');
+}
+
+/* ================= job site ================= */
+const JOBS = [
+  { id: 'j1', co: 'บริษัท ขนมหวาน จำกัด', e: '🍰', c: '#ffe1ec', pos: 'นักบัญชีอาวุโส', min: 30000, max: 38000, where: 'กรุงเทพฯ · ไฮบริด', tags: ['บัญชี'], desc: 'ดูแลปิดงบรายเดือน ตรวจเอกสาร และทำงานร่วมกับผู้สอบบัญชี', need: ['ปริญญาตรีสาขาบัญชี', 'ประสบการณ์ 3 ปีขึ้นไป', 'ใช้ Excel คล่อง'], perks: ['ทำงานที่บ้านได้ 2 วัน/สัปดาห์', 'ขนมฟรีทุกวัน 🍩', 'โบนัสปีละ 2 เดือน'] },
+  { id: 'j2', co: 'สำนักงานบัญชี ดาวเด่น', e: '⭐', c: '#fff1b8', pos: 'ผู้ช่วยผู้สอบบัญชี', min: 25000, max: 32000, where: 'นนทบุรี', tags: ['บัญชี'], desc: 'ช่วยตรวจสอบงบการเงินลูกค้า เตรียมกระดาษทำการ', need: ['จบสาขาบัญชี', 'อยากเป็นผู้สอบบัญชีรับอนุญาต', 'ขับรถได้'], perks: ['สนับสนุนค่าติวสอบ', 'ประกันสุขภาพ'] },
+  { id: 'j3', co: 'บริษัท ปลาทอง โลจิสติกส์', e: '🐟', c: '#d9ecff', pos: 'เจ้าหน้าที่ภาษี', min: 28000, max: 35000, where: 'สมุทรปราการ', tags: ['ภาษี'], desc: 'ดูแลภาษีมูลค่าเพิ่ม ภาษีหัก ณ ที่จ่าย และยื่นแบบออนไลน์', need: ['รู้เรื่องภาษีอากร', 'ละเอียดรอบคอบ'], perks: ['รถรับส่งพนักงาน', 'ข้าวกลางวันฟรี'] },
+  { id: 'j4', co: 'บริษัท ช้างน้อย เทค', e: '🐘', c: '#e6dcff', pos: 'นักวิเคราะห์การเงิน', min: 40000, max: 50000, where: 'กรุงเทพฯ · ใกล้รถไฟฟ้า', tags: ['การเงิน'], desc: 'วิเคราะห์งบประมาณ ทำรายงานและแดชบอร์ดให้ผู้บริหาร', need: ['ภาษาอังกฤษดี', 'Excel ขั้นสูง'], perks: ['เวลาทำงานยืดหยุ่น', 'งบเรียนคอร์สออนไลน์'] },
+  { id: 'j5', co: 'ร้านกาแฟเมฆ', e: '☕', c: '#f0e2d0', pos: 'ผู้จัดการร้าน', min: 22000, max: 26000, where: 'เชียงใหม่', tags: ['บริการ'], desc: 'ดูแลร้าน จัดตารางพนักงาน สรุปยอดขายรายวัน', need: ['ชอบกาแฟ', 'ใจดีกับลูกค้า'], perks: ['กาแฟฟรีไม่อั้น ☕'] },
+];
+const jobs = { W: null, q: '', f: 'all', view: null, applied: new Set() };
+function openJobs() {
+  if (jobs.W && wins.has('jobs')) { focusWin(jobs.W); return jobs.W; }
+  const root = h('div', { class: 'jb' }, `<div class="hdr"><b>💼 จ๊อบน้อย</b><input type="text" placeholder="ค้นหาตำแหน่ง บริษัท จังหวัด…" spellcheck="false"></div><div class="flt">${[['all', 'ทั้งหมด'], ['บัญชี', 'บัญชี'], ['ภาษี', 'ภาษี'], ['การเงิน', 'การเงิน'], ['30k', 'เงินเดือน 30,000+']].map(([k, n]) => `<button data-f="${k}">${n}</button>`).join('')}</div><div class="lst2"></div>`);
+  jobs.W = openWin('jobs', 'จ๊อบน้อย — หางานใหม่', root, 660, 450, '#dde5ff'); jobs.W.onClose = () => { jobs.W = null; }; jobs.W.body.style.overflow = 'hidden';
+  const q = root.querySelector('.hdr input'); q.addEventListener('input', () => { jobs.q = q.value.trim(); jobs.view = null; renderJobs(); });
+  root.addEventListener('click', jobsClick); renderJobs();
+  return jobs.W;
+}
+function renderJobs() {
+  if (!jobs.W) return; const root = jobs.W.body.firstChild, box = root.querySelector('.lst2');
+  root.querySelectorAll('.flt [data-f]').forEach(b => b.classList.toggle('on', b.dataset.f === jobs.f));
+  if (jobs.view) {
+    const j = JOBS.find(x => x.id === jobs.view), resumes = FILES.filter(f => f.kind === 'resume' && f.loc !== 'trash'), ap = jobs.applied.has(j.id);
+    box.innerHTML = `<p style="margin:0"><a data-jback style="color:#3b5bdb;cursor:pointer">← กลับไปรายการงาน</a></p><div class="jd"><div class="job" style="border:0;padding:0;cursor:default"><div class="lg" style="--c:${j.c}">${j.e}</div><div><h4>${esc(j.pos)}</h4>${esc(j.co)}</div></div>
+      <div><span class="sal">฿${baht(j.min)} – ${baht(j.max)}</span> ต่อเดือน · 📍 ${esc(j.where)}</div>
+      ${ap ? '<b style="color:#2f9d5a">✓ ส่งใบสมัครแล้ว รอบริษัทติดต่อกลับทางแชท</b>' : resumes.length ? `<label>แนบเรซูเม่<select>${resumes.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('')}</select></label><button class="btn2 pri" data-apply="${j.id}" style="align-self:flex-start">📨 ส่งใบสมัคร</button>` : `<div style="background:#fff6e0;border-radius:10px;padding:8px 10px">ต้องแนบเรซูเม่เป็นไฟล์ PDF ก่อนนะ เปิดแคนวาน้อย แก้เรซูเม่ แล้วกด "ส่งออก PDF"</div><button class="btn2 pri" data-opendz style="align-self:flex-start">🎨 เปิดแคนวาน้อย</button>`}
+      <hr style="border:0;border-top:1px solid #eef"><div>${esc(j.desc)}</div>
+      <b style="font-weight:500">คุณสมบัติ</b><ul style="margin:0;padding-left:1.2em">${j.need.map(x => `<li>${esc(x)}</li>`).join('')}</ul><b style="font-weight:500">สวัสดิการ</b><ul style="margin:0;padding-left:1.2em">${j.perks.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+</div>`;
+    return;
+  }
+  const q = jobs.q, list = JOBS.filter(j => (jobs.f === 'all' || (jobs.f === '30k' ? j.min >= 30000 : j.tags.includes(jobs.f))) && (!q || [j.pos, j.co, j.where, ...j.tags].some(x => x.includes(q))));
+  box.innerHTML = `<p style="margin:0;color:var(--soft);font-size:12px">พบ ${list.length} ตำแหน่ง · เว็บหางานในเกม</p>` + (list.map(j => `<div class="job" data-job="${j.id}"><div class="lg" style="--c:${j.c}">${j.e}</div><div style="flex:1;min-width:0"><h4>${esc(j.pos)}${jobs.applied.has(j.id) ? '<span class="tag2">สมัครแล้ว</span>' : ''}</h4><div>${esc(j.co)} · 📍 ${esc(j.where)}</div><span class="sal">฿${baht(j.min)} – ${baht(j.max)}</span></div></div>`).join('') || '<p>ไม่พบงานที่ตรงกัน ลองคำอื่นนะ</p>');
+}
+function jobsClick(e) {
+  const t = e.target, fb = t.closest('.flt [data-f]'); if (fb) { jobs.f = fb.dataset.f; jobs.view = null; renderJobs(); return; }
+  const jb = t.closest('[data-job]'); if (jb) { jobs.view = jb.dataset.job; renderJobs(); jobs.W.body.querySelector('.lst2').scrollTop = 0; return; }
+  if (t.closest('[data-jback]')) { jobs.view = null; renderJobs(); return; }
+  if (t.closest('[data-opendz]')) { openDesign(FILES.find(f => f.id === 'cv')); return; }
+  const ap = t.closest('[data-apply]'); if (ap) { const j = JOBS.find(x => x.id === ap.dataset.apply), rf = FILES.find(f => f.id === jobs.W.body.querySelector('.jd select').value); applyJob(j, rf); }
+}
+function applyJob(j, rf) {
+  jobs.applied.add(j.id); renderJobs(); S.jingle(); S.toast(`ส่งใบสมัคร ${j.pos} พร้อม ${rf.name} แล้ว`, 2.4); complete('apply');
+  const pid = 'co-' + j.id; PEOPLE[pid] = { n: 'HR ' + j.co, c: j.c, e: j.e };
+  if (!chatById(pid)) chat.list.unshift({ id: pid, n: j.co, members: [pid], unread: 0, msgs: [] });
+  pushMsg(pid, pid, `สวัสดีค่ะ ได้รับใบสมัครตำแหน่ง${j.pos}แล้วนะคะ เรซูเม่สวยมาก 😊 สะดวกมาสัมภาษณ์วันจันทร์ 10:00 น. ไหมคะ`, 6000);
+  pushMsg('gang', 'fon', 'ได้ข่าวว่าแกไปสมัครงานที่ใหม่เหรอ 👀 อย่าทิ้งกันน้า', 11000);
+  renderChat();
+}
+
+/* ================= mini games ================= */
+const gm = { W: null, mode: null, best: { whack: 0, mem: 0 } };
+function openGames() {
+  if (gm.W && wins.has('game')) { focusWin(gm.W); return gm.W; }
+  gm.W = openWin('game', 'เกมน้อย', h('div', { class: 'gm' }), 540, 430, '#ffe8f0'); gm.W.onClose = () => { gm.W = null; gm.mode = null; };
+  gm.W.body.style.overflow = 'hidden'; gm.W.body.style.containerType = 'inline-size';
+  const box = gm.W.body.firstChild; box.addEventListener('click', gameClick); box.addEventListener('pointerdown', gameDown);
+  gameMenu(); return gm.W;
+}
+function gameMenu() {
+  gm.mode = null;
+  gm.W.body.firstChild.innerHTML = `<div class="menu2"><button data-g="whack"><span>🔨</span><b>ทุบตุ่น</b><small>30 วินาที · สถิติ ${gm.best.whack} แต้ม</small></button><button data-g="mem"><span>🃏</span><b>จับคู่การ์ด</b><small>${gm.best.mem ? 'ดีที่สุด ' + gm.best.mem + ' ครั้ง' : 'ยังไม่เคยเล่น'}</small></button></div>`;
+}
+function startWhack() {
+  gm.mode = 'whack'; gm.score = 0; gm.t0 = performance.now(); gm.next = 0; gm.holes = Array.from({ length: 9 }, () => ({ up: 0, until: 0, k: '🐹', hit: 0 }));
+  gm.W.body.firstChild.innerHTML = `<div class="bar2"><button class="btn2" data-g="menu">← เมนู</button><span>ทุบ 🐹 +1 · อย่าทุบแมว 🐱 −3</span><b class="sc">0 แต้ม · 30 วิ</b></div><div class="holes">${gm.holes.map((_, i) => `<button class="hole" data-h="${i}" aria-label="หลุม ${i + 1}"><span>🐹</span></button>`).join('')}</div>`;
+}
+function updateGame(now) {
+  if (!gm.W || gm.mode !== 'whack') return;
+  const left = 30 - (now - gm.t0) / 1000, box = gm.W.body.firstChild; if (left <= 0) { endWhack(); return; }
+  const lvl = 30 - left;
+  if (now > gm.next) {
+    const free = gm.holes.map((x, i) => i).filter(i => !gm.holes[i].up), i = pick(free);
+    if (i !== undefined) Object.assign(gm.holes[i], { up: 1, hit: 0, k: Math.random() < .18 ? '🐱' : '🐹', until: now + 900 + Math.random() * 400 - lvl * 12 });
+    gm.next = now + 520 + Math.random() * 360 - lvl * 7;
+  }
+  gm.holes.forEach((x, i) => {
+    if (x.up && now > x.until) x.up = 0;
+    const el = box.querySelector(`[data-h="${i}"]`); if (!el) return;
+    el.classList.toggle('up', !!x.up); el.classList.toggle('hit', !!x.hit); if (el.firstChild.textContent !== x.k) el.firstChild.textContent = x.k;
+  });
+  box.querySelector('.sc').textContent = `${gm.score} แต้ม · ${Math.ceil(left)} วิ`;
+}
+function gameDown(e) {
+  if (gm.mode !== 'whack') return; const ho = e.target.closest('.hole'); if (!ho) return;
+  const x = gm.holes[+ho.dataset.h]; if (!x.up || x.hit) return;
+  x.hit = 1; x.until = performance.now() + 220;
+  if (x.k === '🐱') { gm.score = Math.max(0, gm.score - 3); S.tone(300, 180, .15, .08); S.toast('อุ๊ย ทุบโดนแมว! −3', 1); }
+  else { gm.score++; S.tone(900, 500, .07, .09, 'square'); S.vib(15); }
+}
+function endWhack() {
+  const s = gm.score; gm.mode = 'over'; gm.best.whack = Math.max(gm.best.whack, s); if (s >= 15) complete('game');
+  gm.W.body.firstChild.innerHTML = `<div class="menu2" style="flex-direction:column;gap:8px"><div style="font-size:52px">${s >= 15 ? '🏆' : '🔨'}</div><b style="font-size:22px">ได้ ${s} แต้ม</b><span>${s >= 15 ? 'เก่งมาก!' : 'ลองอีกที ต้องได้ 15 แต้มนะ'}</span><div style="display:flex;gap:8px"><button data-g="whack" style="min-width:auto;padding:8px 16px">เล่นอีก</button><button data-g="menu" style="min-width:auto;padding:8px 16px">เมนู</button></div></div>`;
+  S.jingle();
+  if (s > 30) pushMsg('bro', 'bro', `เฮ้ย ${s} แต้ม! ชนะพี่ได้ไง 😱`, 2500);
+  else if (!broTold && s > 0) { broTold = true; pushMsg('bro', 'bro', `เห็นนะ ได้ ${s} แต้มเอง พี่ได้ 30 😎`, 2500); }
+}
+function startMem() {
+  const em = ['🐱', '🐶', '🐰', '🦊', '🐼', '🐥', '🐸', '🐙'];
+  gm.mode = 'mem'; gm.cards = [...em, ...em].map(e => ({ e, st: 0 })).sort(() => Math.random() - .5); gm.open = []; gm.moves = 0; gm.lock = false; renderMem();
+}
+function renderMem() {
+  gm.W.body.firstChild.innerHTML = `<div class="bar2"><button class="btn2" data-g="menu">← เมนู</button><span>เปิดทีละ 2 ใบ หาคู่ให้ครบ</span><b>${gm.moves} ครั้ง</b></div><div class="cards">${gm.cards.map((c, i) => `<button class="card2 ${c.st === 1 ? 'op' : c.st === 2 ? 'ok' : ''}" data-c2="${i}">${c.st ? c.e : '?'}</button>`).join('')}</div>`;
+}
+function gameClick(e) {
+  const b = e.target.closest('[data-g]'); if (b) { ({ whack: startWhack, mem: startMem, menu: gameMenu })[b.dataset.g](); S.tone(700, 900, .05, .05); return; }
+  const cb = e.target.closest('[data-c2]'); if (!cb || gm.mode !== 'mem' || gm.lock) return;
+  const card = gm.cards[+cb.dataset.c2]; if (card.st) return;
+  card.st = 1; gm.open.push(card); S.tone(800, 900, .04, .05);
+  if (gm.open.length === 2) {
+    gm.moves++; const [a, c2] = gm.open;
+    if (a.e === c2.e) { a.st = c2.st = 2; gm.open = []; S.tone(900, 1300, .1, .08, 'triangle'); if (gm.cards.every(x => x.st === 2)) setTimeout(endMem, 450); }
+    else { gm.lock = true; setTimeout(() => { a.st = c2.st = 0; gm.open = []; gm.lock = false; if (gm.mode === 'mem' && gm.W) renderMem(); }, 750); }
+  }
+  renderMem();
+}
+function endMem() {
+  if (!gm.W) return; gm.best.mem = gm.best.mem ? Math.min(gm.best.mem, gm.moves) : gm.moves; gm.mode = 'over'; complete('game'); S.jingle();
+  gm.W.body.firstChild.innerHTML = `<div class="menu2" style="flex-direction:column;gap:8px"><div style="font-size:52px">🎉</div><b style="font-size:22px">จับคู่ครบแล้ว!</b><span>ใช้ไป ${gm.moves} ครั้ง</span><div style="display:flex;gap:8px"><button data-g="mem" style="min-width:auto;padding:8px 16px">เล่นอีก</button><button data-g="menu" style="min-width:auto;padding:8px 16px">เมนู</button></div></div>`;
+}
+
+/* ================= phone on the desk ================= */
+const phone = { open: false, cur: null, el: null };
+const phoneItem = deskItem('', 24, 4, -8, '<div class="phone"><div class="scr"><span class="pt"></span><small>แตะเพื่อ<br>ดูแชท</small></div></div>', 'phone');
+function phoneBadge() { const n = chat.list.reduce((s, c) => s + c.unread, 0), ph = phoneItem.querySelector('.phone'); ph.querySelector('.nb2')?.remove(); if (n) ph.append(h('span', { class: 'nb2' }, String(n))); }
+function phoneBuzz() { phoneItem.classList.remove('buzz'); void phoneItem.offsetWidth; phoneItem.classList.add('buzz'); S.vib(30); }
+function openPhone() {
+  closeOverlay(); closePhone(); phone.open = true; phone.cur = null;
+  phone.el = h('div', { class: 'phov' }, '<div class="pframe"><div class="pscr"></div></div><button class="btn2" data-pclose style="position:absolute;right:24px;top:24px">วางมือถือ ✕</button>');
+  phone.el.addEventListener('click', e => {
+    if (e.target === phone.el || e.target.closest('[data-pclose]')) { closePhone(); return; }
+    const it = e.target.closest('[data-pc]'); if (it) { phone.cur = it.dataset.pc; renderPhone(); phone.el.querySelector('.pc2 input')?.focus(); S.tone(900, 1000, .03, .04); return; }
+    if (e.target.closest('[data-pback]')) { phone.cur = null; renderPhone(); return; }
+    if (e.target.closest('[data-psend]')) phoneSend();
+  });
+  phone.el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('.pc2 input')) { e.preventDefault(); phoneSend(); } });
+  document.body.append(phone.el); renderPhone(); complete('phone'); S.tone(900, 1200, .06, .05);
+}
+function closePhone() { if (phone.el) { phone.el.remove(); phone.el = null; } phone.open = false; phone.cur = null; }
+function phoneSend() { const inp = phone.el.querySelector('.pc2 input'), t = inp.value.trim(); if (!t) return; inp.value = ''; sendMsg({ text: t }, chatById(phone.cur)); }
+function renderPhone() {
+  phoneBadge(); if (!phone.open || !phone.el) return;
+  const scr = phone.el.querySelector('.pscr'), old = scr.querySelector('.pc2 input'), keep = old ? old.value : '', hadFocus = old && document.activeElement === old;
+  const d = gnow(), sb = `<div class="sb"><span>${p2(d.getHours())}:${p2(d.getMinutes())}</span><span>📶 🔋 87%</span></div>`;
+  if (!phone.cur) { scr.innerHTML = sb + `<div class="ph">💬 แชท</div><div class="pl">${chatListHTML(null, 'data-pc')}</div>`; return; }
+  const c = chatById(phone.cur); c.unread = 0;
+  scr.innerHTML = sb + `<div class="ph"><button data-pback aria-label="กลับ">‹</button>${esc(c.n)}</div><div class="pm">${c.msgs.map(msgHTML).join('')}</div><div style="font-size:11px;padding:2px 12px;color:#556;min-height:14px">${c.typing ? PEOPLE[c.typing].n + ' กำลังพิมพ์…' : ''}</div><div class="pc2"><input type="text" placeholder="พิมพ์ข้อความ…" spellcheck="false"><button data-psend>ส่ง</button></div>`;
+  const pm = scr.querySelector('.pm'); pm.scrollTop = pm.scrollHeight;
+  const inp = scr.querySelector('.pc2 input'); inp.value = keep; if (hadFocus) inp.focus();
+  phoneBadge(); syncTaskbar();
+}
+phoneBadge();
+
 /* ================= views ================= */
 let currentView = 'screen';
 function setView(v) {
   currentView = v; $('views').classList.toggle('desk', v === 'desk');
   $('switchBtn').textContent = v === 'desk' ? 'กลับไปที่จอคอม ↑' : 'ไปที่โต๊ะ ↓';
-  if (v === 'screen') closeOverlay(); hideCtx(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  if (v === 'screen') { closeOverlay(); closePhone(); } hideCtx(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   S.noise(.2, 600, .05);
 }
 $('switchBtn').addEventListener('click', () => setView(currentView === 'desk' ? 'screen' : 'desk'));
@@ -1373,6 +1889,7 @@ addEventListener('keydown', e => {
 });
 function escape() {
   if (ctx) { hideCtx(); return; }
+  if (phone.open) { closePhone(); return; }
   if (ov) { closeOverlay(); return; }
   if (currentView === 'screen') { const W = topWin(); if (!W) return; if (W.dlg) { W.dlg.cancel(); return; } const pk = W.el.querySelector('.pick'); if (pk) { pk.remove(); return; } closeWin(W.id); }
 }
@@ -1440,14 +1957,16 @@ function loop(now) {
     vcur.style.transform = `translate(${cur.x}px,${cur.y}px)`; vcur.classList.toggle('press', cur.down);
   }
   if (food.track && !food.track.arrived) updateTrack(now);
-  $('clock').textContent = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  updateGame(now);
+  const mn = gnow().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  if (mn !== lastMin) { lastMin = mn; $('clock').textContent = mn; phoneItem.querySelector('.pt').textContent = mn; renderTime(); applyTime(); }
   if (S.pairing()) S.hint('');
   else if (pad.live) S.hint(currentView === 'desk' ? 'แตะของบนโต๊ะเพื่อหยิบ/เปิด · แตะค้างแล้วลาก = ย้ายของ · ปุ่มสลับบนมือถือ = กลับไปที่จอ' : 'แตะสองทีที่ว่าง = เมนู · แตะค้างแล้วลาก = ลากไฟล์/ปรับขนาดหน้าต่างที่มุมขวาล่าง · พิมพ์ในช่องคีย์บอร์ดบนมือถือ');
   else S.hint(currentView === 'desk' ? 'คลิกของบนโต๊ะเพื่อหยิบ/เปิด · ลากเพื่อย้าย · Esc ปิด · F2 สลับมุมมอง' : 'ดับเบิลคลิกที่ว่าง/คลิกขวา = เมนู · ลากมุมขวาล่างของหน้าต่างเพื่อปรับขนาด · Esc ปิด');
   requestAnimationFrame(loop);
 }
 renderDesktop();
-window.__office = { feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, FOLDERS, done, setView, openSheet, openSearch, openChat, openFood, typeText, setWallpaper, desktopMenu, wins, chat, food, se, HOTELS, value, tripTotal, sheetCmd, saveBook, get tool() { return tool; }, get clip() { return clip; } };
+window.__office = { openDesign, openJobs, openGames, openPhone, openTime, phone, gm, jobs, PEOPLE, get timeOff() { return timeOff; }, feed: d => pad.feed(d), get cur() { return { ...cur }; }, FILES, FOLDERS, done, setView, openSheet, openSearch, openChat, openFood, typeText, setWallpaper, desktopMenu, wins, chat, food, se, HOTELS, value, tripTotal, sheetCmd, saveBook, get tool() { return tool; }, get clip() { return clip; } };
 // for older tests: cells + value of the first workbook
 Object.defineProperty(window.__office, 'cells', { get: () => FILES.find(f => f.id === 'x1').book.cells });
 requestAnimationFrame(loop);
