@@ -21,7 +21,8 @@ document.addEventListener('wheel', e => {
 }, { passive: false });
 function captureCurrent() {
   const st = ov.state, r = st.sheet.getBoundingClientRect(), d = st.doc;
-  const content = d ? `<div class="content">${d.html}</div>` : `<div class="pg">หน้า ${st.nb + 1}/${NB_PAGES}</div><div class="nbtext">${esc(nbText[st.nb])}</div>`;
+  const live = st.sheet.querySelector('.content'), sty = live && live.getAttribute('style');
+  const content = d ? `<div class="content"${sty ? ` style="${sty}"` : ''}>${d.html}</div>` : `<div class="pg">หน้า ${st.nb + 1}/${NB_PAGES}</div><div class="nbtext">${esc(nbText[st.nb])}</div>`;
   return { title: d ? d.title : `สมุดโน้ต หน้า ${st.nb + 1}`, w: Math.round(r.width), h: Math.round(r.height), cls: st.sheet.className.replace('sheet', '').trim(), content, marks: st.cv.toDataURL('image/png'), doc: d };
 }
 const paperHTML = (cap, s) => `<div class="pgw" style="width:${cap.w * s}px;height:${cap.h * s}px"><div class="sheet ${cap.cls}" style="position:absolute;left:0;top:0;width:${cap.w}px;height:${cap.h}px;transform:scale(${s});transform-origin:top left;box-shadow:0 4px 12px -6px #0005">${cap.content}<img class="marks" src="${cap.marks}" alt=""></div></div>`;
@@ -49,7 +50,8 @@ function scanCap(cap) {
   const name = `สแกน-${cap.title}.pdf`, cd = cap.doc && DESK_CDOC[cap.doc.id];
   let f = FILES.find(x => x.name === name && x.loc !== 'trash');
   if (!f) { f = { id: 'u' + (++uid), name, type: 'pdf', loc: 'desk' }; FILES.push(f); deskPos[f.id] = firstFree(); }
-  Object.assign(f, { kind: cd ? 'cdoc' : 'scan', fields: cd, html: `<div class="scanv">${paperHTML(cap, .5)}</div>` });
+  Object.assign(f, { kind: cd ? 'cdoc' : 'scan', fields: cd, signed: !!(cap.doc && cap.doc.printed && cap.doc.signed), html: `<div class="scanv">${paperHTML(cap, .5)}</div>` });
+  if (cap.doc && cap.doc.printed) { if (cap.doc.signed) { complete('sign'); setTimeout(() => S.toast('✍️ สแกนเอกสารที่เซ็นแล้วเข้าเครื่องเรียบร้อย — แนบส่งอีเมลได้', 3.4), 2600); } else setTimeout(() => S.toast('เอกสารนี้ยังไม่ได้เซ็นนะ หยิบปากกามาเซ็นก่อนแล้วสแกนใหม่ได้', 3.4), 2600); }
   closeWin('view-' + f.id, true); renderDesktop(); renderWork();
   S.noise(.8, 1800, .06); S.tone(300, 600, .6, .04); S.toast(`🖨️ สแกนแล้ว ได้ไฟล์ "${name}" บนหน้าจอคอม`, 2.4); complete('scan');
 }
@@ -108,7 +110,7 @@ function snapshot() {
     events: EVENTS.map(ev => ({ d: ev.d, e: ev.e, t: ev.t, k: ev.k, a: ev.a, fired: !!ev.fired, mine: ev.mine, mom: ev.mom })),
     meets: MEETS.map(m => ({ id: m.id, d: m.d, done: !!m.done })),
     jobs: [...jobs.applied], gm: gm.best,
-    work: { entries: work.entries, right: work.right, batch1: work.batch1, nagged: work.nagged }, cdocs: CDOCS, cdSeq,
+    work: { entries: work.entries, right: work.right, batch1: work.batch1, nagged: work.nagged }, cdocs: CDOCS, cdSeq, prints: DOCS.filter(d => d.printed).map(d => ({ id: d.id, title: d.title, html: d.html, x: d.x, y: d.y, r: d.r, signed: !!d.signed })), printSeq,
     jr: { slot: jr.slot, cur: jr.cur, tries: jr.tries, right: jr.right, used: jr.used },
     ai: { tray: ai.tray, msgs: ai.msgs }, cart: se.cart, food: { pin: food.pin, place: food.place },
     mail: { accounts: mail.accounts, inbox: mail.inbox }, perf, hunger: { v: hunger.v, day: hunger.day }, notes, noteSeq,
@@ -140,7 +142,9 @@ function loadGame() {
     EVENTS.sort((a, b) => a.d - b.d);
     s.jobs.forEach(j => jobs.applied.add(j)); Object.assign(gm.best, s.gm);
     work.entries = s.work.entries; work.right = s.work.right; work.batch1 = s.work.batch1; work.nagged = s.work.nagged;
-    Object.assign(CDOCS, s.cdocs); cdSeq = s.cdSeq; Object.assign(jr, s.jr);
+    Object.assign(CDOCS, s.cdocs); cdSeq = s.cdSeq;
+    for (let i = DOCS.length - 1; i >= 0; i--) if (DOCS[i].printed) { desk.querySelector(`[data-id="doc:${DOCS[i].id}"]`)?.remove(); DOCS.splice(i, 1); }
+    (s.prints || []).forEach(p => { const d = { ...p, printed: true }; DOCS.push(d); printItem(d); }); printSeq = s.printSeq || (s.prints || []).length; Object.assign(jr, s.jr);
     ai.tray = s.ai.tray; ai.msgs = s.ai.msgs; se.cart = s.cart || []; food.pin = s.food.pin; food.place = s.food.place;
     if (s.mail) { mail.accounts = s.mail.accounts; mail.inbox = s.mail.inbox; mail.inbox.forEach(m => { m.nt = 1; }); } if (s.perf) Object.assign(perf, s.perf); if (s.hunger) { hunger.v = s.hunger.v; hunger.day = s.hunger.day; hunger.t = null; }
     if (s.notes) { noteSeq = s.noteSeq || 0; s.notes.forEach(n => { notes.push(n); renderNote(n); }); }

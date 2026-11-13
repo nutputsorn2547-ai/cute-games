@@ -556,3 +556,11 @@ td.pk{outline:2px dashed #3b82f6;outline-offset:-2px}
 .sl{padding:6px 10px;display:flex;flex-direction:column;gap:10px;overflow:auto;height:calc(100% - 44px)}.slt{display:flex;gap:6px}.slgap{flex:1}.slb{display:flex;gap:6px}.slcol{position:relative;width:52px;min-height:70px;flex:none}.slp{width:52px;height:70px;flex:none}
 .slc{position:absolute;width:50px;height:68px;border-radius:7px;background:#fff;border:1px solid #cfc7b8;display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 15px var(--font);color:#222;box-shadow:0 2px 3px -2px #0004;cursor:pointer;line-height:1.1}.slp .slc{position:static}.slc.rd{color:#d6304f}.slc i{font-style:normal;font-size:20px}.slc.bk{background:repeating-linear-gradient(45deg,#7c9cff,#7c9cff 4px,#9db4ff 4px,#9db4ff 8px);border-color:#5a78e6}.slc.em{background:#0001;border-style:dashed;color:#0004;font-size:22px}.slc.on{outline:3px solid #e0457b}
 .gm{position:relative;height:100%}
+/* pdf / print */
+.pdfbar{flex:none;display:flex;gap:10px;align-items:center;padding:6px 10px;background:#fff6e5;border-bottom:1px solid #f0e0b8;font-size:12px}.pdfbar small{color:var(--soft)}
+.pdfpage{background:#fff;width:520px;max-width:100%;box-sizing:border-box;padding:28px 34px;box-shadow:0 4px 14px -6px #0005;font:14px/1.7 Sarabun,Tahoma,sans-serif;color:#222;min-height:600px}
+.pdfpage .wpage,.prt .wpage{box-shadow:none;padding:0;min-height:0;width:auto;outline:0}
+.pdft{border-collapse:collapse;width:100%;font-size:13px}.pdft td{border:1px solid #c9c9c9;padding:3px 7px}
+.sheet .content .pdft{font-size:inherit}
+.doc.printed{border-top:4px solid #e0457b}.doc .sig{margin-top:10px;font-size:10px;color:#e0457b}
+.scanp .pgw{background:#fff}

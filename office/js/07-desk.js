@@ -102,7 +102,7 @@ function closeOverlay() {
   keep.getContext('2d').drawImage(st.cv, 0, 0); canvases.set(st.key, keep);
   ov.remove(); ov = null; if (tool === 'type') tool = 'pen'; markInHand();
 }
-function openPaper(d) { overlay(d.sticky ? 'stk' : '', `<div class="content">${d.html}</div>`, 'doc:' + d.id, false); ov.state.doc = d; }
+function openPaper(d) { overlay(d.sticky ? 'stk' : '', `<div class="content">${d.html}</div>`, 'doc:' + d.id, false); ov.state.doc = d; if (d.printed) { fitPaper(); if (tool !== 'pen' && tool !== 'pencil') { tool = 'pen'; syncTools(); markInHand(); } } }
 function openNotebook() { overlay('nbp', `<div class="pg">หน้า ${nbPage + 1}/${NB_PAGES}</div><textarea spellcheck="false" placeholder="เลือก 'พิมพ์' แล้วพิมพ์จากมือถือหรือคีย์บอร์ดได้เลย"></textarea>`, 'nb:' + nbPage, true); ov.state.nb = nbPage; }
 let stroke = null;
 document.addEventListener('pointerdown', e => {
@@ -115,6 +115,7 @@ addEventListener('pointermove', e => { if (!stroke || !ov) return; stroke.pts.pu
 addEventListener('pointerup', () => {
   if (!stroke || !ov) { stroke = null; return; }
   const len = stroke.pts.length; stroke = null;
+  if (len > 2 && ov.state.doc && ov.state.doc.printed && tool !== 'eraser' && tool !== 'hl') { ov.state.doc.signed = true; }
   if (len > 2) { if (ov.state.isNb && tool !== 'eraser') complete('note'); if (!ov.state.isNb && tool === 'hl') complete('hl'); }
 });
 function drawStroke() {

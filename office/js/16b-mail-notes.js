@@ -90,7 +90,7 @@ const MAIL_TPL = m => [
   `เรียน ${m.from}\n\nยืนยันตามที่แจ้งมาเรื่อง "${m.subj}" ค่ะ หากมีข้อสงสัยเพิ่มเติม โทรหาได้ตลอดเวลาทำการเลยนะคะ\n\nด้วยความเคารพ`,
 ];
 function mailComposer(op) {
-  const docs = FILES.filter(f => f.kind === 'worddoc' && f.loc !== 'trash');
+  const docs = FILES.filter(f => ['worddoc', 'pdfdoc', 'scan'].includes(f.kind) && f.loc !== 'trash');
   return `<div class="mcomp"><b>✍️ ตอบถึง ${esc(op.from)}</b><div class="mchips">${['สุภาพ-รับเรื่อง', 'ขอข้อมูลเพิ่ม', 'ยืนยัน'].map((n, i) => `<button data-mtpl="${i}">${n}</button>`).join('')}</div>
     <textarea class="mrt" rows="6" spellcheck="false" placeholder="พิมพ์คำตอบ (อย่างน้อย 15 ตัวอักษร) หรือกดแม่แบบด้านบน">${esc(mail.draft || '')}</textarea>
     ${docs.length ? `<label class="matt">📎 แนบไฟล์ <select class="mat"><option value="">ไม่แนบ</option>${docs.map(f => `<option>${esc(f.name)}</option>`).join('')}</select></label>` : ''}

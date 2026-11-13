@@ -39,7 +39,7 @@ function openWord(f) {
     <button data-wc="justifyLeft" title="ชิดซ้าย">⬅</button><button data-wc="justifyCenter" title="กึ่งกลาง">↔</button><button data-wc="justifyRight" title="ชิดขวา">➡</button><button data-wc="insertUnorderedList" title="รายการ">• ≡</button>
     <select data-wsize title="ขนาดตัวอักษร"><option value="">ขนาด</option><option value="2">เล็ก</option><option value="3">ปกติ</option><option value="4">กลาง</option><option value="5">ใหญ่</option><option value="6">ใหญ่มาก</option></select>
     <label class="wcol" title="สีตัวอักษร">A<input type="color" data-wcol value="#d6304f"></label><button data-wc="undo" title="ย้อนกลับ">↶</button><button data-wc="redo" title="ทำซ้ำ">↷</button>
-    <span style="flex:1"></span><button class="wsave" data-wsave>💾 บันทึก</button><button data-wdl title="ดาวน์โหลดเป็นไฟล์ .doc (เปิดด้วย Word จริงได้)">⬇ .doc</button></div>
+    <span style="flex:1"></span><button class="wsave" data-wsave>💾 บันทึก</button><button data-wpdf title="บันทึกเป็นไฟล์ PDF ในเกม">📄 เซฟ PDF</button><button data-wprint title="ปริ้นออกมาเป็นกระดาษบนโต๊ะ">🖨️ ปริ้น</button><button data-wdl title="ดาวน์โหลดเป็นไฟล์ .doc (เปิดด้วย Word จริงได้)">⬇ .doc</button></div>
     <div class="wscroll"><div class="wpage" contenteditable="true" spellcheck="false">${f.html}</div></div>`);
   const W = openWin(id, `${f.name} — เวิร์ดน้อย`, root, 640, 480, '#e4edff');
   const page = root.querySelector('.wpage'), save = (quiet) => { f.html = page.innerHTML; f.name = (root.querySelector('.wname').value.trim() || 'เอกสาร').replace(/[\\/:*?"<>|]/g, '') + '.doc'; W.setTitle(`${f.name} — เวิร์ดน้อย`); renderDesktop(); if (!quiet) { S.jingle(); S.toast(`💾 บันทึก "${f.name}" แล้ว (อยู่บนหน้าจอคอม)`, 2); } complete('word'); };
@@ -48,6 +48,8 @@ function openWord(f) {
   root.addEventListener('click', e => {
     const c = e.target.closest('[data-wc]'); if (c) { page.focus(); document.execCommand(c.dataset.wc); return; }
     if (e.target.closest('[data-wsave]')) { save(false); return; }
+    if (e.target.closest('[data-wpdf]')) { save(true); savePDF(f.name, `<div class="wpage prt">${f.html}</div>`); return; }
+    if (e.target.closest('[data-wprint]')) { save(true); printFile(f); return; }
     if (e.target.closest('[data-wdl]')) { save(true); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([`<html><head><meta charset="utf-8"></head><body style="font-family:Sarabun,Tahoma,sans-serif">${f.html}</body></html>`], { type: 'application/msword' })); a.download = f.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
   });
   root.addEventListener('change', e => { if (e.target.matches('[data-wsize]') && e.target.value) { page.focus(); document.execCommand('fontSize', false, e.target.value); e.target.value = ''; } if (e.target.matches('[data-wcol]')) { page.focus(); document.execCommand('foreColor', false, e.target.value); } });

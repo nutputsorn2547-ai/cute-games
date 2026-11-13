@@ -47,7 +47,7 @@ function openSheet(f) {
   const wid = 'sheet-' + f.id; if (wins.has(wid)) { focusWin(wins.get(wid)); return wins.get(wid); }
   const B = f.book;
   const root = h('div', { class: 'xl' }, `<div class="xtb">
-    <button class="save" data-x="save" title="บันทึก (Ctrl+S)">💾 บันทึก</button><button data-x="saveas">บันทึกเป็น…</button><button data-x="csv" title="ดาวน์โหลดลงเครื่องจริงเป็นไฟล์ CSV">⬇ CSV</button><i></i>
+    <button class="save" data-x="save" title="บันทึก (Ctrl+S)">💾 บันทึก</button><button data-x="pdf" title="บันทึกเป็นไฟล์ PDF ในเกม">📄 เซฟ PDF</button><button data-x="print" title="ปริ้นออกมาเป็นกระดาษบนโต๊ะ">🖨️ ปริ้น</button><button data-x="saveas">บันทึกเป็น…</button><button data-x="csv" title="ดาวน์โหลดลงเครื่องจริงเป็นไฟล์ CSV">⬇ CSV</button><i></i>
     <button data-x="b" title="ตัวหนา (Ctrl+B)"><b>B</b></button><button data-x="i" title="ตัวเอียง (Ctrl+I)"><em>I</em></button><button data-x="u" title="ขีดเส้นใต้ (Ctrl+U)"><u>U</u></button><i></i>
     <span class="lbl">พื้น</span>${FILLS.map(c => `<button class="sw" data-fill="${c}" style="--s:${c || '#fff'}" title="${c ? 'สีพื้น' : 'ไม่มีสีพื้น'}">${c ? '' : '⌀'}</button>`).join('')}<i></i>
     <span class="lbl">ตัวอักษร</span>${INKS.map(c => `<button class="sw ink" data-ink="${c}" style="--s:${c}" title="สีตัวอักษร">A</button>`).join('')}<i></i>
@@ -115,6 +115,8 @@ function sheetCmd(W, x, ds = {}) {
     B.cells[B.sel] = `=SUM(${c}${r0 + 1}:${c}${r - 1})`; renderSheet(W); S.tone(700, 1000, .08, .06); return;
   }
   if (x === 'save') return saveBook(W);
+  if (x === 'pdf') return savePDF(W.file.name, sheetHTML(B));
+  if (x === 'print') return printPaper(W.file.name.replace(/\.xlsx?$/, ''), `<div class="prt">${sheetHTML(B)}</div>`);
   if (x === 'saveas') return saveAs(W);
   if (x === 'csv') return downloadCSV(W);
 }
