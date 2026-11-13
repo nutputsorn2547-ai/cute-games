@@ -277,7 +277,10 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .tasks li.done{text-decoration:line-through;color:#9c9060}
 
 .screen{container-type:inline-size}
-@container (max-width:1240px){.taskbar button .lb{display:none}}
+.taskbar button{flex:0 1 auto;min-width:0;overflow:hidden;padding:6px 7px;gap:5px}
+.taskbar button .ab{flex:none}
+.taskbar button .lb{min-width:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.taskbar .clock{flex:none;white-space:nowrap}
 .taskbar .clock{cursor:pointer;border-radius:8px;padding:3px 7px}
 .taskbar .clock:hover{background:#fff}
 .tint{position:absolute;inset:0;pointer-events:none;z-index:1;transition:background .8s}
