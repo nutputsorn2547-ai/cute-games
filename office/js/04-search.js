@@ -25,7 +25,7 @@ const PRODUCTS = [
   ['เมาส์ไร้สายรูปแมว', 299, '🖱️', 'เมาส์ ไอที แมว คอม'], ['ร่มพับลายดาว', 219, '☂️', 'ร่ม ฝน'], ['ขนมคุกกี้รวมรส', 159, '🍪', 'ขนม คุกกี้ ของกิน'],
 ];
 const EN = { แมว: 'cat', ลูกแมว: 'kitten', หมา: 'dog', สุนัข: 'dog', ลูกหมา: 'puppy', กระต่าย: 'rabbit', นก: 'bird', เป็ด: 'duck', แพนด้า: 'panda', หมี: 'bear', เพนกวิน: 'penguin', ปลา: 'fish', จิ้งจอก: 'fox', แฮมสเตอร์: 'hamster', ทะเล: 'beach', ภูเขา: 'mountain', ดอกไม้: 'flower', ซากุระ: 'cherry blossom', ท้องฟ้า: 'sky', อวกาศ: 'galaxy', ดาว: 'stars night sky', ป่า: 'forest', กาแฟ: 'coffee', ขนม: 'dessert', เค้ก: 'cake', เมือง: 'city', หิมะ: 'snow', พระอาทิตย์ตก: 'sunset', น้ำตก: 'waterfall', ทุ่งดอกไม้: 'flower field', ทะเลหมอก: 'sea of mist' };
-const TABS = [['all', 'ทั้งหมด'], ['img', 'รูปภาพ'], ['shop', 'ช็อปปิ้ง'], ['hotel', 'ที่พัก'], ['dorm', 'หอพัก']];
+const TABS = [['all', 'ทั้งหมด'], ['img', 'รูปภาพ'], ['shop', 'ช็อปปิ้ง'], ['hotel', 'ที่พัก'], ['dorm', 'หอพัก'], ['mail', 'อีเมล']];
 const HOTEL_WORD = /ที่พัก|โรงแรม|รีสอร์[ทต]|โฮมสเตย์|เที่ยว|ปีใหม่|hotel|resort/i;
 const se = { W: null, tab: 'all', q: '', imgs: [], cart: [], token: 0 };
 function openSearch(tab) {
@@ -49,6 +49,7 @@ function openSearch(tab) {
 function syncTabs() { se.root.querySelectorAll('.tabs [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === se.tab)); const cb = se.root.querySelector('.cartb'); cb.hidden = !se.cart.length; cb.querySelector('b').textContent = se.cart.length; }
 function setTab(t) {
   se.tab = t; syncTabs(); const q = se.root.querySelector('.q').value.trim();
+  if (t === 'mail') { se.root.classList.remove('landing'); mail.open = null; showMail('auto'); return; }
   if (q || t === 'hotel' || t === 'shop' || t === 'dorm') runSearch(q); else se.root.querySelector('.q').focus();
 }
 const res = () => se.root.querySelector('.res');
@@ -56,6 +57,8 @@ async function runSearch(q) {
   q = (q || '').trim(); if (!se.root) return;
   if (!q && se.tab !== 'hotel' && se.tab !== 'shop' && se.tab !== 'dorm') return;
   if (q && se.tab === 'all' && DORM_WORD.test(q)) { se.tab = 'dorm'; syncTabs(); }
+  if (q && /อีเมล|อีเมล์|สมัครเมล|email|e-mail/i.test(q)) { setTab('mail'); return; }
+  if (se.tab === 'mail') { se.tab = 'all'; syncTabs(); }
   if (q && HOTEL_WORD.test(q) && se.tab === 'all' && !/[a-z]/i.test(q) && /ที่พัก|โรงแรม|รีสอร์/.test(q)) { se.tab = 'hotel'; syncTabs(); }
   se.q = q; se.root.classList.remove('landing'); const tok = ++se.token;
   se.root.querySelector('.out').scrollTop = 0;
@@ -121,6 +124,7 @@ function showHotel(id) {
   res().innerHTML = `<p class="note"><a data-back="hotel">← กลับไปรายการที่พัก</a></p><div class="hd">${hotelArt(x.art)}<h3>${esc(x.name)}</h3><small>📍 จ.${esc(x.where)} · ⭐ ${x.rate} จาก 5</small><div><span class="pr" style="font-size:20px">฿${baht(x.price)}</span> ต่อห้อง ต่อคืน</div><ul>${x.feat.map(f => `<li>${esc(f)}</li>`).join('')}</ul><div class="iv"><div class="acts"><button class="btn2" data-copy="${x.id}">📋 คัดลอกชื่อและราคา</button><button class="btn2" data-savehotel="${x.id}">💾 บันทึกข้อมูลที่พัก</button><button class="btn2 grn" data-share="${x.id}">💬 แชร์ไปกลุ่มแชท</button></div></div></div>`;
 }
 async function onResultClick(e) {
+  if (se.tab === 'mail' && mailClick(e)) return;
   const t = e.target;
   const back = t.closest('[data-back]'); if (back) { se.tab = back.dataset.back; syncTabs(); runSearch(se.q); return; }
   const go = t.closest('[data-go]'); if (go) { setTab(go.dataset.go); return; }

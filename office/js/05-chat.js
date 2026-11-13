@@ -1,7 +1,6 @@
 "use strict";
 // Office game — chat app. Files load in order and share one global scope (see office/index.html).
 /* ================= chat app ================= */
-const ACCOUNT = { email: 'fahnai@gmail.com', pass: '12345' };
 const PEOPLE = { boss: { n: 'หัวหน้าแมว', c: '#ffd2a6', e: '🐱' }, bear: { n: 'น้องหมี', c: '#e8cfb4', e: '🐻' }, bun: { n: 'พี่กระต่าย', c: '#ffd6e3', e: '🐰' }, duck: { n: 'เป็ดน้อย', c: '#fff1a8', e: '🐥' }, mom: { n: 'แม่', c: '#ffd6e3', e: '👩' }, dad: { n: 'พ่อ', c: '#d9ecff', e: '👨' }, sis: { n: 'น้องสาว', c: '#ffe1f0', e: '👧' }, bro: { n: 'พี่ชาย', c: '#dfe8ff', e: '🧑' }, hr: { n: 'พี่ HR', c: '#e6dcff', e: '👩‍💼' }, cust: { n: 'คุณขนม (ลูกค้า)', c: '#ffe1ec', e: '🍰' }, jib: { n: 'น้องเจี๊ยบ (รุ่นน้อง)', c: '#fff6c2', e: '🐣' }, fon: { n: 'ฝน (ฝ่ายขาย)', c: '#ffe0c8', e: '🦊' }, mint: { n: 'มิ้นท์ (การตลาด)', c: '#e0f5e0', e: '🐼' } };
 const chat = {
   account: null, cur: 'g', W: null,
@@ -27,25 +26,29 @@ function openChat() {
     chat.W.onClose = () => { chat.W = null; };
     chat.account ? buildChat() : buildSignup();
   }
-  if (!chat.account) { S.toast('ต้องสมัครบัญชีแชทน้อยก่อนนะ (อีเมลกับรหัสจดไว้บนโต๊ะ)', 2.4); return false; }
+  if (!chat.account) { S.toast('ต้องสมัครแชทน้อยก่อนนะ ใช้อีเมลที่สร้างเองในเสิร์ชน้อย (แท็บอีเมล)', 2.6); return false; }
   return true;
 }
 function buildSignup() {
-  const box = chat.W.body.firstChild; box.innerHTML = `<form class="signup" autocomplete="off"><div class="lg">แชทน้อย</div><div style="color:var(--soft)">สร้างบัญชีใหม่เพื่อคุยกับทีม</div>
-    <input name="em" type="text" placeholder="อีเมล (ดูโน้ตบนโต๊ะ)" spellcheck="false"><input name="pw" type="password" placeholder="รหัสผ่าน"><input name="nm" type="text" placeholder="ชื่อที่แสดง เช่น น้องใหม่" spellcheck="false">
-    <div class="err"></div><button class="btn2 grn" type="submit">สร้างบัญชีใหม่</button><button class="btn2" type="button" data-desk>📝 ไปดูโน้ตบนโต๊ะ</button></form>`;
+  const box = chat.W.body.firstChild; box.innerHTML = `<form class="signup" autocomplete="off"><div class="lg">แชทน้อย</div><div style="color:var(--soft)">สมัครด้วยอีเมลที่สร้างในเสิร์ชน้อย (แท็บอีเมล)</div>${WARN_BIG}
+    <input name="em" type="text" placeholder="อีเมล เช่น ชื่อ@mewnoi.test" spellcheck="false" autocapitalize="off"><input name="pw" type="password" placeholder="รหัสผ่าน"><input name="nm" type="text" placeholder="ชื่อที่แสดง เช่น น้องใหม่" spellcheck="false">
+    <div class="err"></div><button class="btn2 grn" type="submit">สร้างบัญชีใหม่</button><button class="btn2" type="button" data-desk>📧 ยังไม่มีอีเมล? ไปสร้างในเสิร์ชน้อย</button></form>`;
   const fm = box.querySelector('form');
   fm.addEventListener('submit', e => { e.preventDefault(); trySignup(fm); });
   fm.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); const ins = [...fm.querySelectorAll('input')], i = ins.indexOf(e.target); if (i < ins.length - 1) ins[i + 1].focus(); else trySignup(fm); } });
-  fm.querySelector('[data-desk]').addEventListener('click', () => setView('desk'));
+  fm.querySelector('[data-desk]').addEventListener('click', () => openSearch('mail'));
   setTimeout(() => fm.em.focus(), 60);
 }
 function trySignup(fm) {
   const em = fm.em.value.trim().toLowerCase(), pw = fm.pw.value.trim(), err = fm.querySelector('.err');
   if (!em || !pw) { err.textContent = 'กรอกอีเมลกับรหัสผ่านก่อนนะ'; return; }
-  if (em !== ACCOUNT.email) { err.textContent = 'อีเมลนี้ไม่ใช่บัญชีของทีม ลองดูโน้ตสีเขียวบนโต๊ะ'; S.tone(300, 200, .15, .08); return; }
-  if (pw !== ACCOUNT.pass) { err.textContent = 'รหัสผ่านไม่ตรงกับที่จดไว้ ลองใหม่'; S.tone(300, 200, .15, .08); return; }
+  const acc = mail.accounts.find(a => a.email === em), no = t => { err.textContent = t; S.tone(300, 200, .15, .08); };
+  if (!mail.accounts.length) return no('ยังไม่มีอีเมลในเกมเลย ไปสร้างในเสิร์ชน้อย แท็บอีเมลก่อนนะ');
+  if (!em.endsWith('@' + MAIL_DOMAIN)) return no(`ใช้อีเมลสมมุติที่สร้างในเกมเท่านั้น (ลงท้าย @${MAIL_DOMAIN}) ห้ามใช้อีเมลจริง`);
+  if (!acc) return no('ไม่พบอีเมลนี้ในเมลน้อย ลองดูโพสต์อิทที่จดไว้');
+  if (pw !== acc.pass) return no('รหัสผ่านไม่ตรงกับที่ตั้งไว้ ลองดูโพสต์อิทที่จดไว้');
   chat.account = { email: em, name: fm.nm.value.trim() || 'น้องใหม่' };
+  mailPush(em, 'แชทน้อย', 'ยืนยันการสมัครแชทน้อย ✅', `<p>สมัครแชทน้อยเรียบร้อยแล้ว ชื่อที่แสดงคือ <b>${esc(chat.account.name)}</b></p><p>ทีมบัญชีน่ารักรออยู่ในกลุ่มแล้วนะ 💚</p>`);
   S.jingle(); complete('signup'); buildChat(); syncTaskbar(); S.toast(`สมัครสำเร็จ! ยินดีต้อนรับ ${chat.account.name}`, 2);
 }
 function buildChat() {

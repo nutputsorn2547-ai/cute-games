@@ -22,7 +22,7 @@ function copy(t) { clip = t; try { navigator.clipboard?.writeText(t).catch(() =>
 /* ================= tasks ================= */
 // which game day each task / app / chat appears, so a new player is not flooded on day 1
 const DAYPLAN = {
-  tasks: { rec: 1, pic: 1, newf: 1, wall: 1, phone: 1, family: 1, note: 1, hl: 1, time: 1, signup: 1, cal: 1, sum: 2, fmt: 2, scan: 2, work: 2, junior: 2, bank: 2, food: 2, gossip: 2, borrow: 2, hotel: 3, trip: 3, propose: 3, boss: 3, ai: 3, meet: 3, hr: 3, resume: 4, apply: 4, game: 4, move: 4 },
+  tasks: { rec: 1, pic: 1, newf: 1, wall: 1, phone: 1, family: 1, note: 1, hl: 1, time: 1, signup: 1, mail: 1, postit: 1, cal: 1, sum: 2, fmt: 2, scan: 2, work: 2, junior: 2, bank: 2, food: 2, gossip: 2, borrow: 2, hotel: 3, trip: 3, propose: 3, boss: 3, ai: 3, meet: 3, hr: 3, resume: 4, apply: 4, game: 4, move: 4 },
   apps: { 'app-cal': 1, 'app-food': 2, 'app-bank': 2, 'app-work': 2, 'app-ai': 3, 'app-design': 3, 'app-jobs': 4, 'app-game': 4 },
   bar: { files: 1, sheet: 1, search: 1, chat: 1, cal: 1, food: 2, bank: 2, work: 2, ai: 3, design: 3, jobs: 4, game: 4 },
   chats: { g: 1, boss: 1, bear: 1, mom: 1, jib: 1, cust: 2, dad: 2, gang: 2, hr: 3, sis: 4, bro: 4 },
@@ -37,11 +37,13 @@ const TASKS = [
   { id: 'fmt', t: 'ตกแต่งตาราง ทำตัวหนาหรือใส่สี แล้วกดบันทึก' },
   { id: 'hotel', t: 'อ่านเอกสาร "ทริปปีใหม่" บนโต๊ะ แล้วหาที่พักในเสิร์ชน้อย แท็บที่พัก' },
   { id: 'trip', t: 'กรอกที่พักลง ทริปปีใหม่.xlsx แล้วใส่สูตรคำนวณราคารวม' },
-  { id: 'signup', t: 'สมัครบัญชีแชทน้อย ด้วยอีเมลกับรหัสที่จดไว้บนโต๊ะ' },
+  { id: 'mail', t: 'สร้างอีเมลสมมุติในเสิร์ชน้อย (แท็บอีเมล) แล้วจดลงโพสต์อิท' },
+  { id: 'signup', t: 'สมัครแชทน้อยด้วยอีเมลที่สร้างเอง' },
   { id: 'propose', t: 'เสนอที่พักในกลุ่มแชท "ทีมบัญชีน่ารัก"' },
   { id: 'boss', t: 'ส่งไฟล์ ทริปปีใหม่.xlsx ให้หัวหน้าแมวทางแชท' },
   { id: 'food', t: 'สั่งข้าวเที่ยงในแอปหิวแล้ว (ปักหมุดที่อยู่ก่อนสั่ง)' },
   { id: 'hl', t: 'หยิบเอกสารบนโต๊ะมาอ่าน แล้วไฮไลท์ตรงที่สำคัญ' },
+  { id: 'postit', t: 'กด "📝 โพสต์อิท" แปะจดอะไรก็ได้ บนจอคอมหรือบนโต๊ะ' },
   { id: 'note', t: 'จดอะไรก็ได้ลงสมุดโน้ต' },
   { id: 'cal', t: 'เปิดปฏิทินน้อย แล้วเร่งวันไปถึงอีเวนต์ถัดไป (ย้อนกลับไม่ได้!)' },
   { id: 'meet', t: 'เตรียมเอกสารใส่โฟลเดอร์ "เอกสารประชุม" ให้ครบก่อนวันประชุม (ดูในปฏิทิน)' },
@@ -231,6 +233,7 @@ document.addEventListener('pointerdown', e => { if (ctx && !e.target.closest('.c
 function desktopMenu(x, y) {
   showCtx(x, y, [
     { t: '📁 สร้างโฟลเดอร์ใหม่', f: newFolder },
+    { t: '📝 แปะโพสต์อิทบนจอ', f: () => addNote('screen') },
     { t: '🖼️ เปลี่ยนวอลเปเปอร์…', f: openWallpaper },
     { t: '🔀 จัดเรียงไอคอน', f: arrangeIcons },
     '-',

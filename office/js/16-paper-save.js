@@ -94,6 +94,7 @@ function snapshot() {
     work: { entries: work.entries, right: work.right, batch1: work.batch1, nagged: work.nagged }, cdocs: CDOCS, cdSeq,
     jr: { slot: jr.slot, cur: jr.cur, tries: jr.tries, right: jr.right, used: jr.used },
     ai: { tray: ai.tray, msgs: ai.msgs }, cart: se.cart, food: { pin: food.pin, place: food.place },
+    mail: { accounts: mail.accounts, inbox: mail.inbox }, notes, noteSeq,
     nb: nbText, marks: Object.fromEntries([...canvases].map(([k, c]) => [k, c.toDataURL('image/png')])), dzId,
   };
 }
@@ -124,6 +125,8 @@ function loadGame() {
     work.entries = s.work.entries; work.right = s.work.right; work.batch1 = s.work.batch1; work.nagged = s.work.nagged;
     Object.assign(CDOCS, s.cdocs); cdSeq = s.cdSeq; Object.assign(jr, s.jr);
     ai.tray = s.ai.tray; ai.msgs = s.ai.msgs; se.cart = s.cart || []; food.pin = s.food.pin; food.place = s.food.place;
+    if (s.mail) { mail.accounts = s.mail.accounts; mail.inbox = s.mail.inbox; }
+    if (s.notes) { noteSeq = s.noteSeq || 0; s.notes.forEach(n => { notes.push(n); renderNote(n); }); }
     s.nb.forEach((t, i) => nbText[i] = t); dzId = s.dzId || dzId;
     for (const [k, url] of Object.entries(s.marks || {})) { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; c.getContext('2d').drawImage(im, 0, 0); canvases.set(k, c); }; im.src = url; }
     if (s.wallNow) { wallNow = s.wallNow; screen.style.background = wallNow.startsWith('data:') || wallNow.startsWith('http') ? `center/cover no-repeat url("${wallNow}")` : wallNow; }

@@ -464,3 +464,36 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .sva{display:flex;flex-direction:column;gap:4px;flex:none}
 .sva .btn2{padding:4px 10px;font-size:12px;white-space:nowrap}
 .svnote{margin:0;color:var(--soft);font-size:12px;line-height:1.6}
+
+/* pretend email */
+.warnbig{background:#fff1d6;border:3px solid #f2a33a;color:#8a4b00;border-radius:14px;padding:10px 14px;font:600 17px/1.45 var(--font);text-align:center}
+.warnbig small{display:block;font-size:13px;font-weight:400;margin-top:4px;color:#8a5a20}
+.signup .warnbig{font-size:13px;padding:8px 10px}.signup .warnbig small{font-size:11px}
+.mailw{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.mlogo{font:600 22px var(--font);color:#e0457b}.mlogo small{font-size:12px;color:var(--soft);font-weight:400;margin-left:6px}
+.mf{display:flex;flex-direction:column;gap:8px;font-size:13px}
+.mf label{display:flex;flex-direction:column;gap:3px}
+.mf input[type=text]{font:inherit;border:2px solid #e4e0f0;border-radius:10px;padding:6px 10px;outline:none}
+.mf input[type=text]:focus{border-color:#e0457b}
+.mf .mu{display:flex;align-items:center;gap:4px}.mf .mu input{flex:1;min-width:0}.mf .mu b{font-weight:500;color:var(--soft)}
+.mf .mok{flex-direction:row;align-items:center;gap:6px;background:#f7f4fb;border-radius:10px;padding:6px 8px}
+.mf .err,.signup .err{color:#e0457b;font-size:12px;min-height:16px}
+.mdone{text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.mcard{background:#fff9c4;border-radius:10px;padding:8px 14px;font-size:14px;line-height:1.7}
+.mlist{display:flex;flex-direction:column;border:1px solid #eee;border-radius:10px;overflow:hidden}
+.mrow{display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid #f0f0f0;cursor:pointer;font-size:13px}
+.mrow span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mrow small{color:var(--soft)}
+.mrow.new{background:#fff6fa}.mrow.new span{font-weight:600}
+.mread h3{margin:6px 0 2px}.mread .mbody{margin-top:8px;line-height:1.7}
+.mbar2{display:flex;gap:6px}
+/* post-it notes */
+.pnote{position:absolute;z-index:34;width:160px;min-height:128px;padding:0 0 8px;box-shadow:0 10px 14px -10px #5a341c99;display:flex;flex-direction:column;font:15px/1.4 var(--hand);color:#4f4416}
+.pnote.lift{box-shadow:0 18px 22px -12px #5a341caa}
+.pnote .pnh{display:flex;align-items:center;gap:2px;padding:3px 4px;cursor:grab;touch-action:none;background:#0000000d}
+.pnote .pnh span{flex:1;font-size:12px}
+.pnote .pnh button{border:0;background:none;cursor:pointer;font-size:12px;padding:1px 4px;border-radius:6px}
+.pnote .pnh button:hover{background:#ffffff88}
+.pnote textarea{flex:1;min-height:96px;border:0;background:transparent;resize:both;outline:none;font:inherit;color:inherit;padding:4px 10px;width:140px}
+.notebtn{position:fixed;right:150px;bottom:20px;z-index:30;font:inherit;font-size:15px;border:0;border-radius:14px;padding:10px 14px;background:#fff59a;color:#5c4e1a;cursor:pointer;box-shadow:0 10px 20px -12px #000a}
+.brbtns{position:fixed;right:20px;bottom:20px;z-index:30;display:flex;gap:8px;align-items:center}
+.brbtns .switch,.brbtns .notebtn{position:static}
