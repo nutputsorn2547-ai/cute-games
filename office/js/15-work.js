@@ -40,7 +40,7 @@ function renderWork() {
   if (!docs.some(f => f.id === work.sel)) work.sel = docs.find(f => !work.entries[f.id])?.id || docs[0]?.id || null;
   const f = docs.find(x => x.id === work.sel), en = f && work.entries[f.id];
   root.querySelector('.docs').innerHTML = docs.length ? docs.map(x => `<button data-wdoc="${x.id}" class="${x.id === work.sel ? 'on' : ''}">${work.entries[x.id] ? '✅' : '📄'} ${esc(x.name)}</button>`).join('') : '<span style="color:var(--soft)">ยังไม่มีเอกสาร</span>';
-  root.querySelector('.dv').innerHTML = f ? f.html : '<div class="paper" style="color:var(--soft)">ดาวน์โหลดเอกสารจากแชท "ลูกค้า: ร้านขนมอร่อย" หรือสแกนเอกสารบนโต๊ะเข้าคอม แล้วลากไฟล์มาวางที่โปรแกรมนี้ หรือกดเลือกด้านบน</div>';
+  root.querySelector('.dv').innerHTML = f ? zoomView(f.html) : '<div class="paper" style="color:var(--soft)">ดาวน์โหลดเอกสารจากแชท "ลูกค้า: ร้านขนมอร่อย" หรือสแกนเอกสารบนโต๊ะเข้าคอม แล้วลากไฟล์มาวางที่โปรแกรมนี้ หรือกดเลือกด้านบน</div>';
   const fm = root.querySelector('.wf');
   fm.innerHTML = !f ? '' : `<label>ประเภท</label><select name="dt" ${en ? 'disabled' : ''}><option value="">— เลือก —</option>${DT_TYPES.map(t => `<option ${en && en.dt === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
     <label>เลขที่เอกสาร</label><input name="no" type="text" spellcheck="false" ${en ? `value="${esc(en.no)}" disabled` : ''}>

@@ -2,6 +2,23 @@
 // Office game — pinned/scanned papers, staging, save. Files load in order and share one global scope (see office/index.html).
 /* ================= desk paper: hold beside the screen / scan to PDF ================= */
 let pin = null;
+/* zoom 25-300% shared by the pinned paper, scanned files and the work program's document pane */
+const ZS = [25, 35, 50, 65, 80, 100, 125, 150, 200, 250, 300];
+const zStep = (pct, d) => { let i = 0; ZS.forEach((v, k) => { if (Math.abs(v - pct) < Math.abs(ZS[i] - pct)) i = k; }); return ZS[clamp(i + d, 0, ZS.length - 1)]; };
+const zBar = (pct, reset) => `<button data-zm="-1" aria-label="ย่อ">−</button><button class="zv" data-zm="0" title="กลับขนาดเดิม">${pct}%</button><button data-zm="1" aria-label="ขยาย">＋</button>`;
+const zoomView = html => `<div class="zhost" data-z="100"><div class="zbar"><span>🔍 ซูม</span>${zBar(100)}<small>Ctrl + ล้อเมาส์ก็ได้</small></div><div class="zscroll"><div class="zwrap">${html}</div></div></div>`;
+function setZoom(host, pct) {
+  host.dataset.z = pct; host.querySelector('.zwrap').style.zoom = pct / 100; host.querySelector('.zv').textContent = pct + '%';
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.zhost [data-zm]'); if (!b) return; const host = b.closest('.zhost');
+  setZoom(host, b.dataset.zm === '0' ? 100 : zStep(+host.dataset.z || 100, +b.dataset.zm));
+});
+document.addEventListener('wheel', e => {
+  if (!e.ctrlKey) return; const host = e.target.closest('.zhost'), pn = e.target.closest('#pinDoc');
+  if (host) { e.preventDefault(); setZoom(host, zStep(+host.dataset.z || 100, e.deltaY < 0 ? 1 : -1)); }
+  else if (pn && pin) { e.preventDefault(); pin.s = zStep(pin.s * 100, e.deltaY < 0 ? 1 : -1) / 100; renderPin(); }
+}, { passive: false });
 function captureCurrent() {
   const st = ov.state, r = st.sheet.getBoundingClientRect(), d = st.doc;
   const content = d ? `<div class="content">${d.html}</div>` : `<div class="pg">หน้า ${st.nb + 1}/${NB_PAGES}</div><div class="nbtext">${esc(nbText[st.nb])}</div>`;
@@ -10,17 +27,17 @@ function captureCurrent() {
 const paperHTML = (cap, s) => `<div class="pgw" style="width:${cap.w * s}px;height:${cap.h * s}px"><div class="sheet ${cap.cls}" style="position:absolute;left:0;top:0;width:${cap.w}px;height:${cap.h}px;transform:scale(${s});transform-origin:top left;box-shadow:0 4px 12px -6px #0005">${cap.content}<img class="marks" src="${cap.marks}" alt=""></div></div>`;
 function pinCurrent() {
   const cap = captureCurrent(); closeOverlay(); setView('screen');
-  pin?.el.remove(); pin = { cap, s: .46, el: h('div', { id: 'pinDoc' }) };
+  pin?.el.remove(); pin = { cap, s: .5, el: h('div', { id: 'pinDoc' }) };
   document.body.append(pin.el); renderPin(); complete('scan'); S.noise(.12, 2500, .06, 'highpass');
 }
 function renderPin() {
   if (!pin) return;
-  pin.el.innerHTML = `<div class="ph2"><b>📌 ${esc(pin.cap.title)}</b><button data-pz="-1" aria-label="ย่อ">−</button><button data-pz="1" aria-label="ขยาย">＋</button><button data-pscan aria-label="สแกน" title="สแกนเข้าคอม">🖨️</button><button data-px aria-label="วางคืนโต๊ะ">✕</button></div><div class="pb">${paperHTML(pin.cap, pin.s)}</div>`;
+  pin.el.innerHTML = `<div class="ph2"><b>📌 ${esc(pin.cap.title)}</b><button data-pz="-1" aria-label="ย่อ">−</button><button class="zv" data-pz="0" title="กลับ 50%">${Math.round(pin.s * 100)}%</button><button data-pz="1" aria-label="ขยาย">＋</button><button data-pscan aria-label="สแกน" title="สแกนเข้าคอม">🖨️</button><button data-px aria-label="วางคืนโต๊ะ">✕</button></div><div class="pb">${paperHTML(pin.cap, pin.s)}</div>`;
 }
 document.addEventListener('click', e => {
   if (!pin || !e.target.closest('#pinDoc')) return;
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.pz) { pin.s = clamp(pin.s + +b.dataset.pz * .08, .26, .9); renderPin(); }
+  if (b.dataset.pz) { pin.s = b.dataset.pz === '0' ? .5 : zStep(pin.s * 100, +b.dataset.pz) / 100; renderPin(); }
   if ('pscan' in b.dataset) scanCap(pin.cap);
   if ('px' in b.dataset) { pin.el.remove(); pin = null; }
 });

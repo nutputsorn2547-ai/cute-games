@@ -69,7 +69,7 @@ function renderFolder(W) {
 }
 function openFile(f) {
   if (f.kind === 'design') { openDesign(f); return; }
-  if (f.html) { openWin('view-' + f.id, f.name, h('div', { style: 'height:100%' }, f.html), 500, 400, '#f4f0ff'); return; }
+  if (f.html) { openWin('view-' + f.id, f.name, h('div', { style: 'height:100%' }, zoomView(f.html)), 500, 400, '#f4f0ff'); return; }
   if (f.kind === 'resume') { openResume(f); return; }
   if (f.kind === 'sheet') { openSheet(f); return; }
   if (f.src) {
