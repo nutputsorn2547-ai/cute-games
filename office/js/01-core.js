@@ -20,36 +20,32 @@ let clip = ''; // in-game clipboard (also copied to the real one when allowed)
 function copy(t) { clip = t; try { navigator.clipboard?.writeText(t).catch(() => {}); } catch (e) {} S.toast('คัดลอกแล้ว · วางได้ด้วย Ctrl+V หรือปุ่ม "วาง" บนมือถือ', 2.2); }
 
 /* ================= tasks ================= */
-// which game day each task / app / chat appears, so a new player is not flooded on day 1
-const DAYPLAN = {
-  tasks: { rec: 1, pic: 1, newf: 1, wall: 1, phone: 1, family: 1, note: 1, hl: 1, time: 1, signup: 1, mail: 1, postit: 1, cal: 1, sum: 2, fmt: 2, scan: 2, work: 2, junior: 2, bank: 2, food: 2, gossip: 2, borrow: 2, hotel: 3, trip: 3, propose: 3, boss: 3, ai: 3, meet: 3, hr: 3, resume: 4, apply: 4, game: 4, move: 4 },
-  apps: { 'app-cal': 1, 'app-food': 2, 'app-bank': 2, 'app-work': 2, 'app-ai': 3, 'app-design': 3, 'app-jobs': 4, 'app-game': 4 },
-  bar: { files: 1, sheet: 1, search: 1, chat: 1, cal: 1, food: 2, bank: 2, work: 2, ai: 3, design: 3, jobs: 4, game: 4 },
-  chats: { g: 1, boss: 1, bear: 1, mom: 1, jib: 1, cust: 2, dad: 2, gang: 2, hr: 3, sis: 4, bro: 4 },
-};
+// staged unlocking is off: everything (tasks, apps, chats) is available from day 1.
+// A task may carry `due` (game day it is ideally finished by); it is only a reminder, nothing is locked or penalised.
+const DAYPLAN = { tasks: {}, apps: {}, bar: {}, chats: {} };
 let unlockedDay = 1;
 const TASKS = [
-  { id: 'rec', t: 'ย้ายใบเสร็จ 3 ไฟล์ ไปไว้ในโฟลเดอร์ "บัญชี"' },
-  { id: 'pic', t: 'ย้ายรูป 2 รูป ไปไว้ในโฟลเดอร์ "รูปภาพ"' },
-  { id: 'newf', t: 'ดับเบิลคลิกที่ว่างบนจอ แล้วสร้างโฟลเดอร์ใหม่' },
-  { id: 'wall', t: 'เปลี่ยนวอลเปเปอร์ (ลองโหลดรูปจากเสิร์ชน้อยมาตั้งก็ได้)' },
-  { id: 'sum', t: 'เปิด ค่าใช้จ่าย.xlsx ใส่สูตรรวมยอดที่ B8 (=SUM(B2:B6))' },
-  { id: 'fmt', t: 'ตกแต่งตาราง ทำตัวหนาหรือใส่สี แล้วกดบันทึก' },
+  { id: 'rec', due: 7, t: 'ย้ายใบเสร็จ 3 ไฟล์ ไปไว้ในโฟลเดอร์ "บัญชี"' },
+  { id: 'pic', due: 7, t: 'ย้ายรูป 2 รูป ไปไว้ในโฟลเดอร์ "รูปภาพ"' },
+  { id: 'newf', due: 7, t: 'ดับเบิลคลิกที่ว่างบนจอ แล้วสร้างโฟลเดอร์ใหม่' },
+  { id: 'wall', due: 7, t: 'เปลี่ยนวอลเปเปอร์ (ลองโหลดรูปจากเสิร์ชน้อยมาตั้งก็ได้)' },
+  { id: 'sum', due: 7, t: 'เปิด ค่าใช้จ่าย.xlsx ใส่สูตรรวมยอดที่ B8 (=SUM(B2:B6))' },
+  { id: 'fmt', due: 7, t: 'ตกแต่งตาราง ทำตัวหนาหรือใส่สี แล้วกดบันทึก' },
   { id: 'hotel', t: 'อ่านเอกสาร "ทริปปีใหม่" บนโต๊ะ แล้วหาที่พักในเสิร์ชน้อย แท็บที่พัก' },
   { id: 'trip', t: 'กรอกที่พักลง ทริปปีใหม่.xlsx แล้วใส่สูตรคำนวณราคารวม' },
-  { id: 'mail', t: 'สร้างอีเมลสมมุติในเสิร์ชน้อย (แท็บอีเมล) แล้วจดลงโพสต์อิท' },
-  { id: 'signup', t: 'สมัครแชทน้อยด้วยอีเมลที่สร้างเอง' },
+  { id: 'mail', due: 7, t: 'สร้างอีเมลสมมุติในเสิร์ชน้อย (แท็บอีเมล) แล้วจดลงโพสต์อิท' },
+  { id: 'signup', due: 7, t: 'สมัครแชทน้อยด้วยอีเมลที่สร้างเอง' },
   { id: 'propose', t: 'เสนอที่พักในกลุ่มแชท "ทีมบัญชีน่ารัก"' },
   { id: 'boss', t: 'ส่งไฟล์ ทริปปีใหม่.xlsx ให้หัวหน้าแมวทางแชท' },
   { id: 'food', t: 'สั่งข้าวเที่ยงในแอปหิวแล้ว (ปักหมุดที่อยู่ก่อนสั่ง)' },
-  { id: 'hl', t: 'หยิบเอกสารบนโต๊ะมาอ่าน แล้วไฮไลท์ตรงที่สำคัญ' },
-  { id: 'postit', t: 'กด "📝 โพสต์อิท" แปะจดอะไรก็ได้ บนจอคอมหรือบนโต๊ะ' },
-  { id: 'note', t: 'จดอะไรก็ได้ลงสมุดโน้ต' },
-  { id: 'cal', t: 'เปิดปฏิทินน้อย แล้วเร่งวันไปถึงอีเวนต์ถัดไป (ย้อนกลับไม่ได้!)' },
+  { id: 'hl', due: 7, t: 'หยิบเอกสารบนโต๊ะมาอ่าน แล้วไฮไลท์ตรงที่สำคัญ' },
+  { id: 'postit', due: 7, t: 'กด "📝 โพสต์อิท" แปะจดอะไรก็ได้ บนจอคอมหรือบนโต๊ะ' },
+  { id: 'note', due: 7, t: 'จดอะไรก็ได้ลงสมุดโน้ต' },
+  { id: 'cal', due: 7, t: 'เปิดปฏิทินน้อย แล้วเร่งวันไปถึงอีเวนต์ถัดไป (ย้อนกลับไม่ได้!)' },
   { id: 'meet', t: 'เตรียมเอกสารใส่โฟลเดอร์ "เอกสารประชุม" ให้ครบก่อนวันประชุม (ดูในปฏิทิน)' },
   { id: 'ai', t: 'สั่งน้องเอไอ "ทำสรุปทริป" (ลากเทมเพลตและไฟล์ที่หามาให้ครบ)' },
   { id: 'work', t: 'ดาวน์โหลดเอกสารจากแชทลูกค้า แล้วบันทึกในโปรแกรมบัญชีน้อยให้ถูก 3 ใบ' },
-  { id: 'scan', t: 'หยิบเอกสารบนโต๊ะ กด "ถือไว้ข้างจอ" หรือ "สแกนเข้าคอม"' },
+  { id: 'scan', due: 7, t: 'หยิบเอกสารบนโต๊ะ กด "ถือไว้ข้างจอ" หรือ "สแกนเข้าคอม"' },
   { id: 'junior', t: 'ตอบคำถามรุ่นน้องให้ถูก 3 ข้อ (น้องทักมาทุก 3 ชั่วโมงในเกม)' },
   { id: 'phone', t: 'หยิบมือถือบนโต๊ะขึ้นมาดูแชท', me: 1 },
   { id: 'family', t: 'ตอบแชทครอบครัว (แม่ พ่อ น้องสาว หรือพี่ชาย)', me: 1 },
@@ -66,7 +62,9 @@ const TASKS = [
 const done = new Set();
 function renderTasks() {
   $('taskHead').innerHTML = `<span>งาน · วันที่ ${unlockedDay}</span><span>${TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay && done.has(t.id)).length}/${TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay).length} ${$('tasks').classList.contains('min') ? '▸' : '▾'}</span>`;
-  const vis = TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay), li = list => list.map(t => `<li class="${done.has(t.id) ? 'done' : ''}">${esc(t.t)}</li>`).join('');
+  const vis = TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay);
+  const dueTxt = t => { if (!t.due || done.has(t.id)) return ''; const late = t.due < unlockedDay; return `<small class="due${late ? ' late' : ''}">${late ? 'เลยกำหนดแล้ว' : 'ภายใน'} ${new Date(2026, 0, t.due).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</small>`; };
+  const li = list => list.map(t => `<li class="${done.has(t.id) ? 'done' : ''}">${esc(t.t)}${dueTxt(t)}</li>`).join('');
   const later = TASKS.length - vis.length;
   $('taskList').innerHTML = `<div class="tsec">💼 งานบริษัท</div><ol>${li(vis.filter(t => !t.me))}</ol>${vis.some(t => t.me) ? `<div class="tsec">🏠 เรื่องส่วนตัว</div><ol>${li(vis.filter(t => t.me))}</ol>` : ''}${later ? `<div class="tsoon">🔒 อีก ${later} งานจะเปิดในวันถัดๆ ไป</div>` : ''}`;
 }

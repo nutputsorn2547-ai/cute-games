@@ -269,6 +269,8 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .tasks .tfoot{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:8px;padding-top:6px;border-top:1px dashed #d9cd7a;font-size:10px;color:#8a7e3a}
 .tasks .tfoot button{font:inherit;font-size:10px;border:1px solid #d9cd7a;background:#fffbd0;border-radius:6px;padding:1px 6px;cursor:pointer;color:#6b6020}
 .tasks li.done{text-decoration:line-through;color:#9c9060}
+.tasks li .due{display:block;font-size:11px;color:#8a7e3a}
+.tasks li .due.late{color:#c0392b;font-weight:600}
 
 .screen{container-type:inline-size}
 .taskbar button{flex:0 1 auto;min-width:0;overflow:hidden;padding:6px 7px;gap:5px}

@@ -5,7 +5,7 @@ let timeOff = 0, lastMin = '', nightMsgSent = false;
 const p2 = n => String(n).padStart(2, '0');
 const T0 = new Date(2026, 0, 1, 8, 0, 0).getTime(); // game starts 1 ม.ค. 2569 08:00
 let R0 = Date.now(), loadOff = 0; // loadOff = game time already played (from a save)
-const SPEED = 24; // 1 game day = 1 real hour
+const SPEED = 12; // 1 game day = 2 real hours
 const gnow = () => new Date(T0 + loadOff + (Date.now() - R0) * SPEED + dayOff * 86400000 + timeOff);
 const gHour = () => gnow().getHours();
 $('clock').addEventListener('click', openTime);
@@ -15,7 +15,7 @@ function renderTime(W = wins.get('time')) {
   if (!W) return; const d = gnow(), box = W.body.firstChild;
   box.innerHTML = `<div class="big"><div class="col"><button class="btn2" data-t="60" aria-label="เพิ่มชั่วโมง">▲</button><span class="hh">${p2(d.getHours())}</span><button class="btn2" data-t="-60" aria-label="ลดชั่วโมง">▼</button></div><span>:</span><div class="col"><button class="btn2" data-t="5" aria-label="เพิ่มนาที">▲</button><span class="mm">${p2(d.getMinutes())}</span><button class="btn2" data-t="-5" aria-label="ลดนาที">▼</button></div></div>
     <div class="pre">${[['🌅 เช้า', 8, 30], ['🍚 เที่ยง', 12, 0], ['🏃 เลิกงาน', 17, 30], ['🌙 ดึก', 22, 0]].map(([n, hh, mm]) => `<button class="btn2" data-h="${hh}" data-m="${mm}">${n} ${p2(hh)}:${p2(mm)}</button>`).join('')}</div>
-    <div class="pre"><button class="btn2 pri" data-real>เวลาตามปกติ</button><button class="btn2" data-cal>📅 ข้ามวันในปฏิทิน</button></div><small style="color:var(--soft)">${thDate(d)} · ${timeOff ? 'ใช้เวลาที่ตั้งเอง' : 'เวลาเดินตามปกติ'} · ย้อนวันไม่ได้<br>เวลาในเกม 1 วัน = 1 ชั่วโมงจริง</small>`;
+    <div class="pre"><button class="btn2 pri" data-real>เวลาตามปกติ</button><button class="btn2" data-cal>📅 ข้ามวันในปฏิทิน</button></div><small style="color:var(--soft)">${thDate(d)} · ${timeOff ? 'ใช้เวลาที่ตั้งเอง' : 'เวลาเดินตามปกติ'} · ย้อนวันไม่ได้<br>เวลาในเกม 1 วัน = 2 ชั่วโมงจริง</small>`;
   box.onclick = e => {
     const b = e.target.closest('button'); if (!b) return;
     const g = gnow(), cur = g.getHours() * 60 + g.getMinutes();
