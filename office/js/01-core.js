@@ -187,6 +187,7 @@ addEventListener('pointerup', e => {
   else if (t && t.chat && f) sendFile(f);
   else if (t && t.ai && f) aiAttach(f);
   else if (t && t.work && f) workPick(f);
+  else if (t && t.mail && f) mailAttach(f);
   else if (t && t.desk) {
     const r = icons.getBoundingClientRect();
     const c = clamp(Math.round((e.clientX - r.left - 14 - 46) / CELLW), 0, Math.floor((r.width - 100) / CELLW)), row = clamp(Math.round((e.clientY - r.top - 12 - 40) / CELLH), 0, Math.floor((r.height - 100) / CELLH));
@@ -204,6 +205,7 @@ function dropTarget(x, y) {
   if (W && W.chat) return { chat: true };
   if (W && W.ai) return { ai: true };
   if (W && W.work) return { work: true };
+  if (W && W.mail) return { mail: true };
   if (el.closest('#icons')) return { desk: true };
   return null;
 }
