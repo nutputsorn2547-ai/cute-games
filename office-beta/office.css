@@ -678,3 +678,10 @@ body:not([data-career="acct"]) .item[data-id="doc:inv"],body:not([data-career="a
 .csc .ctop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .csc .ctop .ord{margin-left:auto;font:700 15px/1.2 ui-monospace,Menlo,monospace;background:#fff4b8;border:2px dashed #e0b400;color:#5a4300;padding:3px 10px;border-radius:9px;user-select:all}
 .csc .ctop .ord b{font-size:17px;letter-spacing:.5px}
+
+.csc .cpy{font:inherit;font-size:11px;border:1px solid #9bb6e8;background:#fff;color:#2b5bb8;border-radius:7px;padding:1px 7px;cursor:pointer;margin-left:4px}
+.csc .cpy:hover{background:#e6efff}
+.csc .cb .trk{margin-top:6px;padding-top:5px;border-top:1px dashed #cdd8ee;font-size:12.5px}
+.csimp .impb{padding:12px 16px;overflow:auto;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.5}
+.csimp .impb ol{margin:0;padding-left:1.3em}
+.csimp .impt{width:100%;box-sizing:border-box;font:12px/1.4 monospace;border:1px solid #cdd8ee;border-radius:8px;padding:6px}

@@ -119,31 +119,38 @@ function openCS() {
     const k = e.target.closest('[data-case]'); if (k) { cs.sel = k.dataset.case; cs.act = ''; cs.tpl = ''; cs.fb = ''; renderCS(); return; }
     const a = e.target.closest('[data-act]'); if (a) { cs.act = a.dataset.act; const c = career.cs.cases.find(x => x.id === cs.sel); cs.tpl = cs.act; cs.draft = (CS_TPL[cs.act] ? CS_TPL[cs.act][1] : '').replace('{name}', c.name); renderCS(); return; }
     const t = e.target.closest('[data-tp]'); if (t) { const c = career.cs.cases.find(x => x.id === cs.sel); cs.tpl = t.dataset.tp; cs.draft = CS_TPL[cs.tpl][1].replace('{name}', c.name); renderCS(); return; }
+    const cp = e.target.closest('[data-copy]'); if (cp) return csCopy(cp.dataset.copy, 'เลขพัสดุ');
+    if (e.target.closest('[data-gptp]')) return csCopy(CS_GPT_PROMPT, 'คำสั่งสำหรับ GPT');
+    if (e.target.closest('[data-impgo]')) return csImport(root.querySelector('.impt').value);
     if (e.target.closest('[data-send]')) return csSend();
     if (e.target.closest('[data-rep]')) return csReportPDF();
   });
-  root.addEventListener('input', e => { if (e.target.matches('textarea')) cs.draft = e.target.value; if (e.target.matches('.hq')) { cs.q = e.target.value; cs.hqFocus = true; renderCS(); } });
+  root.addEventListener('input', e => { if (e.target.matches('.impt')) cs.imp = e.target.value; else if (e.target.matches('textarea')) cs.draft = e.target.value; if (e.target.matches('.hq')) { cs.q = e.target.value; cs.hqFocus = true; renderCS(); } });
   renderCS(); return cs.W;
 }
 function renderCS() {
   if (!cs.W || !wins.has('cscase')) return; const root = cs.W.body.firstChild, open = csOpen(), cc = career.cs, pd = id => CS_PRODUCTS.find(p => p.id === id);
   const doneL = cc.cases.filter(x => x.done && x.reply).sort((a, b) => (b.at || 0) - (a.at || 0)), tab = cs.tab || 'open';
-  const factsOf = c => { const p = pd(c.pid); return `<span>${p.e} ${esc(p.n)} · ฿${baht(p.price)}</span>${c.kind === 'return' ? `<span>ได้รับของเมื่อ <b>${c.days} วันก่อน</b></span>` : ''}${c.kind === 'repair' ? `<span>ซื้อมา <b>${c.months} เดือน</b> · ประกัน ${p.warr} เดือน</span>` : ''}${c.trk ? `<span>เลขพัสดุ <b>${c.trk}</b></span>` : ''}`; };
-  const tabs = `<div class="cstabs"><button data-tab="open" class="${tab === 'open' ? 'on' : ''}">💬 รอตอบ (${open.length})</button><button data-tab="done" class="${tab === 'done' ? 'on' : ''}">✅ ตอบแล้ว (${doneL.length})</button></div>`;
+  const them = c => `<div class="cb them">${esc(c.msg)}${c.trk ? `<div class="trk">📦 เลขพัสดุ: <b>${c.trk}</b> <button class="cpy" data-copy="${c.trk}">📋 คัดลอกเลขพัสดุ</button></div>` : ''}</div>`;
+  const factsOf = c => { const p = pd(c.pid); return `<span>${p.e} ${esc(p.n)} · ฿${baht(p.price)}</span>${c.kind === 'return' ? `<span>ได้รับของเมื่อ <b>${c.days} วันก่อน</b></span>` : ''}${c.kind === 'repair' ? `<span>ซื้อมา <b>${c.months} เดือน</b> · ประกัน ${p.warr} เดือน</span>` : ''}${c.trk ? `<span>เลขพัสดุ <b>${c.trk}</b> <button class="cpy" data-copy="${c.trk}">📋 คัดลอก</button></span>` : ''}`; };
+  const tabs = `<div class="cstabs"><button data-tab="open" class="${tab === 'open' ? 'on' : ''}">💬 รอตอบ (${open.length})</button><button data-tab="done" class="${tab === 'done' ? 'on' : ''}">✅ ตอบแล้ว (${doneL.length})</button><button data-tab="imp" class="${tab === 'imp' ? 'on' : ''}">➕ เพิ่มเคส</button></div>`;
   const stat = `<div class="stat">ถูก ${cc.right} · พลาด ${cc.wrong}</div><button class="btn2" data-rep ${cc.right ? '' : 'disabled'}>📊 รายงานสรุปเคส</button>`;
+  if (tab === 'imp') {
+    root.innerHTML = `<div class="csl">${tabs}<div class="quota">เคสรอตอบ <b>${open.length}</b> / 8</div>${stat}</div><div class="csd chat csimp"><div class="ctop"><b>➕ เพิ่มเคสลูกค้าใหม่จาก GPT</b></div><div class="impb"><ol><li>กด “📋 คัดลอกคำสั่งสำหรับ GPT” แล้วเอาไปวางใน ChatGPT</li><li>GPT จะตอบเป็นรายการเคส (JSON) ให้คัดลอกคำตอบทั้งหมดมาวางในช่องด้านล่าง</li><li>กด “นำเข้าเคส” เคสใหม่จะเข้าไปที่แท็บ “รอตอบ” (นำเข้าได้ครั้งละไม่เกิน 10 เคส และเคสรอตอบรวมไม่เกิน 8)</li></ol><button class="btn2 pri" data-gptp>📋 คัดลอกคำสั่งสำหรับ GPT</button><textarea class="impt" rows="8" placeholder="วางคำตอบจาก GPT ที่นี่ (ขึ้นต้นด้วย [ และลงท้ายด้วย ])">${esc(cs.imp || '')}</textarea><div class="fb">${cs.impMsg || ''}</div><button class="btn2 pri" data-impgo>นำเข้าเคส</button></div></div>`; return;
+  }
   if (tab === 'done') {
     const q = (cs.q || '').trim().toLowerCase(), list = doneL.filter(c => !q || (c.name + ' ' + csOrd(c) + ' ' + (c.trk || '') + ' ' + c.msg).toLowerCase().includes(q));
     if (!list.some(c => c.id === cs.hsel)) cs.hsel = list[0]?.id || null;
     const c = list.find(x => x.id === cs.hsel);
     root.innerHTML = `<div class="csl">${tabs}<input class="hq" type="search" placeholder="ค้นหา ชื่อ / เลขออเดอร์ / เลขพัสดุ" value="${esc(cs.q || '')}">${list.map(x => `<button data-hist="${x.id}" class="${x.id === cs.hsel ? 'on' : ''}"><i>✅</i><span><b>${esc(x.name)}</b><small>#${csOrd(x)} · ${esc(CS_ACT[x.sol] ? CS_ACT[x.sol][0] : '')}</small></span></button>`).join('') || `<p class="soft">${doneL.length ? 'ไม่พบเคสที่ค้นหา' : 'ยังไม่มีเคสที่ตอบแล้ว'}</p>`}${stat}</div>
-    <div class="csd chat">${c ? `<div class="ctop"><b>${esc(c.name)}</b> <small>เคส ${c.id}</small><span class="ord">🧾 ออเดอร์ <b>#${csOrd(c)}</b></span></div><div class="cfacts">${factsOf(c)}</div><div class="cbody"><div class="cb them">${esc(c.msg)}</div><div class="cb me">${esc(c.reply)}</div></div><div class="cchips"><small>วิธีแก้ที่เลือก:</small><button class="on" disabled>${esc(CS_ACT[c.sol] ? CS_ACT[c.sol][0] : '-')}</button>${c.at ? `<small style="margin-left:auto">ตอบเมื่อ ${thDate(c.at, { day: 'numeric', month: 'short' })} ${p2(new Date(c.at).getHours())}:${p2(new Date(c.at).getMinutes())}</small>` : ''}</div>` : '<p class="soft" style="padding:20px">เลือกเคสทางซ้ายเพื่อดูข้อความที่เคยตอบ</p>'}</div>`;
+    <div class="csd chat">${c ? `<div class="ctop"><b>${esc(c.name)}</b> <small>เคส ${c.id}</small><span class="ord">🧾 ออเดอร์ <b>#${csOrd(c)}</b></span></div><div class="cfacts">${factsOf(c)}</div><div class="cbody">${them(c)}<div class="cb me">${esc(c.reply)}</div></div><div class="cchips"><small>วิธีแก้ที่เลือก:</small><button class="on" disabled>${esc(CS_ACT[c.sol] ? CS_ACT[c.sol][0] : '-')}</button>${c.at ? `<small style="margin-left:auto">ตอบเมื่อ ${thDate(c.at, { day: 'numeric', month: 'short' })} ${p2(new Date(c.at).getHours())}:${p2(new Date(c.at).getMinutes())}</small>` : ''}</div>` : '<p class="soft" style="padding:20px">เลือกเคสทางซ้ายเพื่อดูข้อความที่เคยตอบ</p>'}</div>`;
     const hq = root.querySelector('.hq'); if (cs.hqFocus && hq) { hq.focus(); const n = hq.value.length; hq.setSelectionRange(n, n); }
     return;
   }
   if (!open.some(c => c.id === cs.sel)) { cs.sel = open[0]?.id || null; cs.act = ''; cs.tpl = ''; cs.draft = ''; }
   const c = open.find(x => x.id === cs.sel);
   root.innerHTML = `<div class="csl">${tabs}<div class="quota ${cc.today >= 5 ? 'ok' : ''}">วันนี้ปิดเคสแล้ว <b>${cc.today}/5</b> เคส</div>${open.map(x => `<button data-case="${x.id}" class="${x.id === cs.sel ? 'on' : ''}"><i>🙂</i><span><b>${esc(x.name)}</b><small>#${csOrd(x)} · ${esc(x.msg.slice(0, 22))}…</small></span></button>`).join('') || '<p class="soft">ตอบครบแล้ว 🎉 เดี๋ยวมีลูกค้าทักมาใหม่ (หรือสั่งน้องเอไอให้คิดเคสใหม่ก็ได้)</p>'}${stat}</div>
-    <div class="csd chat">${c ? `<div class="ctop"><b>${esc(c.name)}</b> <small>เคส ${c.id}</small><span class="ord" title="เลขออเดอร์ของลูกค้า">🧾 ออเดอร์ <b>#${csOrd(c)}</b></span></div><div class="cfacts">${factsOf(c)}</div><div class="cbody"><div class="cb them">${esc(c.msg)}</div>${cs.sent ? `<div class="cb me">${esc(cs.sent)}</div>` : ''}</div>
+    <div class="csd chat">${c ? `<div class="ctop"><b>${esc(c.name)}</b> <small>เคส ${c.id}</small><span class="ord" title="เลขออเดอร์ของลูกค้า">🧾 ออเดอร์ <b>#${csOrd(c)}</b></span></div><div class="cfacts">${factsOf(c)}</div><div class="cbody">${them(c)}${cs.sent ? `<div class="cb me">${esc(cs.sent)}</div>` : ''}</div>
     <div class="cchips"><small>วิธีแก้ปัญหาตามกฎ (แตะเลือก):</small>${Object.entries(CS_ACT).map(([k, v]) => `<button class="${cs.act === k ? 'on' : ''}" data-act="${k}">${v[0]}</button>`).join('')}</div>
     <div class="cchips"><small>เทมเพลตตอบ:</small>${Object.entries(CS_TPL).map(([k, v]) => `<button class="${cs.tpl === k ? 'on' : ''}" data-tp="${k}">${v[0]}</button>`).join('')}</div>
     <div class="fb">${cs.fb}</div><div class="cin2"><textarea rows="2" placeholder="พิมพ์ตอบลูกค้า หรือแตะวิธีแก้ปัญหา/เทมเพลตด้านบน">${esc(cs.draft || '')}</textarea><button class="btn2 pri" data-send>ส่ง ➤</button></div>` : '<p class="soft" style="padding:20px">ยังไม่มีแชทลูกค้า</p>'}</div>`;
@@ -213,4 +220,53 @@ function shopReport() {
     career.cs.reported = true; complete('cs2'); cs.shop.msg = '✅ ถูกต้อง! ส่งรายงานให้พี่ฟ้าแล้ว'; pushMsg('boss', 'boss', `ขอบใจมากที่เจอ ${p.n} โปรหน้าเว็บ ฿${baht(a)} แต่ตอนชำระเงินเรียก ฿${baht(b)} เดี๋ยวพี่แจ้งทีมเว็บแก้ด่วน 🙏`, 1800); S.jingle();
     renderShop();
   } else { cs.shop.msg = 'ยังไม่ตรง ลองเทียบราคาหน้าสินค้ากับยอดชำระอีกที (ใส่สินค้าลงตะกร้าให้ครบก่อนเช็ก)'; S.tone(300, 200, .15, .08); root.querySelector('.fb').textContent = cs.shop.msg; }
+}
+
+function csCopy(txt, what) {
+  const ok = () => S.toast(`📋 คัดลอก${what}แล้ว: ${String(txt).length > 22 ? String(txt).slice(0, 22) + '…' : txt}`, 2.2), fb = () => { const t = h('textarea', { style: 'position:fixed;left:-999px;top:0' }); t.value = txt; document.body.append(t); t.select(); try { document.execCommand('copy'); ok(); } catch (e) { S.toast('คัดลอกไม่ได้ ลองลากคลุมเลขแล้วกด Ctrl+C', 2.6); } t.remove(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fb); else fb();
+}
+const CS_GPT_PROMPT = `ช่วยคิดเคสลูกค้า 10 เคส สำหรับเกมจำลองงาน "ฝ่ายบริการลูกค้า" ของร้านอุปกรณ์เบเกอรี่ออนไลน์ (ตอบเป็นภาษาไทย)
+
+สินค้าของร้าน (ใช้ชื่อให้ตรงเป๊ะ): ${CS_PRODUCTS.map(p => p.n).join(' | ')}
+
+ประเภทเคส (kind) มี 4 แบบ:
+- "return" ลูกค้าอยากคืนสินค้า/ขอเงินคืน ต้องมีเลขวัน "days" (1-30) = จำนวนวันนับจากวันที่ได้รับสินค้า (ให้ผสมทั้งไม่เกิน 15 วัน และเกิน 15 วัน)
+- "repair" สินค้าพัง/ใช้ไม่ได้ ขอซ่อม ต้องมีเลขเดือน "months" (1-30) = ซื้อมากี่เดือนแล้ว (ให้ผสมทั้งยังอยู่ในประกันและหมดประกัน)
+- "minor" ปัญหาเล็กน้อย เช่น กล่องบุบ ของไม่เสีย ไม่ต้องมี days/months
+- "lost" พัสดุหาย/ไม่ถึง/ขาดชิ้น ไม่ต้องมี days/months (เกมจะสร้างเลขพัสดุให้เอง ห้ามใส่เลขพัสดุในข้อความ)
+
+กติกา:
+- ผสมประเภทให้หลากหลาย ห้ามซ้ำกันเกิน 3 เคสต่อประเภท
+- "message" คือข้อความที่ลูกค้าพิมพ์มา 1-3 ประโยค ภาษาพูดธรรมชาติ มีอารมณ์หลากหลาย (สุภาพ รีบ หงุดหงิดนิดๆ เกรงใจ) และต้องพูดถึง days หรือ months ให้ตรงกับตัวเลขที่ใส่
+- "name" ขึ้นต้นด้วย "คุณ" ตามด้วยชื่อเล่นไทย ห้ามซ้ำกัน
+- ห้ามใส่ข้อมูลส่วนตัวจริง เบอร์โทร หรือที่อยู่
+
+ตอบเป็น JSON array อย่างเดียว ไม่มีข้อความอื่น ไม่ต้องมี markdown ตัวอย่างรูปแบบ:
+[
+  {"name":"คุณมะนาว","kind":"return","product":"เครื่องตีไข่ไฟฟ้า","days":9,"message":"ได้รับเครื่องตีไข่มา 9 วันแล้วค่ะ แต่ไม่เหมาะกับครัวเล็กของเรา ขอคืนเงินได้ไหมคะ"},
+  {"name":"คุณต้นกล้า","kind":"repair","product":"เตาอบมินิ 20 ลิตร","months":30,"message":"เตาอบที่ซื้อมา 30 เดือนก่อนความร้อนไม่ขึ้นแล้วครับ ส่งซ่อมได้ไหม"},
+  {"name":"คุณฟ้าใส","kind":"minor","product":"ชุดพิมพ์คุกกี้ 12 ชิ้น","message":"กล่องบุบนิดหน่อยตอนส่งมา ของข้างในโอเคค่ะ แค่แจ้งไว้"},
+  {"name":"คุณภูมิ","kind":"lost","product":"ถุงมืออบทนความร้อน","message":"สั่งไป 9 วันแล้ว ขนส่งบอกส่งสำเร็จ แต่ผมไม่เห็นพัสดุเลยครับ"}
+]`;
+function csImport(raw) {
+  const say2 = t => { cs.impMsg = t; renderCS(); };
+  let arr; try { const m = String(raw).match(/\[[\s\S]*\]/); arr = JSON.parse(m ? m[0] : raw); } catch (e) { return say2('❌ อ่านคำตอบไม่ออก ต้องเป็น JSON ที่ขึ้นต้นด้วย [ และลงท้ายด้วย ] ลองให้ GPT ตอบใหม่เป็น JSON อย่างเดียว'); }
+  if (!Array.isArray(arr) || !arr.length) return say2('❌ ไม่พบรายการเคสในคำตอบ');
+  const cc = career.cs, room = 8 - csOpen().length; if (room <= 0) return say2('ตอนนี้มีเคสรอตอบครบ 8 เคสแล้ว ตอบให้หมดก่อนค่อยนำเข้าเพิ่มนะ');
+  let ok = 0, bad = 0;
+  for (const it of arr.slice(0, 10)) {
+    if (ok >= room) break;
+    const pr = CS_PRODUCTS.find(p => p.n === String(it.product || '').trim()), kind = it.kind, msg = String(it.message || '').trim().slice(0, 300), name = String(it.name || '').trim().slice(0, 30) || 'คุณลูกค้า';
+    if (!pr || !['return', 'repair', 'minor', 'lost'].includes(kind) || msg.length < 10) { bad++; continue; }
+    const c = { id: 'C' + String(++cc.seq).padStart(3, '0'), name, kind, pid: pr.id, done: false, order: 'PM' + rint(100000, 999999), ai: 1, gpt: 1, msg };
+    if (kind === 'return') { const d = Math.round(+it.days); if (!(d >= 1 && d <= 60)) { bad++; cc.seq--; continue; } c.days = d; c.exp = d <= 15 ? 'refund' : 'deny'; if (!msg.includes(String(d))) c.msg += ` (ได้รับของเมื่อ ${d} วันก่อน)`; }
+    else if (kind === 'repair') { const m = Math.round(+it.months); if (!(m >= 1 && m <= 60)) { bad++; cc.seq--; continue; } c.months = m; c.exp = m <= pr.warr ? 'repair_free' : 'repair_paid'; if (!msg.includes(String(m))) c.msg += ` (ซื้อมาเมื่อ ${m} เดือนก่อน)`; }
+    else if (kind === 'minor') c.exp = 'discount';
+    else { c.exp = 'resend'; c.trk = 'TH' + rint(100000, 999999) + 'CS'; }
+    cc.cases.push(c); ok++;
+  }
+  if (!ok) return say2(`❌ นำเข้าไม่ได้เลย (ผิดรูปแบบ ${bad} รายการ) ตรวจว่า product เป็นชื่อสินค้าตรงตามคำสั่ง และ kind เป็น return/repair/minor/lost`);
+  cs.imp = ''; cs.tab = 'open'; cs.sel = null; S.toast(`➕ นำเข้าเคสใหม่ ${ok} เคส`, 2.2); cs.impMsg = ''; renderCS();
+  if (bad) S.toast(`ข้าม ${bad} รายการที่รูปแบบไม่ถูก`, 2.6);
 }
