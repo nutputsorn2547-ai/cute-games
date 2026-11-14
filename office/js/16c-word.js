@@ -64,13 +64,13 @@ function wordChooser() {
   pick1();
   body.onclick = e => {
     const b = e.target.closest('[data-wt]');
-    if (b) { const t = WORD_TPL.find(x => x.id === b.dataset.wt); if (!t.f.length) return makeDoc(t, {}, W); body.dataset.t = t.id;
+    if (b) { const t = WORD_TPL.find(x => x.id === b.dataset.wt); if (!t.f.length) return makeWordDoc(t, {}, W); body.dataset.t = t.id;
       body.innerHTML = `<h3>${t.n}</h3><p class="note">กรอกข้อมูล แล้วระบบจะใส่ลงเอกสารให้ (แก้ในเอกสารได้อีก)</p><form class="wform">${t.f.map(([k, l, d]) => `<label>${l}<input name="${k}" value="${esc(d)}" spellcheck="false"></label>`).join('')}<div class="acts"><button class="btn2 pri" type="submit">สร้างเอกสาร</button><button class="btn2" type="button" data-wback>← กลับ</button></div></form>`;
-      body.querySelector('form').addEventListener('submit', ev => { ev.preventDefault(); makeDoc(t, Object.fromEntries(new FormData(ev.target)), W); }); return; }
+      body.querySelector('form').addEventListener('submit', ev => { ev.preventDefault(); makeWordDoc(t, Object.fromEntries(new FormData(ev.target)), W); }); return; }
     if (e.target.closest('[data-wback]')) pick1();
   };
 }
-function makeDoc(t, v, W) {
+function makeWordDoc(t, v, W) {
   const base = t.name, same = FILES.filter(f => f.kind === 'worddoc' && f.name.startsWith(base)).length;
   const f = { id: 'u' + (++uid), name: `${base}${same ? ' ' + (same + 1) : ''}.doc`, type: 'doc', loc: 'desk', kind: 'worddoc', tpl: t.id, html: t.html(v) };
   FILES.push(f); deskPos[f.id] = firstFree(); renderDesktop(); closeWin('word-new', true); S.tone(700, 1000, .1, .06); openWord(f);
