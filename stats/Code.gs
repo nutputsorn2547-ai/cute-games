@@ -1,6 +1,7 @@
 // Google Apps Script — paste into the sheet: Extensions > Apps Script
 // Columns on sheet "log": time(ms) | kind | vid | sid | game | role | plat | phones | rtt_med | rtt_max | rtt_n
 const SHEET = 'log';
+const KEY = 'ตั้งรหัสของคุณตรงนี้'; // รหัสสำหรับเปิดดูหน้า stats — เปลี่ยนเป็นรหัสที่คุณตั้งเอง
 const HEAD = ['time', 'kind', 'vid', 'sid', 'game', 'role', 'plat', 'phones', 'rtt_med', 'rtt_max', 'rtt_n'];
 
 function sheet_() {
@@ -22,7 +23,8 @@ function doPost(e) {
   return ContentService.createTextOutput('ok');
 }
 
-function doGet() {
+function doGet(e) {
+  if (!e || !e.parameter || e.parameter.key !== KEY) return ContentService.createTextOutput(JSON.stringify({ error: 'forbidden' })).setMimeType(ContentService.MimeType.JSON);
   const cache = CacheService.getScriptCache();
   let out = cache.get('sum');
   if (!out) {
