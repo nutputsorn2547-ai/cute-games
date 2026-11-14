@@ -270,3 +270,5 @@ function newSheetFile() {
   const f = { id: 'u' + (++uid), name, type: 'xls', kind: 'sheet', loc: 'desk', book: newBook({}) };
   FILES.push(f); deskPos[f.id] = firstFree(); renderDesktop(); openSheet(f);
 }
+
+function openSheetApp() { const k = [...wins.keys()].find(x => x.startsWith('sheet-')); if (k) { focusWin(wins.get(k)); return; } newSheetFile(); }
