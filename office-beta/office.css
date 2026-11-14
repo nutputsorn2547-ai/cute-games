@@ -671,3 +671,10 @@ body:not([data-career="acct"]) .item[data-id="doc:inv"],body:not([data-career="a
 
 .ap .tx{font:800 26px/1 var(--font);color:#fff;letter-spacing:-1px}
 .icon[data-id="app-cctv"] .ap{border:2px solid #d3dae4;box-sizing:border-box}
+
+.csc .cstabs{display:flex;gap:4px;margin-bottom:6px}.csc .cstabs button{flex:1;font:inherit;font-size:12px;padding:5px 4px;border:1px solid #c9d8f0;background:#fff;border-radius:8px;cursor:pointer;color:#3b4a66}
+.csc .cstabs button.on{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.csc .hq{width:100%;box-sizing:border-box;font:inherit;font-size:12px;padding:5px 8px;border:1px solid #c9d8f0;border-radius:8px;margin-bottom:6px}
+.csc .ctop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.csc .ctop .ord{margin-left:auto;font:700 15px/1.2 ui-monospace,Menlo,monospace;background:#fff4b8;border:2px dashed #e0b400;color:#5a4300;padding:3px 10px;border-radius:9px;user-select:all}
+.csc .ctop .ord b{font-size:17px;letter-spacing:.5px}
