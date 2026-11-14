@@ -48,7 +48,7 @@ function openSheet(f) {
   const B = f.book;
   const root = h('div', { class: 'xl' }, `<div class="xtb">
     <button class="save" data-x="save" title="บันทึก (Ctrl+S)">💾 บันทึก</button><button data-x="pdf" title="บันทึกเป็นไฟล์ PDF ในเกม">📄 เซฟ PDF</button><button data-x="print" title="ปริ้นออกมาเป็นกระดาษบนโต๊ะ">🖨️ ปริ้น</button><button data-x="saveas">บันทึกเป็น…</button><button data-x="csv" title="ดาวน์โหลดลงเครื่องจริงเป็นไฟล์ CSV">⬇ CSV</button><i></i>
-    <button data-x="b" title="ตัวหนา (Ctrl+B)"><b>B</b></button><button data-x="i" title="ตัวเอียง (Ctrl+I)"><em>I</em></button><button data-x="u" title="ขีดเส้นใต้ (Ctrl+U)"><u>U</u></button><i></i>
+    <button data-x="paste" title="วางข้อความที่คัดลอกไว้ลงช่องที่เลือก (Ctrl+V)">📋 วาง</button><button data-x="b" title="ตัวหนา (Ctrl+B)"><b>B</b></button><button data-x="i" title="ตัวเอียง (Ctrl+I)"><em>I</em></button><button data-x="u" title="ขีดเส้นใต้ (Ctrl+U)"><u>U</u></button><i></i>
     <span class="lbl">พื้น</span>${FILLS.map(c => `<button class="sw" data-fill="${c}" style="--s:${c || '#fff'}" title="${c ? 'สีพื้น' : 'ไม่มีสีพื้น'}">${c ? '' : '⌀'}</button>`).join('')}<i></i>
     <span class="lbl">ตัวอักษร</span>${INKS.map(c => `<button class="sw ink" data-ink="${c}" style="--s:${c}" title="สีตัวอักษร">A</button>`).join('')}<i></i>
     <button data-x="al-left" title="ชิดซ้าย">⇤</button><button data-x="al-center" title="กึ่งกลาง">↔</button><button data-x="al-right" title="ชิดขวา">⇥</button><i></i>
@@ -138,6 +138,7 @@ function sheetCmd(W, x, ds = {}) {
   if (x && x.startsWith('al-')) return setFmt(W, f => f.al = f.al === x.slice(3) ? '' : x.slice(3));
   if (x === 'bd-all' || x === 'bd-out' || x === 'bd-none') return setBorder(W, x.slice(3));
   if (x === 'merge') return toggleMerge(W);
+  if (x === 'paste') { if (navigator.clipboard && navigator.clipboard.readText) navigator.clipboard.readText().then(t => { if (t) pasteInto(W, t); else if (clip) pasteInto(W, clip); }, () => { if (clip) pasteInto(W, clip); else S.toast('เบราว์เซอร์ไม่อนุญาตให้อ่านคลิปบอร์ด ลองกด Ctrl+V แทนนะ', 2.6); }); else if (clip) pasteInto(W, clip); return; }
   if (x === 'clear') return setFmt(W, f => { for (const k in f) f[k] = 0; });
   if (x === 'sum') {
     const c = B.sel[0], r = ri(B.sel); let r0 = r - 1; while (r0 >= 1 && typeof value(B, c + r0) === 'number') r0--;
@@ -242,7 +243,7 @@ let sheetClip = null;
 function pasteInto(W, text) {
   const B = W.book;
   if (sheetClip && sheetClip.text === text) { const { cells, w, hgt } = sheetClip; for (let c = 0; c < w; c++) for (let r = 0; r < hgt; r++) { const dst = COLS[ci(B.sel) + c] + (ri(B.sel) + r); if (ci(B.sel) + c < COLS.length && ri(B.sel) + r <= ROWS) { const v = cells[c + ',' + r]; if (v) B.cells[dst] = v; else delete B.cells[dst]; } } }
-  else B.cells[B.sel] = text;
+  else { const rows = String(text).replace(/\r/g, '').replace(/\n+$/, '').split('\n').slice(0, ROWS); rows.forEach((line, r) => line.split('\t').forEach((v, c) => { const cc = ci(B.sel) + c, rr = ri(B.sel) + r; if (cc < COLS.length && rr <= ROWS) { v = v.trim(); if (v) B.cells[COLS[cc] + rr] = v; else delete B.cells[COLS[cc] + rr]; } })); }
   renderSheet(W); S.toast('วางแล้ว', 1);
 }
 document.addEventListener('keydown', e => {
@@ -258,12 +259,17 @@ document.addEventListener('keydown', e => {
   if (e.target.closest && e.target.closest('input,textarea')) return;
   if (mod && (k === 'b' || k === 'i' || k === 'u')) { e.preventDefault(); sheetCmd(W, k); return; }
   if (mod && k === 'c') { const r = rect(B), cells = {}; let txt = []; for (let rr = r.r0; rr <= r.r1; rr++) { const row = []; for (let c = r.c0; c <= r.c1; c++) { cells[(c - r.c0) + ',' + (rr - r.r0)] = B.cells[COLS[c] + rr] || ''; row.push(show(value(B, COLS[c] + rr))); } txt.push(row.join('\t')); } clip = txt.join('\n'); sheetClip = { cells, w: r.c1 - r.c0 + 1, hgt: r.r1 - r.r0 + 1, text: clip }; try { navigator.clipboard?.writeText(clip).catch(() => {}); } catch (er) {} S.toast('คัดลอกช่องแล้ว', 1); e.preventDefault(); return; }
-  if (mod && k === 'v') { e.preventDefault(); if (clip) pasteInto(W, clip); return; }
+  if (mod && k === 'v') return; // handled by the paste event (works with text copied from anywhere, e.g. a tracking number)
   const mv = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], Enter: [0, 1], Tab: [1, 0] }[e.key];
   if (mv) { e.preventDefault(); moveSel(W, ...mv, e.shiftKey && e.key.startsWith('Arrow')); return; }
   if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); eachSel(B, ref => delete B.cells[ref]); renderSheet(W); return; }
   if (e.key === 'F2') { e.preventDefault(); e.stopPropagation(); startEdit(W, B.cells[B.sel] || ''); return; }
   if (e.key.length === 1 && !mod) { e.preventDefault(); startEdit(W, e.key); }
+});
+document.addEventListener('paste', e => {
+  const W = topWin(); if (!W || !W.book || currentView !== 'screen' || W.dlg || W.editor) return;
+  if (e.target.closest && e.target.closest('input,textarea')) return;
+  const t = (e.clipboardData && e.clipboardData.getData('text')) || ''; e.preventDefault(); if (t) pasteInto(W, t); else if (clip) pasteInto(W, clip);
 });
 function newSheetFile() {
   let name = 'ตารางใหม่.xlsx', k = 2; while (FILES.some(f => f.name === name)) name = `ตารางใหม่ ${k++}.xlsx`;
