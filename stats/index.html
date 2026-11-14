@@ -69,7 +69,7 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
 
 <div class="panel">
   <h2>เกมยอดนิยม</h2>
-  <div class="tw"><table><thead><tr><th>เกม</th><th>เข้าเล่น (ครั้ง)</th><th>เวลารวม (นาที)</th><th>เฉลี่ยต่อครั้ง</th><th>คอมไม่ซ้ำ</th><th>เล่นอยู่ตอนนี้</th></tr></thead><tbody id="tg"></tbody></table></div>
+  <div class="tw"><table><thead><tr><th>เกม</th><th>เข้าเล่น (ครั้ง)</th><th>เวลารวม (นาที)</th><th>เฉลี่ยต่อครั้ง</th><th>เครื่องไม่ซ้ำ</th><th>เล่นอยู่ตอนนี้</th></tr></thead><tbody id="tg"></tbody></table></div>
 </div>
 
 <p class="note">นับคอมจากรหัสสุ่มที่เก็บในเบราว์เซอร์แต่ละเครื่อง (ไม่เก็บชื่อ ไม่เก็บ IP) · เปิดจากเบราว์เซอร์เดียวกันหลายแท็บนับเป็น 1 เครื่อง · ล้างข้อมูลเบราว์เซอร์แล้วจะนับเป็นเครื่องใหม่<br>
@@ -91,7 +91,7 @@ async function load() {
     if (!key) { key = prompt('ใส่รหัสดูสถิติ') || ''; try { localStorage.setItem('cg-key', key); } catch (e) {} }
     const r = await fetch(ENDPOINT + '?key=' + encodeURIComponent(key)); const j = await r.json();
     if (j.error) { try { localStorage.removeItem('cg-key'); } catch (e) {} throw new Error('รหัสไม่ถูกต้อง — รีเฟรชหน้าแล้วใส่ใหม่'); }
-    rows = j.rows.map(a => ({ t: +a[0], kind: a[1], vid: a[2], sid: a[3], game: a[4], role: a[5], plat: a[6], phones: a[7], med: a[8], max: a[9], n: a[10] }));
+    rows = j.rows.map(a => ({ t: +a[0], kind: a[1], vid: a[2], sid: a[3], game: a[4] === 'cute-games' ? 'home' : a[4], role: a[5], plat: a[6], phones: a[7], med: a[8], max: a[9], n: a[10] }));
     $('err').style.display = 'none';
     $('upd').textContent = 'อัปเดตล่าสุด ' + new Date().toLocaleTimeString('th-TH') + ' · ข้อมูล ' + rows.length + ' แถว';
     render();
@@ -103,9 +103,10 @@ function render() {
   const last = new Map(); for (const x of rows) last.set(x.sid, x); // latest row per session
   const live = new Set(); for (const [sid, x] of last) if (x.kind !== 'leave' && now - x.t < 130000) live.add(sid);
   const recent = rows.filter(x => live.has(x.sid) && now - x.t < 130000);
-  const pcRows = rows.filter(x => x.role === 'pc');
+  const pcRows = rows.filter(x => x.role === 'pc' && x.plat === 'desktop'); // computers only
+  const gameRows = rows.filter(x => x.role === 'pc'); // any device that opened a game page
   const day0 = new Date(); day0.setHours(0, 0, 0, 0);
-  $('c-now').textContent = new Set(recent.filter(x => x.role === 'pc').map(x => x.vid)).size;
+  $('c-now').textContent = new Set(recent.filter(x => x.role === 'pc' && x.plat === 'desktop').map(x => x.vid)).size;
   const phNow = new Set(recent.filter(x => x.role === 'phone').map(x => x.vid)).size;
   $('c-ph').textContent = phNow;
   $('c-all').textContent = new Set(pcRows.map(x => x.vid)).size;
@@ -116,7 +117,7 @@ function render() {
   // per game: visits = page opens, time = visible heartbeats (~1 min each)
   const NAME = { jenga:'จังก้า', fishing:'ตกปลา', cooking:'ครัวน่ารัก', latte:'ลาเต้อาร์ต', domino:'โดมิโน', dental:'คลินิกฟัน', sewing:'ซ่อมตุ๊กตา', cereal:'ซีเรียลตัวอักษร', carving:'แกะสลัก', chess:'หมากรุก', lego:'ตัวต่อ', office:'ออฟฟิศจำลอง', home:'หน้าแรก' };
   const gm = {};
-  for (const x of pcRows) {
+  for (const x of gameRows) {
     if (x.game === 'home') continue;
     const g = gm[x.game] ||= { visits: 0, beats: 0, sess: new Set(), all: new Set(), now: new Set() };
     if (x.kind === 'visit') g.visits++;
