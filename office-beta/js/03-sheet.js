@@ -4,7 +4,7 @@
 const COLS = 'ABCDEFGHIJKL', ROWS = 30, DEFW = 92;
 const FILLS = ['', '#fff3a8', '#ffd6e0', '#cdeffd', '#d4f5d4', '#e6dcff'], INKS = ['#3a3245', '#e0457b', '#2f6fd6', '#2f9d5a'];
 function newBook(cells, fmt = {}, extra = {}) { const B = { cells: { ...cells }, fmt: JSON.parse(JSON.stringify(fmt)), colW: {}, sel: 'A1', anchor: 'A1', ...extra }; B.saved = snap(B); return B; }
-const snap = B => JSON.stringify({ c: B.cells, f: B.fmt, w: B.colW });
+const snap = B => JSON.stringify({ c: B.cells, f: B.fmt, w: B.colW, m: B.merges || [] });
 const dirty = B => snap(B) !== B.saved;
 FILES.find(f => f.id === 'x1').book = newBook(
   { A1: 'รายการ', B1: 'จำนวนเงิน', A2: 'ค่ากาแฟ', B2: '120', A3: 'ค่ากระดาษ A4', B3: '350', A4: 'ค่าไฟฟ้า', B4: '1240', A5: 'ค่าขนมทีม', B5: '89', A6: 'ค่าแท็กซี่', B6: '260', A8: 'รวม', D1: 'ลองพิมพ์สูตรเองได้ เช่น =B2*2 หรือ =AVERAGE(B2:B6)' },
@@ -52,7 +52,7 @@ function openSheet(f) {
     <span class="lbl">พื้น</span>${FILLS.map(c => `<button class="sw" data-fill="${c}" style="--s:${c || '#fff'}" title="${c ? 'สีพื้น' : 'ไม่มีสีพื้น'}">${c ? '' : '⌀'}</button>`).join('')}<i></i>
     <span class="lbl">ตัวอักษร</span>${INKS.map(c => `<button class="sw ink" data-ink="${c}" style="--s:${c}" title="สีตัวอักษร">A</button>`).join('')}<i></i>
     <button data-x="al-left" title="ชิดซ้าย">⇤</button><button data-x="al-center" title="กึ่งกลาง">↔</button><button data-x="al-right" title="ชิดขวา">⇥</button><i></i>
-    <button data-x="sum" title="รวมอัตโนมัติ">Σ รวม</button><button data-x="num" title="คอมมาและทศนิยม 2 ตำแหน่ง">1,000.00</button><button data-x="clear" title="ล้างรูปแบบ">ล้างรูปแบบ</button>
+    <button data-x="sum" title="รวมอัตโนมัติ">Σ รวม</button><button data-x="num" title="คอมมาและทศนิยม 2 ตำแหน่ง">1,000.00</button><i></i><button data-x="bd-all" title="ตีเส้นตารางทุกช่องที่เลือก">▦ เส้นตาราง</button><button data-x="bd-out" title="ตีเส้นกรอบรอบนอกของช่วงที่เลือก">▢ เส้นรอบนอก</button><button data-x="bd-none" title="ลบเส้นของช่วงที่เลือก">▫ ลบเส้น</button><button data-x="merge" title="ผสานเซลล์ที่เลือก (กดซ้ำเพื่อยกเลิกผสาน)">⊞ ผสานเซลล์</button><i></i><button data-x="clear" title="ล้างรูปแบบ">ล้างรูปแบบ</button>
   </div><div class="fbar"><b class="ref"></b><span class="raw"></span></div><div class="grid"><table><colgroup></colgroup><tbody></tbody></table></div>`);
   const W = openWin(wid, '', root, 720, 420, '#e3f4e7'); W.book = B; W.file = f; W.root = root;
   sheetTitle(f); renderSheet(W);
@@ -61,7 +61,7 @@ function openSheet(f) {
     if (!dirty(B)) return true;
     dialog(W, `บันทึกการเปลี่ยนแปลงใน <b>${esc(f.name)}</b> ก่อนปิดไหม?`, [['ยกเลิก', null], ['ไม่บันทึก', 'no'], ['บันทึก', 'yes', 'pri']]).then(({ v }) => {
       if (v === 'yes') { saveBook(W); closeWin(wid, true); }
-      if (v === 'no') { const s = JSON.parse(B.saved); B.cells = s.c; B.fmt = s.f; B.colW = s.w; closeWin(wid, true); }
+      if (v === 'no') { const s = JSON.parse(B.saved); B.cells = s.c; B.fmt = s.f; B.colW = s.w; B.merges = s.m || []; closeWin(wid, true); }
     });
     return false;
   };
@@ -69,18 +69,46 @@ function openSheet(f) {
 }
 function rect(B) { return { c0: Math.min(ci(B.sel), ci(B.anchor)), c1: Math.max(ci(B.sel), ci(B.anchor)), r0: Math.min(ri(B.sel), ri(B.anchor)), r1: Math.max(ri(B.sel), ri(B.anchor)) }; }
 function eachSel(B, fn) { const r = rect(B); for (let c = r.c0; c <= r.c1; c++) for (let rr = r.r0; rr <= r.r1; rr++) fn(COLS[c] + rr); }
+
+const BD_CSS = f => (f.bt ? 'border-top:2px solid #222;' : '') + (f.bb ? 'border-bottom:2px solid #222;' : '') + (f.bl ? 'border-left:2px solid #222;' : '') + (f.br ? 'border-right:2px solid #222;' : '');
+function mergeMap(B) {
+  const top = {}, cov = new Set();
+  (B.merges || []).forEach(m => { const [a, b] = m.split(':'), c0 = Math.min(ci(a), ci(b)), c1 = Math.max(ci(a), ci(b)), r0 = Math.min(ri(a), ri(b)), r1 = Math.max(ri(a), ri(b)); top[COLS[c0] + r0] = { cs: c1 - c0 + 1, rs: r1 - r0 + 1 }; for (let c = c0; c <= c1; c++) for (let r = r0; r <= r1; r++) if (c !== c0 || r !== r0) cov.add(COLS[c] + r); });
+  return { top, cov };
+}
+function setBorder(W, mode) {
+  const B = W.book, R = rect(B); B.touchedFmt = true;
+  eachSel(B, ref => {
+    const c = ci(ref), r = ri(ref), f = { ...(B.fmt[ref] || {}) };
+    if (mode === 'none') { delete f.bt; delete f.bb; delete f.bl; delete f.br; }
+    else if (mode === 'all') { f.bt = f.bb = f.bl = f.br = 1; }
+    else { if (r === R.r0) f.bt = 1; if (r === R.r1) f.bb = 1; if (c === R.c0) f.bl = 1; if (c === R.c1) f.br = 1; }
+    if (Object.keys(f).length) B.fmt[ref] = f; else delete B.fmt[ref];
+  });
+  renderSheet(W); S.tone(820, 820, .03, .05);
+}
+function toggleMerge(W) {
+  const B = W.book, R = rect(B), key = `${COLS[R.c0]}${R.r0}:${COLS[R.c1]}${R.r1}`;
+  const hit = (B.merges || []).filter(m => { const [a, b] = m.split(':'); return ci(a) >= R.c0 && ci(b) <= R.c1 && ri(a) >= R.r0 && ri(b) <= R.r1 || (ci(a) <= R.c1 && ci(b) >= R.c0 && ri(a) <= R.r1 && ri(b) >= R.r0 && R.c0 === R.c1 && R.r0 === R.r1); });
+  if (hit.length) { B.merges = B.merges.filter(m => !hit.includes(m)); B.sel = B.anchor = COLS[R.c0] + R.r0; renderSheet(W); S.toast('ยกเลิกการผสานเซลล์แล้ว', 1.6); return; }
+  if (R.c0 === R.c1 && R.r0 === R.r1) { S.toast('ลากเลือกหลายช่องก่อน แล้วค่อยกดผสานเซลล์', 2); return; }
+  let lost = 0; eachSel(B, ref => { if (ref !== COLS[R.c0] + R.r0 && B.cells[ref]) { lost++; delete B.cells[ref]; } });
+  (B.merges = B.merges || []).push(key); B.touchedFmt = true; B.sel = B.anchor = COLS[R.c0] + R.r0; renderSheet(W); S.tone(700, 1000, .08, .06);
+  S.toast(lost ? 'ผสานเซลล์แล้ว (เก็บเฉพาะค่าของช่องซ้ายบน)' : 'ผสานเซลล์แล้ว', 2);
+}
 function renderSheet(W) {
   const B = W.book, t = W.root.querySelector('table');
   const cw = c => B.colW[c] || DEFW;
   t.querySelector('colgroup').innerHTML = '<col style="width:36px">' + [...COLS].map(c => `<col data-col="${c}" style="width:${cw(c)}px">`).join('');
   t.style.width = 36 + [...COLS].reduce((s, c) => s + cw(c), 0) + 'px';
+  const MM = mergeMap(B);
   let html = '<tr><th class="rh"></th>' + [...COLS].map(c => `<th data-col="${c}">${c}<span class="cr" data-col="${c}"></span></th>`).join('') + '</tr>';
   for (let r = 1; r <= ROWS; r++) {
     html += `<tr><th class="rh">${r}</th>`;
     for (const c of COLS) {
-      const ref = c + r, v = value(B, ref), f = B.fmt[ref] || {};
-      let st = ''; if (f.b) st += 'font-weight:600;'; if (f.i) st += 'font-style:italic;'; if (f.u) st += 'text-decoration:underline;'; if (f.bg) st += `background:${f.bg};`; if (f.fg) st += `color:${f.fg};`; if (f.al) st += `text-align:${f.al};`;
-      html += `<td data-ref="${ref}" class="${typeof v === 'number' ? 'num' : ''}${String(v).startsWith('#') ? ' err' : ''}"${st ? ` style="${st}"` : ''}>${esc(show(v, f))}</td>`;
+      const ref = c + r; if (MM.cov.has(ref)) continue; const mg = MM.top[ref], v = value(B, ref), f = B.fmt[ref] || {};
+      let st = BD_CSS(f); if (f.b) st += 'font-weight:600;'; if (f.i) st += 'font-style:italic;'; if (f.u) st += 'text-decoration:underline;'; if (f.bg) st += `background:${f.bg};`; if (f.fg) st += `color:${f.fg};`; if (f.al) st += `text-align:${f.al};`;
+      html += `<td data-ref="${ref}"${mg ? ` colspan="${mg.cs}" rowspan="${mg.rs}"` : ''} class="${typeof v === 'number' ? 'num' : ''}${String(v).startsWith('#') ? ' err' : ''}"${st ? ` style="${st}"` : ''}>${esc(show(v, f))}</td>`;
     }
     html += '</tr>';
   }
@@ -108,6 +136,8 @@ function sheetCmd(W, x, ds = {}) {
   if (ds.ink !== undefined) return setFmt(W, f => f.fg = ds.ink === INKS[0] ? '' : ds.ink);
   if (x === 'b' || x === 'i' || x === 'u' || x === 'num') { let all = true; eachSel(B, ref => { if (!(B.fmt[ref] || {})[x]) all = false; }); return setFmt(W, f => f[x] = all ? 0 : 1); }
   if (x && x.startsWith('al-')) return setFmt(W, f => f.al = f.al === x.slice(3) ? '' : x.slice(3));
+  if (x === 'bd-all' || x === 'bd-out' || x === 'bd-none') return setBorder(W, x.slice(3));
+  if (x === 'merge') return toggleMerge(W);
   if (x === 'clear') return setFmt(W, f => { for (const k in f) f[k] = 0; });
   if (x === 'sum') {
     const c = B.sel[0], r = ri(B.sel); let r0 = r - 1; while (r0 >= 1 && typeof value(B, c + r0) === 'number') r0--;
@@ -129,9 +159,9 @@ async function saveAs(W) {
   if (v !== 'ok' || !text) return;
   const name = /\.xlsx$/i.test(text) ? text : text + '.xlsx', B = W.book;
   const f = { id: 'u' + (++uid), name, type: 'xls', kind: 'sheet', loc: 'desk' };
-  f.book = newBook(B.cells, B.fmt, { tpl: B.tpl, colW: { ...B.colW }, touchedFmt: B.touchedFmt }); f.book.saved = snap(f.book);
+  f.book = newBook(B.cells, B.fmt, { tpl: B.tpl, colW: { ...B.colW }, touchedFmt: B.touchedFmt, merges: [...(B.merges || [])] }); f.book.saved = snap(f.book);
   FILES.push(f); deskPos[f.id] = firstFree(); renderDesktop();
-  const s = JSON.parse(B.saved); B.cells = s.c; B.fmt = s.f; B.colW = s.w; closeWin(W.id, true);
+  const s = JSON.parse(B.saved); B.cells = s.c; B.fmt = s.f; B.colW = s.w; B.merges = s.m || []; closeWin(W.id, true);
   openSheet(f); S.toast(`สร้างไฟล์ "${name}" บนหน้าจอแล้ว`, 2);
   if (Object.values(f.book.fmt).some(x => x.b || x.bg || x.fg) && f.book.touchedFmt) complete('fmt');
 }
