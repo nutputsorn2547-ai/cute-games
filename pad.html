@@ -114,7 +114,7 @@ body.laptop .row button{flex:1 1 18%;padding:7px 2px;font-size:12px;border-radiu
   </div>
 
 <script type="module">
-import { joinRoom } from './lib/link.js?v=3';
+import { joinRoom } from './lib/link.js?v=4';
 import { eulerToQuat } from './lib/aim.js?v=2';
 
 const $ = id => document.getElementById(id);
@@ -417,5 +417,6 @@ function start() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {} });
 }
 </script>
+<script type="module" src="lib/stats.js"></script>
 </body>
 </html>
