@@ -48,7 +48,8 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
   <div class="card"><b id="c-today">–</b><span>คอมที่เข้ามาวันนี้</span></div>
   <div class="card"><b id="c-top1">–</b><span>เกมที่เข้าเล่นบ่อยสุด</span></div>
   <div class="card"><b id="c-top2">–</b><span>เกมที่เล่นนานสุด (เวลารวม)</span></div>
-  <div class="card"><b id="c-pl">–</b><span>มือถือ Android / iOS ที่เคยเชื่อม</span></div>
+  <div class="card"><b id="c-dev" style="font-size:24px">–</b><span>ทุกเครื่องที่เคยเข้าเว็บ (คอม / Android / iOS)</span></div>
+  <div class="card"><b id="c-pl">–</b><span>มือถือ Android / iOS ที่เคยเชื่อมเป็นจอย</span></div>
 </div>
 
 <div class="panel">
@@ -111,6 +112,8 @@ function render() {
   $('c-ph').textContent = phNow;
   $('c-all').textContent = new Set(pcRows.map(x => x.vid)).size;
   $('c-today').textContent = new Set(pcRows.filter(x => x.t >= +day0).map(x => x.vid)).size;
+  const dv = p => new Set(rows.filter(x => x.plat === p).map(x => x.vid)).size;
+  $('c-dev').textContent = dv('desktop') + ' / ' + dv('android') + ' / ' + dv('ios');
   const ph = rows.filter(x => x.role === 'phone');
   $('c-pl').textContent = new Set(ph.filter(x => x.plat === 'android').map(x => x.vid)).size + ' / ' + new Set(ph.filter(x => x.plat === 'ios').map(x => x.vid)).size;
 
