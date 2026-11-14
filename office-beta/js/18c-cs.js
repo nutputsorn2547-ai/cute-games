@@ -35,14 +35,14 @@ function csNew() {
   career.cs.cases.push(c); return c;
 }
 CAREERS.cs = {
-  label: 'ฝ่ายบริการลูกค้า', co: 'ขนมเมฆ ช้อป จำกัด', e: '🎧', pos: 'เจ้าหน้าที่ดูแลลูกค้า', color: '#d9ecff', salary: 25000, where: 'กรุงเทพฯ · ไฮบริด', tags: ['บริการ', 'ลูกค้า'],
+  label: 'ฝ่ายบริการลูกค้า', co: 'เมฆเบเกอรี่ ช้อป จำกัด', e: '🎧', pos: 'เจ้าหน้าที่ดูแลลูกค้า', color: '#d9ecff', salary: 25000, where: 'กรุงเทพฯ · ไฮบริด', tags: ['บริการ', 'ลูกค้า'],
   desc: 'ตอบลูกค้าร้านอุปกรณ์เบเกอรี่ออนไลน์ ตัดสินใจเคสคืนเงิน ซ่อม ส่งใหม่ตามกฎบริษัท ตรวจเว็บไซต์ร้าน รายงานหัวหน้าทีม เอกสารน้อย เน้นตอบลูกค้า',
   need: ['สื่อสารสุภาพ ใจเย็น', 'ทำตามกฎบริษัทได้ละเอียด', 'สังเกตความผิดปกติเก่ง'], perks: ['ส่วนลดสินค้า 25%', 'ทำงานไฮบริด', 'ไม่ต้องเขียนเอกสารเยอะ'],
   people: { boss: { n: 'พี่ฟ้า (หัวหน้าทีมลูกค้า)', e: '🦊', c: '#cfe6ff' }, bear: { n: 'โอ๊ต (แอดมินเพจ)', e: '🐻', c: '#e8cfb4' }, bun: { n: 'แพรว (คลังสินค้า)', e: '🐰', c: '#ffd6e3' }, duck: { n: 'ปุ้ย (ประสานขนส่ง)', e: '🐥', c: '#fff1a8' } },
-  titles: { g: 'ทีมดูแลลูกค้า ขนมเมฆ', boss: 'พี่ฟ้า (หัวหน้าทีมลูกค้า)', hr: 'พี่ HR ขนมเมฆ' }, hide: ['cust'], docs: false, apps: ['cs'], client: '',
+  titles: { g: 'ทีมดูแลลูกค้า เมฆเบเกอรี่', boss: 'พี่ฟ้า (หัวหน้าทีมลูกค้า)', hr: 'พี่ HR เมฆเบเกอรี่' }, hide: ['cust'], docs: false, apps: ['cs'], client: '',
   tasks: [
     { id: 'cs1', t: 'เปิดแอป 🎧 เคสลูกค้า ปิดเคสให้ถูกตามกฎบริษัทให้ครบ 4 เคส (เลือกวิธีแก้ปัญหา + ตอบลูกค้าด้วยเทมเพลต)' },
-    { id: 'cs2', t: 'เปิด 🛍️ เว็บร้านขนมเมฆช้อป ลองหยิบของใส่ตะกร้าไปหน้าชำระเงิน เทียบราคาโปรโมชั่นกับยอดที่เรียกเก็บ แล้วรายงานถ้าไม่ตรง' },
+    { id: 'cs2', t: 'เปิด 🛍️ เว็บร้านเมฆเบเกอรี่ช้อป ลองหยิบของใส่ตะกร้าไปหน้าชำระเงิน เทียบราคาโปรโมชั่นกับยอดที่เรียกเก็บ แล้วรายงานถ้าไม่ตรง' },
     { id: 'cs3', t: 'กด “📊 รายงานสรุปเคส” ในแอปเคสลูกค้า ได้ไฟล์ PDF แล้วส่งให้พี่ฟ้าทางแชท' },
   ],
   book: `<ul><li><b>คืนเงิน</b> ได้ภายใน <b>15 วัน</b> นับจากวันที่ลูกค้าได้รับสินค้า เกินกว่านั้นปฏิเสธอย่างสุภาพ</li><li><b>ซ่อม</b> ซ่อมได้ตลอดระยะเวลาประกันของสินค้านั้น (ดูเดือนประกันในหน้าเคส) หมดประกันซ่อมแบบคิดค่าบริการ</li><li><b>ปัญหาเล็กน้อย</b> (กล่องบุบ ของไม่เสีย) ให้คูปองส่วนลด 10% ได้</li><li><b>ส่งไม่ถึง/ไม่ครบ</b> ส่งสินค้าใหม่ให้ลูกค้า และทำเอกสารขอเคลมคืนจากขนส่ง</li><li>ใช้ <b>เทมเพลตตอบลูกค้า</b> ได้ แต่ต้องตรงกับวิธีแก้ปัญหาที่เลือก</li><li>เจอเว็บไซต์แสดงราคาไม่ตรงกับตอนชำระเงิน ให้รายงานหัวหน้าทันที</li></ul>`,
@@ -51,7 +51,7 @@ CAREERS.cs = {
     career.cs = { seq: 0, cases: [], right: 0, wrong: 0, bug: bug.id, found: false, reported: false, report: false };
     for (let i = 0; i < 3; i++) csNew();
     chatById('boss').msgs.length = 0; chatById('g').msgs.length = 0;
-    pushMsg('boss', 'boss', 'ยินดีต้อนรับสู่ทีมดูแลลูกค้า ขนมเมฆ ช้อป 🎧 เคสลูกค้าอยู่ในแอป “เคสลูกค้า” อ่านกฎใน “งานของฉัน” ก่อนนะ แล้วอย่าลืมลองเช็กเว็บร้านด้วย ช่วงนี้มีลูกค้าบ่นเรื่องราคา', 1500);
+    pushMsg('boss', 'boss', 'ยินดีต้อนรับสู่ทีมดูแลลูกค้า เมฆเบเกอรี่ ช้อป 🎧 เคสลูกค้าอยู่ในแอป “เคสลูกค้า” อ่านกฎใน “งานของฉัน” ก่อนนะ แล้วอย่าลืมลองเช็กเว็บร้านด้วย ช่วงนี้มีลูกค้าบ่นเรื่องราคา', 1500);
     pushMsg('g', 'bear', 'โอ๊ตเองนะ ยินดีต้อนรับ 🐻 เพจตอนนี้คอมเมนต์ถามโปรเยอะมาก', 3000); pushMsg('g', 'bun', 'แพรวคลังสินค้านะคะ ถ้าต้องส่งของใหม่ แจ้งแพรวได้เลย 📦', 4600);
     mailPush(null, 'พี่ฟ้า (หัวหน้าทีมลูกค้า)', 'ยินดีต้อนรับเข้าทีมดูแลลูกค้า', '<p>ยินดีต้อนรับค่ะ งานหลักคือตอบเคสลูกค้าตามกฎบริษัท และช่วยตรวจเว็บร้านถ้าเห็นความผิดปกติ อ่านกฎในแอป "งานของฉัน" ได้เลยค่ะ</p>', 'news');
     renderChat(); toastCase();
@@ -75,7 +75,7 @@ tbButton('cscase', '🎧', 'เคสลูกค้า', '#3b82f6', 'cs', () =>
 tbButton('shop', '🛍️', 'เว็บร้านค้า', '#e0457b', 'cs', () => openShop());
 function openCS() {
   if (cs.W && wins.has('cscase')) { focusWin(cs.W); return cs.W; }
-  cs.W = openWin('cscase', 'เคสลูกค้า — ขนมเมฆ ช้อป', h('div', { class: 'csapp' }), 820, 500, '#dbe9ff'); cs.W.onClose = () => { cs.W = null; };
+  cs.W = openWin('cscase', 'เคสลูกค้า — เมฆเบเกอรี่ ช้อป', h('div', { class: 'csapp' }), 820, 500, '#dbe9ff'); cs.W.onClose = () => { cs.W = null; };
   const root = cs.W.body.firstChild;
   root.addEventListener('click', e => {
     const k = e.target.closest('[data-case]'); if (k) { cs.sel = k.dataset.case; cs.act = ''; cs.tpl = ''; cs.fb = ''; renderCS(); return; }
@@ -113,7 +113,7 @@ function csSend() {
 function csReportPDF() {
   const d = thDate(gnow().getTime(), { day: 'numeric', month: 'short', year: 'numeric' }), n = career.cs.right, k = {};
   career.cs.cases.filter(c => c.done).forEach(c => { k[c.exp] = (k[c.exp] || 0) + 1; });
-  const body = `<h3>รายงานสรุปเคสลูกค้า · ขนมเมฆ ช้อป</h3><p>วันที่ ${d} · ผู้รายงาน ${esc(chat.account?.name || 'เจ้าหน้าที่ดูแลลูกค้า')}</p><table class="pdft"><tr><th>วิธีแก้ปัญหา</th><th>จำนวนเคส</th></tr>${Object.entries(k).map(([a, v]) => `<tr><td>${esc(CS_ACT[a][0])}</td><td style="text-align:right">${v}</td></tr>`).join('')}<tr><th>รวมปิดเคสถูกต้อง</th><th style="text-align:right">${n}</th></tr></table><p>ตอบพลาด/ผิดกฎ ${career.cs.wrong} ครั้ง · ${career.cs.reported ? 'แจ้งปัญหาราคาโปรโมชั่นเว็บไซต์แล้ว' : 'ยังไม่ได้ตรวจราคาโปรโมชั่นเว็บไซต์'}</p>`;
+  const body = `<h3>รายงานสรุปเคสลูกค้า · เมฆเบเกอรี่ ช้อป</h3><p>วันที่ ${d} · ผู้รายงาน ${esc(chat.account?.name || 'เจ้าหน้าที่ดูแลลูกค้า')}</p><table class="pdft"><tr><th>วิธีแก้ปัญหา</th><th>จำนวนเคส</th></tr>${Object.entries(k).map(([a, v]) => `<tr><td>${esc(CS_ACT[a][0])}</td><td style="text-align:right">${v}</td></tr>`).join('')}<tr><th>รวมปิดเคสถูกต้อง</th><th style="text-align:right">${n}</th></tr></table><p>ตอบพลาด/ผิดกฎ ${career.cs.wrong} ครั้ง · ${career.cs.reported ? 'แจ้งปัญหาราคาโปรโมชั่นเว็บไซต์แล้ว' : 'ยังไม่ได้ตรวจราคาโปรโมชั่นเว็บไซต์'}</p>`;
   const f = savePDF(`รายงานเคสลูกค้า-${d}`, body); f.csReport = { right: n, wrong: career.cs.wrong }; S.toast('ได้ไฟล์รายงานแล้ว ส่งให้พี่ฟ้าทางแชทได้เลย', 2.6);
 }
 setInterval(() => { if (career.id === 'cs' && csOpen().length < 3) { csNew(); toastCase(); } }, 45000);
@@ -123,7 +123,7 @@ function shopPrice(p) { return p.price >= 390 && p.id !== 'p5' ? { sale: Math.ro
 function charged(p) { const s = shopPrice(p); return p.id === career.cs.bug && s.tag ? p.price : s.sale; }
 function openShop() {
   if (cs.shop.W && wins.has('shop')) { focusWin(cs.shop.W); return cs.shop.W; }
-  cs.shop.W = openWin('shop', 'ขนมเมฆ ช้อป — shop.khanommek.test', h('div', { class: 'shopapp' }), 700, 480, '#ffe4ef'); cs.shop.W.onClose = () => { cs.shop.W = null; };
+  cs.shop.W = openWin('shop', 'เมฆเบเกอรี่ ช้อป — shop.mekbakery.test', h('div', { class: 'shopapp' }), 700, 480, '#ffe4ef'); cs.shop.W.onClose = () => { cs.shop.W = null; };
   const root = cs.shop.W.body.firstChild;
   root.addEventListener('click', e => {
     const a = e.target.closest('[data-add]'); if (a) { cs.shop.cart.push(a.dataset.add); S.tone(800, 1000, .05, .05); renderShop(); return; }
