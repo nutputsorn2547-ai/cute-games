@@ -6,8 +6,8 @@ const pinStore = { get() { try { return localStorage.getItem('cute-office-beta-p
 /* ================= pause the game with a PIN ================= */
 const lk = { on: false, el: null, t: 0, game: 0, iv: null, since: 0 };
 function lockButton() {
-  const b = h('button', { 'data-app': 'lock', title: 'พักเกม (ล็อกจอ)', class: 'lockb' }, '<i class="ab" style="--c:#6b7a99">🔒</i><span class="lb">พักเกม</span>');
-  $('taskbar').insertBefore(b, $('clock')); b.addEventListener('click', () => lockStart());
+  const b = h('button', { id: 'pwrBtn', title: 'พักเกม (ล็อกจอ)', 'aria-label': 'พักเกม' }, '<svg viewBox="0 0 24 24" width="14" height="14"><rect x="6" y="6" width="12" height="12" rx="2" fill="#fff"/></svg>');
+  document.querySelector('.monitor').append(b); b.addEventListener('click', () => lockStart());
 }
 lockButton();
 function lockStart() {
