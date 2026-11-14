@@ -46,6 +46,8 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
   <div class="card"><b id="c-ph">–</b><span>มือถือที่เชื่อมอยู่ตอนนี้</span></div>
   <div class="card"><b id="c-all">–</b><span>คอมที่เคยเข้ามาทั้งหมด (ไม่ซ้ำเครื่อง)</span></div>
   <div class="card"><b id="c-today">–</b><span>คอมที่เข้ามาวันนี้</span></div>
+  <div class="card"><b id="c-top1">–</b><span>เกมที่เข้าเล่นบ่อยสุด</span></div>
+  <div class="card"><b id="c-top2">–</b><span>เกมที่เล่นนานสุด (เวลารวม)</span></div>
   <div class="card"><b id="c-pl">–</b><span>มือถือ Android / iOS ที่เคยเชื่อม</span></div>
 </div>
 
@@ -66,12 +68,12 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
 </div>
 
 <div class="panel">
-  <h2>แยกตามเกม</h2>
-  <div class="tw"><table><thead><tr><th>เกม</th><th>คอมที่เคยเข้า</th><th>เล่นอยู่ตอนนี้</th></tr></thead><tbody id="tg"></tbody></table></div>
+  <h2>เกมยอดนิยม</h2>
+  <div class="tw"><table><thead><tr><th>เกม</th><th>เข้าเล่น (ครั้ง)</th><th>เวลารวม (นาที)</th><th>เฉลี่ยต่อครั้ง</th><th>คอมไม่ซ้ำ</th><th>เล่นอยู่ตอนนี้</th></tr></thead><tbody id="tg"></tbody></table></div>
 </div>
 
 <p class="note">นับคอมจากรหัสสุ่มที่เก็บในเบราว์เซอร์แต่ละเครื่อง (ไม่เก็บชื่อ ไม่เก็บ IP) · เปิดจากเบราว์เซอร์เดียวกันหลายแท็บนับเป็น 1 เครื่อง · ล้างข้อมูลเบราว์เซอร์แล้วจะนับเป็นเครื่องใหม่<br>
-ความหน่วง = เวลาไป-กลับ (RTT) ระหว่างมือถือกับคอม วัดทุก 3 วินาทีผ่านลิงก์ที่ใช้บังคับเกม ค่าที่หน่วงมากขึ้นตอนมีหลายเครื่องอาจมาจากเน็ต/ไวไฟของแต่ละคนด้วย ไม่ได้มาจากเซิร์ฟเวอร์ทั้งหมด</p>
+เวลาเล่น = นับจากสัญญาณทุก 1 นาทีที่หน้าเกมเปิดอยู่ (แท็บที่ซ่อนอยู่ไม่นับ) จึงคลาดเคลื่อนได้ราว ±1 นาทีต่อครั้ง<br>ความหน่วง = เวลาไป-กลับ (RTT) ระหว่างมือถือกับคอม วัดทุก 3 วินาทีผ่านลิงก์ที่ใช้บังคับเกม ค่าที่หน่วงมากขึ้นตอนมีหลายเครื่องอาจมาจากเน็ต/ไวไฟของแต่ละคนด้วย ไม่ได้มาจากเซิร์ฟเวอร์ทั้งหมด</p>
 </div>
 
 <script type="module">
@@ -105,10 +107,22 @@ function render() {
   const ph = rows.filter(x => x.role === 'phone');
   $('c-pl').textContent = new Set(ph.filter(x => x.plat === 'android').map(x => x.vid)).size + ' / ' + new Set(ph.filter(x => x.plat === 'ios').map(x => x.vid)).size;
 
-  // per game
+  // per game: visits = page opens, time = visible heartbeats (~1 min each)
+  const NAME = { jenga:'จังก้า', fishing:'ตกปลา', cooking:'ครัวน่ารัก', latte:'ลาเต้อาร์ต', domino:'โดมิโน', dental:'คลินิกฟัน', sewing:'ซ่อมตุ๊กตา', cereal:'ซีเรียลตัวอักษร', carving:'แกะสลัก', chess:'หมากรุก', lego:'ตัวต่อ', office:'ออฟฟิศจำลอง', home:'หน้าแรก' };
   const gm = {};
-  for (const x of pcRows) { (gm[x.game] ||= { all: new Set(), now: new Set() }).all.add(x.vid); if (now - x.t < 130000) gm[x.game].now.add(x.vid); }
-  $('tg').innerHTML = Object.entries(gm).sort((a, b) => b[1].all.size - a[1].all.size).map(([g, v]) => `<tr><td>${g}</td><td>${v.all.size}</td><td>${v.now.size}</td></tr>`).join('');
+  for (const x of pcRows) {
+    if (x.game === 'home') continue;
+    const g = gm[x.game] ||= { visits: 0, beats: 0, sess: new Set(), all: new Set(), now: new Set() };
+    if (x.kind === 'visit') g.visits++;
+    if (x.kind === 'hb') g.beats++;
+    g.sess.add(x.sid); g.all.add(x.vid);
+    if (now - x.t < 130000) g.now.add(x.vid);
+  }
+  const gl = Object.entries(gm).map(([k, g]) => ({ k, n: NAME[k] || k, visits: g.visits || g.sess.size, mins: g.beats, avg: g.beats / Math.max(1, g.sess.size), pcs: g.all.size, now: g.now.size }));
+  const top1 = [...gl].sort((a, b) => b.visits - a.visits)[0], top2 = [...gl].sort((a, b) => b.mins - a.mins)[0];
+  $('c-top1').textContent = top1 ? top1.n + ' · ' + top1.visits : '–';
+  $('c-top2').textContent = top2 && top2.mins ? top2.n + ' · ' + top2.mins + ' นาที' : '–';
+  $('tg').innerHTML = gl.sort((a, b) => b.visits - a.visits).map(g => `<tr><td>${g.n}</td><td>${g.visits}</td><td>${g.mins}</td><td>${g.avg.toFixed(1)} นาที</td><td>${g.pcs}</td><td>${g.now}</td></tr>`).join('');
 
   // buckets
   const from = hours ? now - hours * 3600000 : 0;
