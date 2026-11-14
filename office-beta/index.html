@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ออฟฟิศจำลอง (ทดสอบ)</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Mali:wght@400;600&display=swap">
+<link rel="stylesheet" href="office.css?v=20261114a">
+<link rel="stylesheet" href="../lib/shell.css">
+</head>
+<body>
+<div class="views" id="views">
+  <section class="view" id="vScreen" aria-label="จอคอม">
+    <div class="monitor"><div class="screen" id="screen">
+      <div class="icons" id="icons"></div><div class="tint"></div>
+      <div class="taskbar" id="taskbar">
+        <button data-app="files" title="ไฟล์"><i class="ab" style="--c:#f3b73a">ไ</i><span class="lb">ไฟล์</span></button>
+        <button data-app="sheet" title="ตาราง"><i class="ab" style="--c:#2f9d5a">ต</i><span class="lb">ตาราง</span></button>
+        <button data-app="search" title="เสิร์ชน้อย"><i class="ab" style="--c:#7c9cff">ค</i><span class="lb">เสิร์ชน้อย</span></button>
+        <button data-app="chat" title="แชทน้อย"><i class="ab" style="--c:#2fbf5a">ช</i><span class="lb">แชทน้อย</span></button>
+        <button data-app="food" title="หิวแล้ว"><i class="ab" style="--c:#ff8a3d">ห</i><span class="lb">หิวแล้ว</span></button>
+        <button data-app="design" title="แคนวาน้อย"><i class="ab" style="--c:#00c4cc">แ</i><span class="lb">แคนวาน้อย</span></button>
+        <button data-app="jobs" title="จ๊อบน้อย"><i class="ab" style="--c:#3b5bdb">จ</i><span class="lb">จ๊อบน้อย</span></button>
+        <button data-app="game" title="เกมน้อย"><i class="ab" style="--c:#ff8fab">ก</i><span class="lb">เกมน้อย</span></button>
+        <button data-app="cal" title="ปฏิทินน้อย"><i class="ab" style="--c:#e8669a">ป</i><span class="lb">ปฏิทิน</span></button>
+        <button data-app="bank" title="ธนาคารน้อย"><i class="ab" style="--c:#1f9d6b">ธ</i><span class="lb">ธนาคาร</span></button>
+        <button data-app="mail" title="เมลน้อย"><i class="ab" style="--c:#3b82f6">ม</i><span class="lb">เมลน้อย</span></button>
+        <button data-app="word" title="เวิร์ดน้อย"><i class="ab" style="--c:#2b6cd9">ว</i><span class="lb">เวิร์ดน้อย</span></button>
+        <button data-app="ai" title="น้องเอไอ"><i class="ab" style="--c:#7c5cff">อ</i><span class="lb">น้องเอไอ</span></button>
+        <button data-app="work" title="บัญชีน้อย"><i class="ab" style="--c:#5a78e6">บ</i><span class="lb">บัญชีน้อย</span></button>
+        <span class="clock" id="clock"></span>
+      </div>
+    </div></div>
+  </section>
+  <section class="view" id="vDesk" aria-label="โต๊ะทำงาน">
+    <div class="desk" id="desk">
+      <div class="monedge" id="monEdge">กลับไปที่จอคอม ↑</div>
+    </div>
+  </section>
+</div>
+<div class="brbtns"><button class="notebtn" id="noteBtn" title="แปะโพสต์อิทจดอิสระ">📝 โพสต์อิท</button><button class="switch" id="switchBtn">ไปที่โต๊ะ ↓</button></div>
+<div class="tasks" id="tasks"><h3 id="taskHead"></h3><div id="taskList"></div><div class="tfoot"><span id="saveNote">💾 เซฟอัตโนมัติ</span><button id="savesBtn">💾 จัดการเซฟ</button></div></div>
+<svg class="vcur" id="vcur" viewBox="0 0 22 22" hidden><path d="M2 2 L2 18 L6.5 13.8 L9.6 20.4 L12.6 19 L9.6 12.6 L15.6 12.6 Z" fill="#fff" stroke="#3a3245" stroke-width="1.6" stroke-linejoin="round"/></svg>
+<script src="../lib/qrcode.js"></script>
+<script type="module">
+// load the shared shell, then the game files below run in order (defer + module scripts keep document order)
+import { setupShell, shellMarkup } from '../lib/shell.js?v=4';
+window.__shellLib = { setupShell, shellMarkup };
+</script>
+<script defer src="js/01-core.js?v=20261114a"></script>
+<script defer src="js/02-windows.js?v=20261113p"></script>
+<script defer src="js/03-sheet.js?v=20261113o"></script>
+<script defer src="js/04-search.js?v=20261113g"></script>
+<script defer src="js/05-chat.js?v=20261113q"></script>
+<script defer src="js/06-food.js?v=20261113n"></script>
+<script defer src="js/07-desk.js?v=20261113r"></script>
+<script defer src="js/08-time-people.js?v=20261113i"></script>
+<script defer src="js/09-design.js?v=20261113g"></script>
+<script defer src="js/10-jobs-games.js?v=20261113n"></script>
+<script defer src="js/10b-games2.js?v=20261113n"></script>
+<script defer src="js/10c-games3.js?v=20261113n"></script>
+<script defer src="js/11-phone.js?v=20261113g"></script>
+<script defer src="js/12-calendar.js?v=20261113n"></script>
+<script defer src="js/13-bank.js?v=20261113n"></script>
+<script defer src="js/14-meetings-ai.js?v=20261113g"></script>
+<script defer src="js/15-work.js?v=20261113q"></script>
+<script defer src="js/16-paper-save.js?v=20261113r"></script>
+<script defer src="js/16b-mail-notes.js?v=20261114a"></script>
+<script defer src="js/16c-word.js?v=20261114b"></script>
+<script defer src="js/16d-hunger-calls.js?v=20261113n"></script>
+<script defer src="js/16e-print-pdf.js?v=20261113q"></script>
+<script defer src="js/16f-invoice-flow.js?v=20261114a"></script>
+<script defer src="js/18-careers.js?v=b1"></script>
+<script defer src="js/18b-cafe.js?v=b1"></script>
+<script defer src="js/18c-cs.js?v=b1"></script>
+<script defer src="js/18d-tax.js?v=b1"></script>
+<script defer src="js/17-main.js?v=20261113n"></script>
+<script src="../lib/home.js"></script>
+<script type="module" src="../lib/stats.js"></script>
+</body>
+</html>
