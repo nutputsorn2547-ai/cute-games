@@ -94,7 +94,7 @@ body{background:radial-gradient(circle at 50% 120%,#e9dcc6,#f4efe6 60%)}
 .xl th{background:#eef5ee;color:#5f7a62;font-weight:500;font-size:12px;border:1px solid #dde7dd;height:22px;position:sticky;top:0;z-index:2;cursor:pointer;user-select:none}
 .xl th.rh{position:sticky;left:0;z-index:3;cursor:default}
 .xl tbody th.rh{z-index:1}
-.xl th .cr{padding:0;height:auto;overflow:visible;font-size:0;line-height:0;box-sizing:border-box;position:absolute;right:0;top:0;bottom:0;width:9px;cursor:col-resize;z-index:4;touch-action:none}
+.xl th .cr{padding:0;height:auto;overflow:visible;font-size:0;line-height:0;box-sizing:border-box;position:absolute;right:0;top:0;bottom:0;width:3px;cursor:col-resize;z-index:4;touch-action:none}
 .xl th .cr:hover,.xl th .cr.on{background:#2f9d5a55}
 .xl td{border:1px solid #e6ece6;height:24px;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:cell;user-select:none}
 .xl td.num{text-align:right}
