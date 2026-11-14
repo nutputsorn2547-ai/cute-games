@@ -136,7 +136,7 @@ function renderCS() {
   const tabs = `<div class="cstabs"><button data-tab="open" class="${tab === 'open' ? 'on' : ''}">💬 รอตอบ (${open.length})</button><button data-tab="done" class="${tab === 'done' ? 'on' : ''}">✅ ตอบแล้ว (${doneL.length})</button><button data-tab="imp" class="${tab === 'imp' ? 'on' : ''}">➕ เพิ่มเคส</button></div>`;
   const stat = `<div class="stat">ถูก ${cc.right} · พลาด ${cc.wrong}</div><button class="btn2" data-rep ${cc.right ? '' : 'disabled'}>📊 รายงานสรุปเคส</button>`;
   if (tab === 'imp') {
-    root.innerHTML = `<div class="csl">${tabs}<div class="quota">เคสรอตอบ <b>${open.length}</b> / 8</div>${stat}</div><div class="csd chat csimp"><div class="ctop"><b>➕ เพิ่มเคสลูกค้าใหม่จาก GPT</b></div><div class="impb"><ol><li>กด “📋 คัดลอกคำสั่งสำหรับ GPT” แล้วเอาไปวางใน ChatGPT</li><li>GPT จะตอบเป็นรายการเคส (JSON) ให้คัดลอกคำตอบทั้งหมดมาวางในช่องด้านล่าง</li><li>กด “นำเข้าเคส” เคสใหม่จะเข้าไปที่แท็บ “รอตอบ” (นำเข้าได้ครั้งละไม่เกิน 10 เคส และเคสรอตอบรวมไม่เกิน 8)</li></ol><button class="btn2 pri" data-gptp>📋 คัดลอกคำสั่งสำหรับ GPT</button><textarea class="impt" rows="8" placeholder="วางคำตอบจาก GPT ที่นี่ (ขึ้นต้นด้วย [ และลงท้ายด้วย ])">${esc(cs.imp || '')}</textarea><div class="fb">${cs.impMsg || ''}</div><button class="btn2 pri" data-impgo>นำเข้าเคส</button></div></div>`; return;
+    root.innerHTML = `<div class="csl">${tabs}<div class="quota">เคสรอตอบ <b>${open.length}</b> / 15</div>${stat}</div><div class="csd chat csimp"><div class="ctop"><b>➕ เพิ่มเคสลูกค้าใหม่จาก GPT</b></div><div class="impb"><ol><li>กด “📋 คัดลอกคำสั่งสำหรับ GPT” แล้วเอาไปวางใน ChatGPT</li><li>GPT จะตอบเป็นรายการเคส (JSON) ให้คัดลอกคำตอบทั้งหมดมาวางในช่องด้านล่าง</li><li>กด “นำเข้าเคส” เคสใหม่จะเข้าไปที่แท็บ “รอตอบ” (นำเข้าได้ครั้งละไม่เกิน 10 เคส และเคสรอตอบรวมไม่เกิน 15)</li></ol><button class="btn2 pri" data-gptp>📋 คัดลอกคำสั่งสำหรับ GPT</button><textarea class="impt" rows="8" placeholder="วางคำตอบจาก GPT ที่นี่ (ขึ้นต้นด้วย [ และลงท้ายด้วย ])">${esc(cs.imp || '')}</textarea><div class="fb">${cs.impMsg || ''}</div><button class="btn2 pri" data-impgo>นำเข้าเคส</button></div></div>`; return;
   }
   if (tab === 'done') {
     const q = (cs.q || '').trim().toLowerCase(), list = doneL.filter(c => !q || (c.name + ' ' + csOrd(c) + ' ' + (c.trk || '') + ' ' + c.msg).toLowerCase().includes(q));
@@ -251,9 +251,9 @@ const CS_GPT_PROMPT = `ช่วยคิดเคสลูกค้า 10 เ�
 ]`;
 function csImport(raw) {
   const say2 = t => { cs.impMsg = t; renderCS(); };
-  let arr; try { const m = String(raw).match(/\[[\s\S]*\]/); arr = JSON.parse(m ? m[0] : raw); } catch (e) { return say2('❌ อ่านคำตอบไม่ออก ต้องเป็น JSON ที่ขึ้นต้นด้วย [ และลงท้ายด้วย ] ลองให้ GPT ตอบใหม่เป็น JSON อย่างเดียว'); }
+  raw = String(raw).replace(/\\([\[\]_{}])/g, '$1').replace(/[“”]/g, '"').replace(/[‘’]/g, "'"); let arr; try { const m = String(raw).match(/\[[\s\S]*\]/); arr = JSON.parse(m ? m[0] : raw); } catch (e) { return say2('❌ อ่านคำตอบไม่ออก ต้องเป็น JSON ที่ขึ้นต้นด้วย [ และลงท้ายด้วย ] ลองให้ GPT ตอบใหม่เป็น JSON อย่างเดียว'); }
   if (!Array.isArray(arr) || !arr.length) return say2('❌ ไม่พบรายการเคสในคำตอบ');
-  const cc = career.cs, room = 8 - csOpen().length; if (room <= 0) return say2('ตอนนี้มีเคสรอตอบครบ 8 เคสแล้ว ตอบให้หมดก่อนค่อยนำเข้าเพิ่มนะ');
+  const cc = career.cs, room = 15 - csOpen().length; if (room <= 0) return say2('ตอนนี้มีเคสรอตอบครบ 15 เคสแล้ว ตอบให้หมดก่อนค่อยนำเข้าเพิ่มนะ');
   let ok = 0, bad = 0;
   for (const it of arr.slice(0, 10)) {
     if (ok >= room) break;
@@ -268,5 +268,5 @@ function csImport(raw) {
   }
   if (!ok) return say2(`❌ นำเข้าไม่ได้เลย (ผิดรูปแบบ ${bad} รายการ) ตรวจว่า product เป็นชื่อสินค้าตรงตามคำสั่ง และ kind เป็น return/repair/minor/lost`);
   cs.imp = ''; cs.tab = 'open'; cs.sel = null; S.toast(`➕ นำเข้าเคสใหม่ ${ok} เคส`, 2.2); cs.impMsg = ''; renderCS();
-  if (bad) S.toast(`ข้าม ${bad} รายการที่รูปแบบไม่ถูก`, 2.6);
+  const skip = Math.min(arr.length, 10) - ok - bad; if (bad || skip > 0) setTimeout(() => S.toast(`นำเข้า ${ok} เคส${bad ? ` · ข้าม ${bad} รายการที่รูปแบบไม่ถูก` : ''}${skip > 0 ? ` · อีก ${skip} เคสไม่ได้เข้าเพราะเคสรอตอบเต็ม 15 (ตอบแล้วค่อยนำเข้าใหม่)` : ''}`, 4), 2300);
 }
