@@ -685,3 +685,7 @@ body:not([data-career="acct"]) .item[data-id="doc:inv"],body:not([data-career="a
 .csimp .impb{padding:12px 16px;overflow:auto;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.5}
 .csimp .impb ol{margin:0;padding-left:1.3em}
 .csimp .impt{width:100%;box-sizing:border-box;font:12px/1.4 monospace;border:1px solid #cdd8ee;border-radius:8px;padding:6px}
+.csc .cb .trk{margin-top:8px;padding:8px 10px;border:2px solid #3b82f6;background:#eef5ff;border-radius:10px;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.csc .cb .trk b{font-size:17px;letter-spacing:.5px;color:#12408f}
+.csc .cb .trk .cpy,.csc .cfacts .cpy{font-size:14px;font-weight:600;padding:5px 12px;border:0;background:#3b82f6;color:#fff;border-radius:8px}
+.csc .cb .trk .cpy:hover,.csc .cfacts .cpy:hover{background:#2563eb}
