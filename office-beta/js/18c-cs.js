@@ -32,7 +32,7 @@ function csNew() {
   if (kind === 'repair') { c.months = pick([2, 4, 7, 10, 13, 20, 26]); c.exp = c.months <= pr.warr ? 'repair_free' : 'repair_paid'; c.msg = `${pr.n}ที่ซื้อไปเมื่อ ${c.months} เดือนก่อนใช้ไม่ได้แล้วค่ะ ส่งซ่อมได้ไหมคะ`; }
   if (kind === 'minor') { c.exp = 'discount'; c.msg = `กล่อง${pr.n}บุบนิดหน่อยตอนส่งมาค่ะ แต่ของข้างในยังใช้ได้ปกติ แค่รู้สึกไม่ค่อยดีเลยแจ้งไว้ค่ะ`; }
   if (kind === 'lost') { c.exp = 'resend'; c.msg = pick([`สั่ง${pr.n}ไป 9 วันแล้ว ขนส่งบอกส่งสำเร็จแต่ยังไม่ได้รับของเลยค่ะ`, `ได้รับพัสดุแล้วแต่ขาด${pr.n}ไป 1 ชิ้น ในกล่องมีแค่ของอย่างอื่นค่ะ`]); }
-  career.cs.cases.push(c); return c;
+  if (kind === 'lost') c.trk = 'TH' + rint(100000, 999999) + 'CS'; career.cs.cases.push(c); return c;
 }
 CAREERS.cs = {
   label: 'ฝ่ายบริการลูกค้า', co: 'โภชนาเบเกอรี่ แมชชีน จำกัด', e: '🎧', pos: 'เจ้าหน้าที่ดูแลลูกค้า', color: '#d9ecff', salary: 25000, where: 'กรุงเทพฯ · ไฮบริด', tags: ['บริการ', 'ลูกค้า'],
@@ -41,22 +41,30 @@ CAREERS.cs = {
   people: { boss: { n: 'พี่ฟ้า (หัวหน้าทีมลูกค้า)', e: '🦊', c: '#cfe6ff' }, bear: { n: 'โอ๊ต (แอดมินเพจ)', e: '🐻', c: '#e8cfb4' }, bun: { n: 'แพรว (คลังสินค้า)', e: '🐰', c: '#ffd6e3' }, duck: { n: 'ปุ้ย (ประสานขนส่ง)', e: '🐥', c: '#fff1a8' } },
   titles: { g: 'ทีมดูแลลูกค้า โภชนาเบเกอรี่', boss: 'พี่ฟ้า (หัวหน้าทีมลูกค้า)', hr: 'พี่ HR โภชนาเบเกอรี่' }, hide: ['cust'], docs: false, apps: ['cs'], client: '',
   tasks: [
-    { id: 'cs1', t: 'เปิดแอป 🎧 เคสลูกค้า ปิดเคสให้ถูกตามกฎบริษัทให้ครบ 4 เคส (เลือกวิธีแก้ปัญหา + ตอบลูกค้าด้วยเทมเพลต)' },
+    { id: 'cs1', t: 'ตอบแชทลูกค้าในแอป 🎧 แชทลูกค้า ให้ถูกกฎบริษัท 5 เคสต่อวัน (เลือกวิธีแก้ปัญหาแล้วตอบด้วยเทมเพลต)' },
     { id: 'cs2', t: 'เปิด 🛍️ เว็บร้านโภชนาเบเกอรี่ แมชชีน ลองหยิบของใส่ตะกร้าไปหน้าชำระเงิน เทียบราคาโปรโมชั่นกับยอดที่เรียกเก็บ แล้วรายงานถ้าไม่ตรง' },
+    { id: 'cs4', t: 'ถ้ามีเคสพัสดุหาย/ไม่ครบ จดเลขแทรกกิ้งลงไฟล์ Excel “สรุปแจ้งเคลมพัสดุหาย” บนจอ แล้วส่งอีเมลยื่นเคลมให้ขนส่งพร้อมแนบไฟล์ (อีเมลอยู่ในคู่มือ)' },
     { id: 'cs3', t: 'กด “📊 รายงานสรุปเคส” ในแอปเคสลูกค้า ได้ไฟล์ PDF แล้วส่งให้พี่ฟ้าทางแชท' },
   ],
   book: `<ul><li><b>คืนเงิน</b> ได้ภายใน <b>15 วัน</b> นับจากวันที่ลูกค้าได้รับสินค้า เกินกว่านั้นปฏิเสธอย่างสุภาพ</li><li><b>ซ่อม</b> ซ่อมได้ตลอดระยะเวลาประกันของสินค้านั้น (ดูเดือนประกันในหน้าเคส) หมดประกันซ่อมแบบคิดค่าบริการ</li><li><b>ปัญหาเล็กน้อย</b> (กล่องบุบ ของไม่เสีย) ให้คูปองส่วนลด 10% ได้</li><li><b>ส่งไม่ถึง/ไม่ครบ</b> ส่งสินค้าใหม่ให้ลูกค้า และทำเอกสารขอเคลมคืนจากขนส่ง</li><li>ใช้ <b>เทมเพลตตอบลูกค้า</b> ได้ แต่ต้องตรงกับวิธีแก้ปัญหาที่เลือก</li><li>เจอเว็บไซต์แสดงราคาไม่ตรงกับตอนชำระเงิน ให้รายงานหัวหน้าทันที</li></ul>`,
   start() {
     const bug = pick(CS_PRODUCTS.filter(p => shopPrice(p).tag));
-    career.cs = { seq: 0, cases: [], right: 0, wrong: 0, bug: bug.id, found: false, reported: false, report: false };
-    for (let i = 0; i < 3; i++) csNew();
+    career.cs = { seq: 0, cases: [], right: 0, wrong: 0, bug: bug.id, found: false, reported: false, report: false, day: csToday(), today: 0, gen: 0, dayTrk: [], claimed: false };
+    EMAIL_DIR.boss = 'fa@pochana-machine.test'; csEnsure();
     chatById('boss').msgs.length = 0; chatById('g').msgs.length = 0;
     pushMsg('boss', 'boss', 'ยินดีต้อนรับสู่ทีมดูแลลูกค้า โภชนาเบเกอรี่ แมชชีน 🎧 เคสลูกค้าอยู่ในแอป “เคสลูกค้า” อ่านกฎใน “งานของฉัน” ก่อนนะ แล้วอย่าลืมลองเช็กเว็บร้านด้วย ช่วงนี้มีลูกค้าบ่นเรื่องราคา', 1500);
     pushMsg('g', 'bear', 'โอ๊ตเองนะ ยินดีต้อนรับ 🐻 เพจตอนนี้คอมเมนต์ถามโปรเยอะมาก', 3000); pushMsg('g', 'bun', 'แพรวคลังสินค้านะคะ ถ้าต้องส่งของใหม่ แจ้งแพรวได้เลย 📦', 4600);
     mailPush(null, 'พี่ฟ้า (หัวหน้าทีมลูกค้า)', 'ยินดีต้อนรับเข้าทีมดูแลลูกค้า', '<p>ยินดีต้อนรับค่ะ งานหลักคือตอบเคสลูกค้าตามกฎบริษัท และช่วยตรวจเว็บร้านถ้าเห็นความผิดปกติ อ่านกฎในแอป "งานของฉัน" ได้เลยค่ะ</p>', 'news');
     renderChat(); toastCase();
   },
-  resume() { if (!career.cs.cases) career.cs = { seq: 0, cases: [], right: 0, wrong: 0, bug: 'p1', found: false, reported: false, report: false }; },
+  resume() { if (!career.cs.cases) career.cs = { seq: 0, cases: [], right: 0, wrong: 0, bug: 'p1', found: false, reported: false, report: false, day: csToday(), today: 0, gen: 0, dayTrk: [], claimed: false }; },
+  contacts: [['พี่ฟ้า (หัวหน้าทีมลูกค้า)', 'fa@pochana-machine.test'], ['ฝ่ายคลังสินค้า (แพรว)', 'warehouse@pochana-machine.test'], ['ฝ่ายเคลมขนส่ง ไทยไวด์ เอ็กซ์เพรส', 'claims@thaiwide.test'], ['ทีมเว็บไซต์', 'web@pochana-machine.test']],
+  routes: [
+    { addr: 'fa@pochana-machine.test', from: 'พี่ฟ้า (หัวหน้าทีมลูกค้า)', reply: m => m.att.length ? 'ได้รับไฟล์แล้วนะ ขอบใจ' : 'เมลถึงพี่แล้ว ถ้าเรื่องด่วนทักแชทมาได้เลย' },
+    { addr: 'warehouse@pochana-machine.test', from: 'ฝ่ายคลังสินค้า (แพรว)', reply: () => 'แพรวรับเรื่องแล้วค่ะ จะเช็กสต๊อกและแจ้งกลับนะคะ' },
+    { addr: 'web@pochana-machine.test', from: 'ทีมเว็บไซต์', reply: m => /ราคา|โปร|checkout|ชำระ/.test(m.subj + m.body) ? 'ขอบคุณที่แจ้งราคาไม่ตรงกัน ทีมเว็บจะตรวจสอบให้ครับ' : 'ทีมเว็บรับเรื่องแล้วครับ ช่วยระบุอาการให้ชัดอีกนิด' },
+    { addr: 'claims@thaiwide.test', from: 'ฝ่ายเคลม ไทยไวด์ เอ็กซ์เพรส', reply: m => csClaimReply(m), onSend: () => {} },
+  ],
   boss(c, m) {
     const t = m.text || '';
     if (m.file) {
@@ -69,54 +77,73 @@ CAREERS.cs = {
     say(c, 'boss', pick(['โอเคจ้า 👍', 'ขอบคุณนะ', 'ถ้าเจอเคสยากถามพี่ได้เลย', 'ตอบลูกค้าด้วยใจเย็นๆ นะ']), 1600);
   },
 };
-function toastCase() { const n = csOpen().length; if (n) S.toast(`🎧 มีเคสลูกค้ารอ ${n} เคส`, 2.2); renderCS(); }
-
-tbButton('cscase', '🎧', 'เคสลูกค้า', '#3b82f6', 'cs', () => openCS());
+const csToday = () => Math.floor(dayStart(gnow()) / DAY);
+function csEnsure() {
+  const cc = career.cs; if (cc.day !== csToday()) { if (cc.day && cc.today < 5) pushMsg('boss', 'boss', `เมื่อวานปิดเคสได้ ${cc.today}/5 เคสนะ วันนี้ช่วยเก็บให้ครบหน่อย 🙏`, 1500); cc.day = csToday(); cc.today = 0; cc.gen = 0; cc.dayTrk = []; cc.claimed = false; }
+  while (csOpen().length < 3 && cc.gen < 8) { csNew(); cc.gen++; }
+}
+function toastCase() { const n = csOpen().length; if (n) S.toast(`🎧 มีแชทลูกค้ารอ ${n} เคส`, 2.2); renderCS(); }
+tbButton('cscase', '🎧', 'แชทลูกค้า', '#3b82f6', 'cs', () => openCS());
 tbButton('shop', '🛍️', 'เว็บร้านค้า', '#e0457b', 'cs', () => openShop());
 function openCS() {
   if (cs.W && wins.has('cscase')) { focusWin(cs.W); return cs.W; }
-  cs.W = openWin('cscase', 'เคสลูกค้า — โภชนาเบเกอรี่ แมชชีน', h('div', { class: 'csapp' }), 820, 500, '#dbe9ff'); cs.W.onClose = () => { cs.W = null; };
+  csEnsure();
+  cs.W = openWin('cscase', 'แชทลูกค้า — โภชนาเบเกอรี่ แมชชีน', h('div', { class: 'csapp csc' }), 760, 520, '#dbe9ff'); cs.W.onClose = () => { cs.W = null; };
   const root = cs.W.body.firstChild;
   root.addEventListener('click', e => {
     const k = e.target.closest('[data-case]'); if (k) { cs.sel = k.dataset.case; cs.act = ''; cs.tpl = ''; cs.fb = ''; renderCS(); return; }
-    const a = e.target.closest('[data-act]'); if (a) { cs.act = a.dataset.act; cs.tpl = cs.tpl || ''; renderCS(); return; }
+    const a = e.target.closest('[data-act]'); if (a) { cs.act = a.dataset.act; const c = career.cs.cases.find(x => x.id === cs.sel); cs.tpl = cs.act; cs.draft = (CS_TPL[cs.act] ? CS_TPL[cs.act][1] : '').replace('{name}', c.name); renderCS(); return; }
+    const t = e.target.closest('[data-tp]'); if (t) { const c = career.cs.cases.find(x => x.id === cs.sel); cs.tpl = t.dataset.tp; cs.draft = CS_TPL[cs.tpl][1].replace('{name}', c.name); renderCS(); return; }
     if (e.target.closest('[data-send]')) return csSend();
     if (e.target.closest('[data-rep]')) return csReportPDF();
   });
-  root.addEventListener('change', e => { if (e.target.dataset.tpl !== undefined) { cs.tpl = e.target.value; const c = career.cs.cases.find(x => x.id === cs.sel), box = root.querySelector('textarea'); if (box && cs.tpl) box.value = CS_TPL[cs.tpl][1].replace('{name}', c.name); } });
+  root.addEventListener('input', e => { if (e.target.matches('textarea')) cs.draft = e.target.value; });
   renderCS(); return cs.W;
 }
 function renderCS() {
   if (!cs.W || !wins.has('cscase')) return; const root = cs.W.body.firstChild, open = csOpen(), pd = id => CS_PRODUCTS.find(p => p.id === id);
-  if (!open.some(c => c.id === cs.sel)) cs.sel = open[0]?.id || null;
-  const c = open.find(x => x.id === cs.sel), p = c && pd(c.pid), keep = root.querySelector('textarea')?.value || '';
-  const info = c ? `<table class="ct"><tr><td>สินค้า</td><td>${p.e} ${esc(p.n)} · ฿${baht(p.price)}</td></tr>${c.kind === 'return' ? `<tr><td>วันที่ได้รับสินค้า</td><td><b>${c.days} วันที่แล้ว</b></td></tr>` : ''}${c.kind === 'repair' ? `<tr><td>ซื้อมาแล้ว</td><td><b>${c.months} เดือน</b> · ประกันสินค้า ${p.warr} เดือน</td></tr>` : ''}<tr><td>ประเภทเคส</td><td>${{ return: 'ขอคืนสินค้า', repair: 'แจ้งซ่อม', minor: 'ปัญหาเล็กน้อย', lost: 'จัดส่งมีปัญหา' }[c.kind]}</td></tr></table>` : '';
-  root.innerHTML = `<div class="csl"><div class="hd">เคสที่รอ (${open.length})</div>${open.map(x => `<button data-case="${x.id}" class="${x.id === cs.sel ? 'on' : ''}"><b>${x.id}</b> ${esc(x.name)}<small>${esc(x.msg.slice(0, 40))}…</small></button>`).join('') || '<p class="soft">ไม่มีเคสค้างแล้ว 🎉 เดี๋ยวมีเคสใหม่เข้ามา</p>'}<div class="stat">ถูก ${career.cs.right} · พลาด ${career.cs.wrong}</div><button class="btn2 pri" data-rep ${career.cs.right ? '' : 'disabled'}>📊 รายงานสรุปเคส</button></div>
-    <div class="csd">${c ? `<div class="msgc"><b>${esc(c.name)}</b> (${c.id})<p>${esc(c.msg)}</p></div>${info}
-    <div class="lb2">เลือกวิธีแก้ปัญหา (ตามกฎบริษัท)</div><div class="acts">${Object.entries(CS_ACT).map(([k, v]) => `<button class="btn2 ${cs.act === k ? 'pri' : ''}" data-act="${k}">${v[0]}</button>`).join('')}</div>
-    <div class="lb2">ตอบลูกค้า <select data-tpl><option value="">— เลือกเทมเพลต —</option>${Object.entries(CS_TPL).map(([k, v]) => `<option value="${k}" ${cs.tpl === k ? 'selected' : ''}>${v[0]}</option>`).join('')}</select></div>
-    <textarea placeholder="พิมพ์ข้อความตอบลูกค้า หรือเลือกเทมเพลตแล้วแก้ได้">${esc(keep)}</textarea><div class="fb">${cs.fb}</div><button class="btn2 pri" data-send>ส่งคำตอบ + ปิดเคส</button>` : '<p class="soft">ยังไม่มีเคสให้ทำ</p>'}</div>`;
+  if (!open.some(c => c.id === cs.sel)) { cs.sel = open[0]?.id || null; cs.act = ''; cs.tpl = ''; cs.draft = ''; }
+  const c = open.find(x => x.id === cs.sel), p = c && pd(c.pid), cc = career.cs;
+  const facts = c ? `<span>${p.e} ${esc(p.n)} · ฿${baht(p.price)}</span>${c.kind === 'return' ? `<span>ได้รับของเมื่อ <b>${c.days} วันก่อน</b></span>` : ''}${c.kind === 'repair' ? `<span>ซื้อมา <b>${c.months} เดือน</b> · ประกัน ${p.warr} เดือน</span>` : ''}${c.trk ? `<span>เลขพัสดุ <b>${c.trk}</b></span>` : ''}` : '';
+  root.innerHTML = `<div class="csl"><div class="hd">แชทลูกค้า</div><div class="quota ${cc.today >= 5 ? 'ok' : ''}">วันนี้ปิดเคสแล้ว <b>${cc.today}/5</b> เคส</div>${open.map(x => `<button data-case="${x.id}" class="${x.id === cs.sel ? 'on' : ''}"><i>🙂</i><span><b>${esc(x.name)}</b><small>${esc(x.msg.slice(0, 34))}…</small></span></button>`).join('') || '<p class="soft">ตอบครบแล้ว 🎉 เดี๋ยวมีลูกค้าทักมาใหม่</p>'}<div class="stat">ถูก ${cc.right} · พลาด ${cc.wrong}</div><button class="btn2" data-rep ${cc.right ? '' : 'disabled'}>📊 รายงานสรุปเคส</button></div>
+    <div class="csd chat">${c ? `<div class="ctop"><b>${esc(c.name)}</b> <small>เคส ${c.id}</small></div><div class="cfacts">${facts}</div><div class="cbody"><div class="cb them">${esc(c.msg)}</div>${cs.sent ? `<div class="cb me">${esc(cs.sent)}</div>` : ''}</div>
+    <div class="cchips"><small>วิธีแก้ปัญหาตามกฎ (แตะเลือก):</small>${Object.entries(CS_ACT).map(([k, v]) => `<button class="${cs.act === k ? 'on' : ''}" data-act="${k}">${v[0]}</button>`).join('')}</div>
+    <div class="cchips"><small>เทมเพลตตอบ:</small>${Object.entries(CS_TPL).map(([k, v]) => `<button class="${cs.tpl === k ? 'on' : ''}" data-tp="${k}">${v[0]}</button>`).join('')}</div>
+    <div class="fb">${cs.fb}</div><div class="cin2"><textarea rows="2" placeholder="พิมพ์ตอบลูกค้า หรือแตะวิธีแก้ปัญหา/เทมเพลตด้านบน">${esc(cs.draft || '')}</textarea><button class="btn2 pri" data-send>ส่ง ➤</button></div>` : '<p class="soft" style="padding:20px">ยังไม่มีแชทลูกค้า</p>'}</div>`;
+  const cb = root.querySelector('.cbody'); if (cb) cb.scrollTop = cb.scrollHeight;
 }
 function csSend() {
-  const c = csOpen().find(x => x.id === cs.sel); if (!c) return; const txt = cs.W.body.querySelector('textarea').value.trim();
-  if (!cs.act) { cs.fb = 'เลือกวิธีแก้ปัญหาก่อนนะ'; renderCS(); return; }
-  if (txt.length < 20) { cs.fb = 'ข้อความตอบลูกค้าสั้นไป ลองใช้เทมเพลตหรือพิมพ์ให้สุภาพและครบถ้วน'; renderCS(); return; }
-  if (cs.act !== c.exp) {
-    career.cs.wrong++; cs.fb = `❌ ผิดกฎบริษัท: ${esc(CS_ACT[c.exp][1])} (ลองเลือกใหม่)`; S.tone(300, 200, .15, .08);
-    pushMsg('boss', 'boss', `เคส ${c.id} พี่เห็นแล้วนะ วิธีแก้ที่เลือกยังไม่ตรงกฎ ลองเช็กกฎอีกที 🙂`, 1500); renderCS(); return;
-  }
-  if (cs.tpl && cs.tpl !== c.exp && cs.tpl !== 'hello') { cs.fb = '⚠️ เทมเพลตที่เลือกไม่ตรงกับวิธีแก้ปัญหา ลูกค้าจะงงนะ ลองเปลี่ยนเทมเพลตให้ตรง'; renderCS(); return; }
-  c.done = true; career.cs.right++; cs.act = ''; cs.tpl = ''; cs.fb = ''; S.tone(700, 1200, .12, .08, 'triangle'); S.toast(`ปิดเคส ${c.id} แล้ว ✅`, 1.6);
-  if (career.cs.right >= 4) complete('cs1');
-  setTimeout(() => { if (career.id === 'cs' && csOpen().length < 4) { csNew(); toastCase(); } }, 15000); renderCS();
+  const c = csOpen().find(x => x.id === cs.sel); if (!c) return; const txt = (cs.draft || '').trim(), cc = career.cs;
+  if (!cs.act) { cs.fb = 'เลือกวิธีแก้ปัญหาตามกฎก่อนนะ'; return renderCS(); }
+  if (txt.length < 20) { cs.fb = 'ข้อความสั้นไป ลองแตะเทมเพลตหรือพิมพ์ให้สุภาพและครบถ้วน'; return renderCS(); }
+  if (cs.act !== c.exp) { cc.wrong++; cs.fb = `❌ ผิดกฎบริษัท: ${esc(CS_ACT[c.exp][1])} (เลือกใหม่ได้)`; S.tone(300, 200, .15, .08); pushMsg('boss', 'boss', `เคสของ ${c.name} พี่เห็นแล้วนะ วิธีแก้ที่เลือกยังไม่ตรงกฎ ลองเช็กกฎอีกที 🙂`, 1500); return renderCS(); }
+  if (cs.tpl && cs.tpl !== c.exp && cs.tpl !== 'hello') { cs.fb = '⚠️ เทมเพลตที่เลือกไม่ตรงกับวิธีแก้ปัญหา ลูกค้าจะงงนะ'; return renderCS(); }
+  c.done = true; cc.right++; cc.today++; if (c.exp === 'resend') { cc.dayTrk.push(c.trk); csClaimFile(c); }
+  cs.sent = txt; cs.act = ''; cs.tpl = ''; cs.draft = ''; cs.fb = ''; S.tone(700, 1200, .12, .08, 'triangle'); S.toast(`ปิดเคส ${c.name} แล้ว ✅ (${cc.today}/5)`, 1.6);
+  if (cc.today >= 5) complete('cs1'); renderCS(); setTimeout(() => { cs.sent = ''; if (cs.W) renderCS(); }, 1200);
+  setTimeout(() => { if (career.id === 'cs') { csEnsure(); toastCase(); } }, 9000);
 }
+/* lost parcels of the day → Excel list of tracking numbers → e-mail the carrier */
+function csClaimFile(c) {
+  const d = thDate(gnow().getTime(), { day: 'numeric', month: 'short', year: 'numeric' }), id = 'csclaim-' + csToday();
+  let f = FILES.find(x => x.id === id); if (!f) { f = { id, name: `สรุปแจ้งเคลมพัสดุหาย-${d}.xlsx`, type: 'xls', kind: 'sheet', loc: 'desk', careerFile: 'cs', book: newBook({ A1: 'เลขแทรกกิ้งพัสดุที่หาย', B1: 'ชื่อลูกค้า', C1: 'สินค้า' }) }; FILES.push(f); renderDesktop(); }
+  pushMsg('boss', 'boss', `เคส ${c.name} มีพัสดุหาย เลขแทรกกิ้ง ${c.trk} ต้องยื่นเคลมกับขนส่งด้วยนะ จดลงไฟล์ “${f.name}” บนจอ แล้วอีเมลส่งฝ่ายเคลมขนส่ง (อีเมลอยู่ในคู่มือ)`, 1500); S.toast('📊 มีไฟล์สรุปแจ้งเคลมบนจอ ให้จดเลขพัสดุที่หาย', 2.6);
+}
+
 function csReportPDF() {
   const d = thDate(gnow().getTime(), { day: 'numeric', month: 'short', year: 'numeric' }), n = career.cs.right, k = {};
   career.cs.cases.filter(c => c.done).forEach(c => { k[c.exp] = (k[c.exp] || 0) + 1; });
   const body = `<h3>รายงานสรุปเคสลูกค้า · โภชนาเบเกอรี่ แมชชีน</h3><p>วันที่ ${d} · ผู้รายงาน ${esc(chat.account?.name || 'เจ้าหน้าที่ดูแลลูกค้า')}</p><table class="pdft"><tr><th>วิธีแก้ปัญหา</th><th>จำนวนเคส</th></tr>${Object.entries(k).map(([a, v]) => `<tr><td>${esc(CS_ACT[a][0])}</td><td style="text-align:right">${v}</td></tr>`).join('')}<tr><th>รวมปิดเคสถูกต้อง</th><th style="text-align:right">${n}</th></tr></table><p>ตอบพลาด/ผิดกฎ ${career.cs.wrong} ครั้ง · ${career.cs.reported ? 'แจ้งปัญหาราคาโปรโมชั่นเว็บไซต์แล้ว' : 'ยังไม่ได้ตรวจราคาโปรโมชั่นเว็บไซต์'}</p>`;
   const f = savePDF(`รายงานเคสลูกค้า-${d}`, body); f.csReport = { right: n, wrong: career.cs.wrong }; S.toast('ได้ไฟล์รายงานแล้ว ส่งให้พี่ฟ้าทางแชทได้เลย', 2.6);
 }
-setInterval(() => { if (career.id === 'cs' && csOpen().length < 3) { csNew(); toastCase(); } }, 45000);
+function csClaimReply(m) {
+  const cc = career.cs, need = cc.dayTrk || []; if (!need.length) return 'ฝ่ายเคลมได้รับเมลแล้วค่ะ แต่ยังไม่มีเรื่องเคลมของวันนี้ในระบบ';
+  const fs = m.att.map(a => FILES.find(x => x.id === a.id)).filter(f => f && f.kind === 'sheet' && f.book); if (!fs.length) return 'ไม่เห็นไฟล์ Excel รายชื่อแทรกกิ้งพัสดุที่หายแนบมาเลยค่ะ รบกวนแนบไฟล์ “สรุปแจ้งเคลมพัสดุหาย” ด้วยนะคะ';
+  const txt = fs.map(f => Object.values(f.book.cells).join(' ')).join(' '), miss = need.filter(t => !txt.includes(t));
+  if (miss.length) return `ได้รับไฟล์แล้ว แต่ในไฟล์ยังไม่มีเลขแทรกกิ้ง ${miss.join(', ')} ที่แจ้งว่าหายของวันนี้ค่ะ รบกวนเพิ่มแล้วส่งใหม่`;
+  cc.claimed = true; complete('cs4'); return `ได้รับรายชื่อพัสดุที่หาย ${need.length} ชิ้นแล้วค่ะ เปิดเรื่องเคลมให้เรียบร้อย จะแจ้งผลภายใน 7 วันทำการ`;
+}
+setInterval(() => { if (career.id === 'cs') { csEnsure(); if (csOpen().length) { renderCS(); } } }, 30000);
 
 /* ---- pretend web shop: sale prices on the product page vs. price charged at checkout (one product is wrong) ---- */
 function shopPrice(p) { return p.price >= 390 && p.id !== 'p5' ? { sale: Math.round(p.price * .8), tag: 'SALE -20%' } : { sale: p.price, tag: '' }; }

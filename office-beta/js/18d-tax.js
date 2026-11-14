@@ -13,7 +13,7 @@ function taxNew() {
   const seq = ++career.tax.seq, free = Math.random() < .35, income = (24 + Math.floor(Math.random() * 67)) * 10000;
   const kids = pick([0, 0, 1, 2]), ins = pick([0, 0, 20000, 35000, 50000]), allow = [['ลดหย่อนส่วนตัว', 60000]];
   if (kids) allow.push([`บุตร ${kids} คน`, kids * 30000]); if (ins) allow.push(['เบี้ยประกันชีวิต', ins]); if (!free) allow.push(['ประกันสังคม', 9000]);
-  const c = { id: 'T' + String(seq).padStart(3, '0'), name: pick(TAX_NAMES.filter(n => !career.tax.cases.some(c => !c.done && c.name === n))), kind: free ? 'free' : 'salary', income, exp: free ? Math.round(income * pick([.25, .3, .35, .4]) / 1000) * 1000 : Math.min(income / 2, 100000), allow, wht: Math.round(income * (free ? .03 : pick([.02, .03, .04])) / 100) * 100, due: dayStart(gnow()) + (3 + Math.floor(Math.random() * 7)) * DAY, done: false, nag: false };
+  const c = { id: 'T' + String(seq).padStart(3, '0'), tid: '3-' + rint(1000, 9999) + '-' + rint(10000, 99999) + '-' + rint(10, 99) + '-' + rint(1, 9), name: pick(TAX_NAMES.filter(n => !career.tax.cases.some(c => !c.done && c.name === n))), kind: free ? 'free' : 'salary', income, exp: free ? Math.round(income * pick([.25, .3, .35, .4]) / 1000) * 1000 : Math.min(income / 2, 100000), allow, wht: Math.round(income * (free ? .03 : pick([.02, .03, .04])) / 100) * 100, due: dayStart(gnow()) + (3 + Math.floor(Math.random() * 7)) * DAY, done: false, nag: false };
   taxCalc(c); career.tax.cases.push(c);
   pushMsg('cust', 'cust', `สวัสดีค่ะ ${c.name} ส่งข้อมูลภาษีปีนี้ให้แล้วนะคะ รบกวนยื่นให้ก่อน ${thDate(c.due, { day: 'numeric', month: 'short' })} ด้วยค่ะ 🙏`, 1500);
   return c;
@@ -29,6 +29,12 @@ CAREERS.tax = {
     { id: 'tx1', t: 'เปิด 🏛️ เว็บยื่นภาษีน้อย เลือกลูกค้า คำนวณภาษี แล้วยื่นแบบให้ถูกต้อง 2 ราย (ยื่นเลยกำหนดจะโดนเงินเพิ่ม + ค่าปรับ)' },
     { id: 'tx2', t: 'เงินเดือนเพิ่มขึ้นแล้ว! ไปแท็บ “ภาษีของฉัน” คำนวณภาษีเงินได้ของตัวเองทั้งปีให้ถูกต้อง' },
     { id: 'tx3', t: 'กด “สร้างใบสรุปการยื่นภาษี” ได้ไฟล์ PDF แล้วส่งให้พี่แสงเดือนทางแชท' },
+  ],
+  contacts: [['พี่แสงเดือน (หัวหน้าสำนักงาน)', 'sangduan@trasap.test'], ['พี่หญิง (ตรวจเอกสาร)', 'ying@trasap.test'], ['น้องฝ้าย (ธุรการ)', 'fai@trasap.test']],
+  routes: [
+    { addr: 'sangduan@trasap.test', from: 'พี่แสงเดือน (หัวหน้าสำนักงาน)', reply: m => m.att.length ? 'ได้รับไฟล์แล้ว ขอบใจ เดี๋ยวพี่ดู' : 'ได้รับเมลแล้ว ถ้าเรื่องด่วนทักแชทมาได้เลย' },
+    { addr: 'ying@trasap.test', from: 'พี่หญิง (ตรวจเอกสาร)', reply: m => /ลดหย่อน|ภาษี|ตรวจ/.test(m.subj + m.body) ? 'พี่หญิงดูให้แล้ว: เงินเดือนหักค่าใช้จ่าย 50% ไม่เกิน 100,000 แล้วค่อยหักลดหย่อน ดูแท็บ “กฎและอัตรา” ในเว็บยื่นภาษีด้วยนะ' : 'พี่หญิงรับเรื่องแล้ว ระบุประเด็นให้ชัดอีกนิดนะ' },
+    { addr: 'fai@trasap.test', from: 'น้องฝ้าย (ธุรการ)', reply: () => 'ฝ้ายรับเรื่องแล้วค่ะ จะส่งต่อให้ค่ะ' },
   ],
   book: `<ul><li><b>ภาษีเงินได้บุคคลธรรมดา</b> = (เงินได้ − ค่าใช้จ่าย − ค่าลดหย่อน) คิดตามขั้นบันได 0% / 5% / 10% / 15% / 20% / 25% / 30% / 35% (ดูตารางในแท็บ “กฎและอัตรา”)</li><li><b>เงินเดือน</b> หักค่าใช้จ่ายได้ 50% ไม่เกิน 100,000 บาท · <b>ฟรีแลนซ์</b> ในเกมใช้ค่าใช้จ่ายจริงที่ลูกค้าให้มา</li><li><b>ภาษีที่ถูกหัก ณ ที่จ่าย</b> นำมาหักออกจากภาษีที่คำนวณได้ ถ้าติดลบ = ขอคืน</li><li><b>ยื่นช้า</b> มีเงินเพิ่ม 1.5% ต่อเดือน (เศษเดือนนับเป็น 1 เดือน) และค่าปรับ 100 บาท (ไม่เกิน 7 วัน) / 200 บาท (เกิน 7 วัน)</li><li>เกมนี้ใช้กฎแบบย่อ เพื่อการเล่น ไม่ใช่คำแนะนำภาษีจริง</li></ul>`,
   start() {
@@ -53,10 +59,10 @@ CAREERS.tax = {
     say(c, 'boss', pick(['โอเค 👍', 'ขอบใจนะ', 'ดูกำหนดยื่นของลูกค้าด้วย', 'ตัวเลขต้องแม่นนะ']), 1600);
   },
 };
-tbButton('taxweb', '🏛️', 'ยื่นภาษี', '#6d4cd6', 'tax', () => openTax());
+tbButton('taxweb', '🏛️', 'ยื่นภาษีออนไลน์', '#1d4f9c', 'tax', () => openTax());
 function openTax() {
   if (tx.W && wins.has('taxweb')) { focusWin(tx.W); return tx.W; }
-  tx.W = openWin('taxweb', 'เว็บยื่นภาษีน้อย — กรมภาษีน้อย (จำลอง)', h('div', { class: 'taxapp' }), 800, 520, '#ece6ff'); tx.W.onClose = () => { tx.W = null; };
+  tx.W = openWin('taxweb', 'กรมภาษีน้อย — ระบบยื่นแบบออนไลน์ (จำลอง)', h('div', { class: 'taxapp' }), 800, 520, '#ece6ff'); tx.W.onClose = () => { tx.W = null; };
   const root = tx.W.body.firstChild;
   root.addEventListener('click', e => {
     const t = e.target.closest('[data-tab]'); if (t) { tx.tab = t.dataset.tab; tx.msg = ''; tx.bad = []; renderTax(); return; }
@@ -83,7 +89,7 @@ function renderTax() {
   }
   if (!open.some(c => c.id === tx.sel)) tx.sel = open[0]?.id || null; const c = open.find(x => x.id === tx.sel), dl = c && daysLeft(c);
   root.innerHTML = tabs + `<div class="tl"><div class="csl">${open.map(x => `<button data-tcase="${x.id}" class="${x.id === tx.sel ? 'on' : ''}"><b>${esc(x.name)}</b> ${x.kind === 'salary' ? '(เงินเดือน)' : '(ฟรีแลนซ์)'}<small class="${daysLeft(x) < 0 ? 'late' : ''}">${daysLeft(x) < 0 ? `เลยกำหนด ${-daysLeft(x)} วัน` : `เหลือ ${daysLeft(x)} วัน`}</small></button>`).join('') || '<p class="soft">ยื่นครบแล้ว เดี๋ยวมีลูกค้าใหม่</p>'}<button class="btn2 pri" data-trep ${career.tax.filed ? '' : 'disabled'}>📊 สร้างใบสรุปการยื่นภาษี</button></div>
-    <div class="csd">${c ? `<h4>แฟ้มลูกค้า: ${esc(c.name)}</h4><table class="ct"><tr><td>ประเภทเงินได้</td><td>${c.kind === 'salary' ? 'เงินเดือน (หักค่าใช้จ่าย 50% ไม่เกิน 100,000)' : 'ฟรีแลนซ์ (ค่าใช้จ่ายจริง ' + baht(c.exp) + ' บาท)'}</td></tr><tr><td>เงินได้ทั้งปี</td><td>${baht(c.income)} บาท</td></tr><tr><td>ค่าลดหย่อน</td><td>${c.allow.map(a => `${esc(a[0])} ${baht(a[1])}`).join(' · ')}</td></tr><tr><td>ภาษีหัก ณ ที่จ่ายแล้ว</td><td>${baht(c.wht)} บาท</td></tr><tr><td>กำหนดยื่น</td><td class="${dl < 0 ? 'late' : ''}">${thDate(c.due, { day: 'numeric', month: 'short', year: 'numeric' })} ${dl < 0 ? '(เลยกำหนดแล้ว!)' : `(เหลือ ${dl} วัน)`}</td></tr></table>
+    <div class="csd">${c ? `<div class="frm-t"><b>แบบแสดงรายการภาษีเงินได้บุคคลธรรมดา (จำลอง ภ.ง.ด.90/91)</b><span>ผู้มีเงินได้: ${esc(c.name)} · เลขประจำตัวผู้เสียภาษี ${c.tid}</span></div><table class="ct"><tr><td>ประเภทเงินได้</td><td>${c.kind === 'salary' ? 'เงินเดือน (หักค่าใช้จ่าย 50% ไม่เกิน 100,000)' : 'ฟรีแลนซ์ (ค่าใช้จ่ายจริง ' + baht(c.exp) + ' บาท)'}</td></tr><tr><td>เงินได้ทั้งปี</td><td>${baht(c.income)} บาท</td></tr><tr><td>ค่าลดหย่อน</td><td>${c.allow.map(a => `${esc(a[0])} ${baht(a[1])}`).join(' · ')}</td></tr><tr><td>ภาษีหัก ณ ที่จ่ายแล้ว</td><td>${baht(c.wht)} บาท</td></tr><tr><td>กำหนดยื่น</td><td class="${dl < 0 ? 'late' : ''}">${thDate(c.due, { day: 'numeric', month: 'short', year: 'numeric' })} ${dl < 0 ? '(เลยกำหนดแล้ว!)' : `(เหลือ ${dl} วัน)`}</td></tr></table>
     <form class="tf" autocomplete="off">${inp('inc', 'เงินได้พึงประเมิน')}${inp('exp', 'ค่าใช้จ่าย')}${inp('alw', 'ค่าลดหย่อนรวม')}${inp('net', 'เงินได้สุทธิ')}${inp('tax', 'ภาษีที่คำนวณได้')}${inp('wht', 'ภาษีหัก ณ ที่จ่าย')}${inp('pay', 'ชำระเพิ่ม (+) / ขอคืน (−)')}${inp('ext', 'เงินเพิ่ม + ค่าปรับ', '0 ถ้ายื่นทัน')}</form><div class="fb">${tx.msg}</div><button class="btn2 pri" data-tfile>ยื่นแบบ</button>` : '<p class="soft">ไม่มีลูกค้ารอยื่น</p>'}</div></div>`;
 }
 const tval = (root, n) => money2(root.querySelector(`[name="${n}"]`)?.value);
@@ -109,6 +115,16 @@ function taxReport() {
   const body = `<h3>ใบสรุปการยื่นภาษี · สำนักงานภาษี ตราสรรพ์</h3><p>วันที่ ${d} · ผู้ยื่น ${esc(chat.account?.name || 'เจ้าหน้าที่ภาษี')}</p><table class="pdft"><tr><th>ลูกค้า</th><th>ภาษีสุทธิ</th><th>ชำระเพิ่ม/ขอคืน</th><th>ล่าช้า</th></tr>${done.map(c => `<tr><td>${esc(c.name)}</td><td style="text-align:right">${fmt2(c.tax)}</td><td style="text-align:right">${fmt2(c.pay)}</td><td>${c.late ? 'ใช่' : '—'}</td></tr>`).join('')}</table><p>ยื่นสำเร็จ ${career.tax.filed} ราย · เลยกำหนด ${career.tax.late} ราย</p>`;
   const f = savePDF(`ใบสรุปการยื่นภาษี-${d}`, body); f.taxReport = { filed: career.tax.filed, late: career.tax.late }; S.toast('ได้ไฟล์ใบสรุปแล้ว ส่งให้พี่แสงเดือนทางแชทได้เลย', 2.6);
 }
+/* ---- make the window look like an online filing portal ---- */
+function rdWrap(root) {
+  if (root.querySelector('.rdh')) return; const tabs = root.querySelector('.tabs'); if (!tabs) return; const rest = [...root.children].filter(x => x !== tabs);
+  const head = h('div', { class: 'rdh' }, `<span class="crest">🏛️</span><div><b>กรมภาษีน้อย</b><small>ระบบยื่นแบบภาษีออนไลน์ (e-Filing) · จำลองในเกม</small></div><span class="rdu">👤 ${esc(chat.account?.name || 'เจ้าหน้าที่')} · เข้าสู่ระบบแล้ว</span>`);
+  tabs.className = 'rdn'; const body = h('div', { class: 'rdb' }); rest.forEach(x => body.append(x));
+  const steps = h('div', { class: 'rds' }, '<span class="on">1 ตรวจข้อมูลลูกค้า</span><span class="on">2 กรอกแบบ</span><span>3 ยืนยันและยื่น</span>');
+  root.replaceChildren(head, tabs, steps, body, h('div', { class: 'rdf' }, 'หน้าเว็บจำลองเพื่อการเล่นเกมเท่านั้น ไม่ใช่เว็บไซต์ของหน่วยงานจริง'));
+}
+const _renderTax = renderTax;
+renderTax = function () { _renderTax(); if (tx.W && wins.has('taxweb')) rdWrap(tx.W.body.firstChild); };
 /* clients nag when a deadline has passed; new clients arrive over time */
 setInterval(() => {
   if (career.id !== 'tax') return;

@@ -24,7 +24,21 @@ function applyCareer(id) {
   const next = career.id === 'acct' ? TASKS0 : [...C.tasks, ...generic, ...personal];
   TASKS.length = 0; TASKS.push(...next);
   SUPPLIERS.length = 0; SUPPLIERS.push(...(C.suppliers || SUP0));
-  try { renderTasks(); renderChat(); syncTaskbar(); careerChip(); renderCareerWin(); } catch (e) {}
+  const OLD = ['r1', 'r2', 'r3', 'p1', 'p2', 'x1', 'd1', 'x2', 'tpl1', 'tpl2'];
+  FILES.forEach(f => { if (!OLD.includes(f.id)) return; if (career.id === 'acct') { if (f.locKeep) { f.loc = f.locKeep; delete f.locKeep; } } else if (!f.locKeep) { f.locKeep = f.loc; f.loc = 'career-hidden'; } });
+  FILES.filter(f => f.careerFile && f.careerFile !== career.id).forEach(f => { f.loc = 'career-hidden'; });
+  FILES.filter(f => f.careerFile === career.id && f.loc === 'career-hidden').forEach(f => { f.loc = 'desk'; });
+  try { syncApps(); handbookFile(); renderDesktop(); renderTasks(); renderChat(); syncTaskbar(); careerChip(); renderCareerWin(); } catch (e) { console.error(e); }
+}
+function handbookFile() {
+  const C = careerOf(), id = 'handbook-' + career.id;
+  FILES.filter(f => f.handbook && f.id !== id).forEach(f => { f.loc = 'career-hidden'; });
+  let f = FILES.find(x => x.id === id);
+  const steps = (C.tasks || (career.id === 'acct' ? TASKS0 : [])).filter(t => !t.me).map((t, i) => `<li>${esc(t.t)}</li>`).join('');
+  const body = `<h2 style="text-align:center;margin:0 0 4px">📘 คู่มือการทำงาน</h2><p style="text-align:center;margin:0 0 10px">${esc(C.pos || C.label)} · ${esc(C.co)}</p><h3>ภาพรวมงาน</h3><p>${esc(C.desc || 'ทำบัญชีให้ลูกค้า บันทึกเอกสารและส่งงานให้หัวหน้า')}</p><h3>ขั้นตอนที่ต้องทำ</h3><ol>${steps}</ol><h3>กฎและวิธีทำงาน</h3>${C.book}${C.contacts ? `<h3>ติดต่อใครได้บ้าง (อีเมล)</h3><table class="pdft">${C.contacts.map(c => `<tr><td>${esc(c[0])}</td><td>${esc(c[1])}</td></tr>`).join('')}</table><p><small>ต้องพิมพ์อีเมลผู้รับเองในเมลน้อย (ไม่มีสมุดที่อยู่)</small></p>` : ''}`;
+  const html = `<div class="scanv"><div class="pdfpage">${body}</div></div>`;
+  if (!f) { f = { id, name: `คู่มือการทำงาน-${C.label}.pdf`, type: 'pdf', kind: 'pdfdoc', loc: 'desk', handbook: 1 }; FILES.push(f); }
+  f.html = html; f.body = body; f.name = `คู่มือการทำงาน-${C.label}.pdf`; if (f.loc === 'career-hidden') f.loc = 'desk';
 }
 function switchCareer(id, quiet) {
   const C = CAREERS[id]; if (!C) return;
@@ -42,10 +56,21 @@ function careerChip() {
   if (!el) { el = h('div', { id: 'careerChip' }); $('tasks').prepend(el); el.addEventListener('click', () => openCareerWin()); }
   el.innerHTML = `<b>${C.e} ${esc(C.pos || C.label)}</b><small>${esc(C.co)} · เงินเดือน ${baht(hr.base)}</small>`;
 }
+const CAREER_APPS = {}, APPS0 = APPS.slice(), GENERAL_APPS = [];
 function tbButton(app, emoji, name, color, forCareer, fn) {
+  if (forCareer) { CAREER_APPS['app-' + app] = { career: forCareer, fn, a: { id: 'app-' + app, n: name, e: emoji, c: color } }; return; }
   const b = h('button', { 'data-app': app, title: name, class: forCareer ? 'cb cb-' + forCareer : 'cb' }, `<i class="ab" style="--c:${color}">${emoji}</i><span class="lb">${name}</span>`);
   $('taskbar').insertBefore(b, $('clock')); b.addEventListener('click', fn); return b;
 }
+function syncApps() {
+  const keep = APPS0.filter(a => a.id !== 'app-food' && (career.id === 'acct' || a.id !== 'app-work'));
+  const mine = Object.values(CAREER_APPS).filter(x => x.career === career.id).map(x => x.a);
+  const next = [...keep, ...GENERAL_APPS, ...mine], ids = new Set(next.map(a => a.id));
+  Object.keys(deskPos).filter(k => k.startsWith('app-') && !ids.has(k)).forEach(k => delete deskPos[k]);
+  APPS.length = 0; APPS.push(...next);
+}
+const _openItem = openItem;
+openItem = id => { const c = CAREER_APPS[id]; if (c) return c.fn(); const g = GENERAL_APPS.find(a => a.id === id); if (g && g.fn) return g.fn(); return _openItem(id); };
 tbButton('career', '🏢', 'งานของฉัน', '#7c5cff', '', () => openCareerWin());
 let careerWin = null;
 function openCareerWin() {
@@ -99,7 +124,22 @@ jobsClick = function (e) {
 
 /* ---- the boss answers differently in each job ---- */
 const _react = react;
-react = function (c, m) { if (career.id !== 'acct' && c.id === 'boss' && careerOf().boss) { careerOf().boss(c, m); return; } _react(c, m); };
+react = function (c, m) {
+  const C = careerOf();
+  if (career.id !== 'acct' && c.id === 'boss' && C.boss) { C.boss(c, m); return; }
+  if (career.id !== 'acct' && c.id === 'cust' && C.cust) { C.cust(c, m); return; }
+  if (career.id !== 'acct' && ['gang', 'bear', 'bun', 'duck', 'g'].includes(c.id) && C.chat) { if (C.chat(c, m) !== false) return; }
+  _react(c, m);
+};
+/* emails sent to the addresses of this job (see "คู่มือการทำงาน" PDF) */
+const _mailRoute = mailRoute;
+mailRoute = function (m) {
+  const C = careerOf(), r = (C.routes || []).find(x => x.addr === m.to);
+  if (career.id === 'acct' || !r) return _mailRoute(m);
+  const me = mail.accounts[0].email, txt = r.reply(m) || '';
+  mailPush(me, r.from, 'Re: ' + m.subj, `<p>${esc(txt)}</p>`, 'work', gnow().getTime() + (10 + Math.random() * 15) * 60000);
+  r.onSend?.(m); setTimeout(() => S.toast('📬 ส่งแล้ว รอผู้รับตอบกลับสักครู่', 2.2), 900);
+};
 const _dailyDocs = dailyDocs; dailyDocs = day => { if (careerOf().docs) _dailyDocs(day); };
 const _cdocHTML = cdocHTML; cdocHTML = d => _cdocHTML(d).replace('ร้านขนมอร่อย (ลูกค้าของเรา)', esc(careerOf().client));
 
