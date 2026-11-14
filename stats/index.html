@@ -87,7 +87,10 @@ const fmt = t => new Date(t).toLocaleString('th-TH', { day: 'numeric', month: 's
 async function load() {
   if (!ENDPOINT) { const e = $('err'); e.style.display = 'block'; e.textContent = 'ยังไม่ได้ตั้งค่าปลายทางเก็บข้อมูล (ENDPOINT ใน lib/stats.js) — ทำตามขั้นตอนในไฟล์ stats/README.md'; $('upd').textContent = ''; return; }
   try {
-    const r = await fetch(ENDPOINT); const j = await r.json();
+    let key = ''; try { key = localStorage.getItem('cg-key') || ''; } catch (e) {}
+    if (!key) { key = prompt('ใส่รหัสดูสถิติ') || ''; try { localStorage.setItem('cg-key', key); } catch (e) {} }
+    const r = await fetch(ENDPOINT + '?key=' + encodeURIComponent(key)); const j = await r.json();
+    if (j.error) { try { localStorage.removeItem('cg-key'); } catch (e) {} throw new Error('รหัสไม่ถูกต้อง — รีเฟรชหน้าแล้วใส่ใหม่'); }
     rows = j.rows.map(a => ({ t: +a[0], kind: a[1], vid: a[2], sid: a[3], game: a[4], role: a[5], plat: a[6], phones: a[7], med: a[8], max: a[9], n: a[10] }));
     $('err').style.display = 'none';
     $('upd').textContent = 'อัปเดตล่าสุด ' + new Date().toLocaleTimeString('th-TH') + ' · ข้อมูล ' + rows.length + ' แถว';
