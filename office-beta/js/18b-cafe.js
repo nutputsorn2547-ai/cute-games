@@ -116,7 +116,7 @@ function cafeStockReply(m) {
 
 
 /* ---- CCTV app ---- */
-tbButton('cctv', '📹', 'กล้องวงจรปิด', '#3a4a5c', 'cafe', () => openCCTV());
+tbButton('cctv', '📹', 'กล้องวงจรปิด', '#ffffff', 'cafe', () => openCCTV());
 const cctv = { W: null, cam: 0, got: {} };
 function openCCTV() {
   if (cctv.W && wins.has('cctv')) { focusWin(cctv.W); return cctv.W; }

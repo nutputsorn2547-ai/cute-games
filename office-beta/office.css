@@ -668,3 +668,6 @@ body:not([data-career="acct"]) .item[data-id="doc:inv"],body:not([data-career="a
 #pwrApp:hover{background:#ffffff88}#pwrApp:active i{transform:scale(.94)}
 
 .m .bb{white-space:pre-line}
+
+.ap .tx{font:800 26px/1 var(--font);color:#fff;letter-spacing:-1px}
+.icon[data-id="app-cctv"] .ap{border:2px solid #d3dae4;box-sizing:border-box}
