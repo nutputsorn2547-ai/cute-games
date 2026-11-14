@@ -572,7 +572,7 @@ td.pk{outline:2px dashed #3b82f6;outline-offset:-2px}
 
 /* ===== beta: careers ===== */
 .cb{position:relative}
-body:not([data-career="cafe"]) .cb-cafe,body:not([data-career="cs"]) .cb-cs,body:not([data-career="tax"]) .cb-tax{display:none!important}
+body:not([data-career="cafe"]) .cb-cafe,body:not([data-career="cs"]) .cb-cs,body:not([data-career="tax"]) .cb-tax,body:not([data-career="au"]) .cb-au,body:not([data-career="lg"]) .cb-lg{display:none!important}
 body:not([data-career="acct"]) .item[data-id="doc:inv"],body:not([data-career="acct"]) .item[data-id="doc:memo"],body:not([data-career="acct"]) .item[data-id="doc:rep"],body:not([data-career="acct"]) .item[data-id="doc:trip"],body:not([data-career="acct"]) .sticky{display:none}
 #careerChip{cursor:pointer;background:#fff;border-radius:10px;padding:6px 9px;margin-bottom:6px;box-shadow:0 1px 0 #0001;line-height:1.3}
 #careerChip b{display:block;font-size:13px}#careerChip small{color:var(--soft);font-size:11px}
@@ -616,3 +616,5 @@ body:not([data-career="acct"]) .item[data-id="doc:inv"],body:not([data-career="a
 .tf input{font:inherit;font-size:14px;padding:5px 8px;border:1px solid #cfd5e6;border-radius:8px;color:var(--ink)}.tf input.bad{border-color:#d63b3b;background:#fff0f0}
 .shopapp .pc{width:auto;height:auto;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;font:inherit;font-size:13px;color:var(--ink);border:0;border-radius:12px;padding:10px;gap:4px}
 .shopapp .pe{font-size:38px;text-align:center}.shopapp .sh{margin-top:10px;display:flex;align-items:center;gap:8px}.shopapp .pr{color:#e0457b}
+
+.taxapp .ct tr.bad td{background:#fff0f0}.taxapp select{font:inherit;font-size:12px;padding:3px;border-radius:6px;border:1px solid #cfd5e6}

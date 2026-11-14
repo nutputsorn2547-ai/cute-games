@@ -1,7 +1,7 @@
 "use strict";
 // Office game (beta) — careers: change jobs and the work changes with it (cafe / customer service / tax).
 // Loaded after the other game files and before 17-main.js. It hooks into them instead of editing them.
-const career = { id: 'acct', day: 1, offers: [], cafe: {}, cs: {}, tax: {} };
+const career = { id: 'acct', day: 1, offers: [], cafe: {}, cs: {}, tax: {}, au: {}, lg: {} };
 const P0 = JSON.parse(JSON.stringify(PEOPLE)), CHAT0 = Object.fromEntries(chat.list.map(c => [c.id, c.n])), TASKS0 = TASKS.slice(), SUP0 = SUPPLIERS.slice();
 const KEEP_TASKS = new Set(['eat', 'call']); // generic life tasks that stay in every job
 const CAREERS = {
@@ -10,7 +10,7 @@ const CAREERS = {
     book: '<p>งานเดิมของคุณ: บันทึกเอกสารลูกค้า ทำไฟล์ให้หัวหน้า ดูงานในรายการด้านขวาได้เลย</p>',
   },
 };
-const CAREER_ORDER = ['acct', 'cafe', 'cs', 'tax'];
+const CAREER_ORDER = ['acct', 'cafe', 'cs', 'tax', 'au', 'lg'];
 const careerOf = () => CAREERS[career.id] || CAREERS.acct;
 const _complete = complete; // ignore task ids that are not in the current job's list (no stray "done" counts)
 complete = id => { if (TASKS.some(t => t.id === id)) _complete(id); };
@@ -69,7 +69,7 @@ function renderCareerWin() {
 /* ---- job site: new jobs, offer after applying, "accept" button ---- */
 function addCareerJobs() {
   const mk = (id, k, extra) => JOBS.push({ id, career: k, co: CAREERS[k].co, e: CAREERS[k].e, c: CAREERS[k].color || '#eee', pos: CAREERS[k].pos, min: CAREERS[k].salary, max: CAREERS[k].salary + 4000, where: CAREERS[k].where, tags: CAREERS[k].tags, desc: CAREERS[k].desc, need: CAREERS[k].need, perks: CAREERS[k].perks, ...extra });
-  ['cafe', 'cs', 'tax'].filter(k => CAREERS[k]).forEach(k => mk('jc-' + k, k));
+  ['cafe', 'cs', 'tax', 'au', 'lg'].filter(k => CAREERS[k]).forEach(k => mk('jc-' + k, k));
 }
 const _applyJob = applyJob;
 applyJob = function (j, rf) {
