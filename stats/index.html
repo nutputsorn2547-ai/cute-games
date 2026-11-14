@@ -73,7 +73,7 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
 </div>
 
 <p class="note">นับคอมจากรหัสสุ่มที่เก็บในเบราว์เซอร์แต่ละเครื่อง (ไม่เก็บชื่อ ไม่เก็บ IP) · เปิดจากเบราว์เซอร์เดียวกันหลายแท็บนับเป็น 1 เครื่อง · ล้างข้อมูลเบราว์เซอร์แล้วจะนับเป็นเครื่องใหม่<br>
-เวลาเล่น = นับจากสัญญาณทุก 1 นาทีที่หน้าเกมเปิดอยู่ (แท็บที่ซ่อนอยู่ไม่นับ) จึงคลาดเคลื่อนได้ราว ±1 นาทีต่อครั้ง<br>ความหน่วง = เวลาไป-กลับ (RTT) ระหว่างมือถือกับคอม วัดทุก 3 วินาทีผ่านลิงก์ที่ใช้บังคับเกม ค่าที่หน่วงมากขึ้นตอนมีหลายเครื่องอาจมาจากเน็ต/ไวไฟของแต่ละคนด้วย ไม่ได้มาจากเซิร์ฟเวอร์ทั้งหมด</p>
+เวลาเล่น = นับจากสัญญาณทุก 1 นาทีที่หน้าเกมเปิดอยู่ (แท็บที่ซ่อนอยู่ไม่นับ ยกเว้นมีมือถือเชื่อมอยู่) ส่วนสถานะ "เล่นอยู่ตอนนี้" จะเปลี่ยนทันทีที่ปิดหน้า (ถ้าเน็ตหลุดหรือเครื่องดับ จะหายไปเองหลังประมาณ 2 นาที) จึงคลาดเคลื่อนได้ราว ±1 นาทีต่อครั้ง<br>ความหน่วง = เวลาไป-กลับ (RTT) ระหว่างมือถือกับคอม วัดทุก 3 วินาทีผ่านลิงก์ที่ใช้บังคับเกม ค่าที่หน่วงมากขึ้นตอนมีหลายเครื่องอาจมาจากเน็ต/ไวไฟของแต่ละคนด้วย ไม่ได้มาจากเซิร์ฟเวอร์ทั้งหมด</p>
 </div>
 
 <script type="module">
@@ -96,7 +96,10 @@ async function load() {
 }
 
 function render() {
-  const now = Date.now(), recent = rows.filter(x => now - x.t < 130000);
+  const now = Date.now();
+  const last = new Map(); for (const x of rows) last.set(x.sid, x); // latest row per session
+  const live = new Set(); for (const [sid, x] of last) if (x.kind !== 'leave' && now - x.t < 130000) live.add(sid);
+  const recent = rows.filter(x => live.has(x.sid) && now - x.t < 130000);
   const pcRows = rows.filter(x => x.role === 'pc');
   const day0 = new Date(); day0.setHours(0, 0, 0, 0);
   $('c-now').textContent = new Set(recent.filter(x => x.role === 'pc').map(x => x.vid)).size;
@@ -116,7 +119,7 @@ function render() {
     if (x.kind === 'visit') g.visits++;
     if (x.kind === 'hb') g.beats++;
     g.sess.add(x.sid); g.all.add(x.vid);
-    if (now - x.t < 130000) g.now.add(x.vid);
+    if (live.has(x.sid)) g.now.add(x.vid);
   }
   const gl = Object.entries(gm).map(([k, g]) => ({ k, n: NAME[k] || k, visits: g.visits || g.sess.size, mins: g.beats, avg: g.beats / Math.max(1, g.sess.size), pcs: g.all.size, now: g.now.size }));
   const top1 = [...gl].sort((a, b) => b.visits - a.visits)[0], top2 = [...gl].sort((a, b) => b.mins - a.mins)[0];
