@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>สถิติ Cute Games</title>
+<style>
+:root{--ink:#3b2a4d;--bg:#fff4ec;--pink:#ff8fb1;--mint:#bdf0dd;--lav:#d9ccff;--yel:#ffd36b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 'Mali','Kanit',system-ui,sans-serif;padding:20px 16px 60px}
+.wrap{max-width:980px;margin:0 auto}
+h1{margin:0 0 4px;font-size:30px}
+.sub{color:#7a6890;margin-bottom:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.card{background:#fff;border-radius:18px;padding:14px 16px;box-shadow:0 4px 0 #3b2a4d1f}
+.card b{display:block;font-size:34px;line-height:1.1}
+.card span{color:#7a6890;font-size:14px}
+.card.on{background:var(--mint)}
+.panel{background:#fff;border-radius:22px;padding:16px;margin-bottom:16px;box-shadow:0 4px 0 #3b2a4d1f}
+.panel h2{margin:0 0 8px;font-size:20px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+button,select{font:inherit;color:var(--ink);background:var(--lav);border:0;border-radius:99px;padding:6px 16px;cursor:pointer}
+button.on{background:var(--ink);color:#fff}
+canvas{width:100%;height:260px;display:block}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid #3b2a4d14}
+th:first-child,td:first-child{text-align:left}
+th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
+.tw{max-height:420px;overflow:auto}
+.up{color:#d6336c}.dn{color:#1a9b6c}
+.note{font-size:14px;color:#7a6890;line-height:1.5}
+#err{background:var(--yel);border-radius:14px;padding:12px 16px;margin-bottom:16px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>สถิติ Cute Games</h1>
+<div class="sub" id="upd">กำลังโหลด…</div>
+<div id="err"></div>
+
+<div class="cards">
+  <div class="card on"><b id="c-now">–</b><span>คอมที่เล่นอยู่ตอนนี้</span></div>
+  <div class="card"><b id="c-ph">–</b><span>มือถือที่เชื่อมอยู่ตอนนี้</span></div>
+  <div class="card"><b id="c-all">–</b><span>คอมที่เคยเข้ามาทั้งหมด (ไม่ซ้ำเครื่อง)</span></div>
+  <div class="card"><b id="c-today">–</b><span>คอมที่เข้ามาวันนี้</span></div>
+  <div class="card"><b id="c-pl">–</b><span>มือถือ Android / iOS ที่เคยเชื่อม</span></div>
+</div>
+
+<div class="panel">
+  <h2>เล่นพร้อมกันกี่เครื่อง และความหน่วง</h2>
+  <div class="bar" id="range">
+    <button data-h="3">3 ชม.</button><button data-h="24" class="on">24 ชม.</button><button data-h="168">7 วัน</button><button data-h="0">ทั้งหมด</button>
+    <select id="plat"><option value="all">ทุกมือถือ</option><option value="android">Android</option><option value="ios">iOS</option></select>
+  </div>
+  <canvas id="cv"></canvas>
+  <div class="leg"><span><i style="background:var(--lav)"></i>จำนวนคอมที่เล่นพร้อมกัน (แท่ง)</span><span><i style="background:var(--pink)"></i>ความหน่วงมัธยฐาน ms (เส้น)</span></div>
+</div>
+
+<div class="panel">
+  <h2>ย้อนหลังทีละ 5 นาที</h2>
+  <p class="note" id="base">–</p>
+  <div class="tw"><table><thead><tr><th>เวลา</th><th>คอมพร้อมกัน</th><th>มือถือ</th><th>หน่วง (ms)</th><th>เทียบเล่น 1 เครื่อง</th></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+
+<div class="panel">
+  <h2>แยกตามเกม</h2>
+  <div class="tw"><table><thead><tr><th>เกม</th><th>คอมที่เคยเข้า</th><th>เล่นอยู่ตอนนี้</th></tr></thead><tbody id="tg"></tbody></table></div>
+</div>
+
+<p class="note">นับคอมจากรหัสสุ่มที่เก็บในเบราว์เซอร์แต่ละเครื่อง (ไม่เก็บชื่อ ไม่เก็บ IP) · เปิดจากเบราว์เซอร์เดียวกันหลายแท็บนับเป็น 1 เครื่อง · ล้างข้อมูลเบราว์เซอร์แล้วจะนับเป็นเครื่องใหม่<br>
+ความหน่วง = เวลาไป-กลับ (RTT) ระหว่างมือถือกับคอม วัดทุก 3 วินาทีผ่านลิงก์ที่ใช้บังคับเกม ค่าที่หน่วงมากขึ้นตอนมีหลายเครื่องอาจมาจากเน็ต/ไวไฟของแต่ละคนด้วย ไม่ได้มาจากเซิร์ฟเวอร์ทั้งหมด</p>
+</div>
+
+<script type="module">
+import { ENDPOINT } from '../lib/stats.js';
+const $ = id => document.getElementById(id);
+const BK = 5 * 60000;
+let rows = [], hours = 24, plat = 'all';
+const med = a => { const s = a.filter(x => x !== '' && !isNaN(x)).map(Number).sort((x, y) => x - y); return s.length ? s[s.length >> 1] : null; };
+const fmt = t => new Date(t).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+async function load() {
+  if (!ENDPOINT) { const e = $('err'); e.style.display = 'block'; e.textContent = 'ยังไม่ได้ตั้งค่าปลายทางเก็บข้อมูล (ENDPOINT ใน lib/stats.js) — ทำตามขั้นตอนในไฟล์ stats/README.md'; $('upd').textContent = ''; return; }
+  try {
+    const r = await fetch(ENDPOINT); const j = await r.json();
+    rows = j.rows.map(a => ({ t: +a[0], kind: a[1], vid: a[2], sid: a[3], game: a[4], role: a[5], plat: a[6], phones: a[7], med: a[8], max: a[9], n: a[10] }));
+    $('err').style.display = 'none';
+    $('upd').textContent = 'อัปเดตล่าสุด ' + new Date().toLocaleTimeString('th-TH') + ' · ข้อมูล ' + rows.length + ' แถว';
+    render();
+  } catch (e) { $('err').style.display = 'block'; $('err').textContent = 'โหลดข้อมูลไม่ได้: ' + e.message; }
+}
+
+function render() {
+  const now = Date.now(), recent = rows.filter(x => now - x.t < 130000);
+  const pcRows = rows.filter(x => x.role === 'pc');
+  const day0 = new Date(); day0.setHours(0, 0, 0, 0);
+  $('c-now').textContent = new Set(recent.filter(x => x.role === 'pc').map(x => x.vid)).size;
+  const phNow = new Set(recent.filter(x => x.role === 'phone').map(x => x.vid)).size;
+  $('c-ph').textContent = phNow;
+  $('c-all').textContent = new Set(pcRows.map(x => x.vid)).size;
+  $('c-today').textContent = new Set(pcRows.filter(x => x.t >= +day0).map(x => x.vid)).size;
+  const ph = rows.filter(x => x.role === 'phone');
+  $('c-pl').textContent = new Set(ph.filter(x => x.plat === 'android').map(x => x.vid)).size + ' / ' + new Set(ph.filter(x => x.plat === 'ios').map(x => x.vid)).size;
+
+  // per game
+  const gm = {};
+  for (const x of pcRows) { (gm[x.game] ||= { all: new Set(), now: new Set() }).all.add(x.vid); if (now - x.t < 130000) gm[x.game].now.add(x.vid); }
+  $('tg').innerHTML = Object.entries(gm).sort((a, b) => b[1].all.size - a[1].all.size).map(([g, v]) => `<tr><td>${g}</td><td>${v.all.size}</td><td>${v.now.size}</td></tr>`).join('');
+
+  // buckets
+  const from = hours ? now - hours * 3600000 : 0;
+  const B = new Map();
+  for (const x of rows) {
+    if (x.t < from) continue;
+    const k = Math.floor(x.t / BK) * BK;
+    const b = B.get(k) || { t: k, pcs: new Set(), phs: new Set(), rtt: [] };
+    if (x.role === 'pc') b.pcs.add(x.vid); else b.phs.add(x.vid);
+    if (x.kind === 'rtt' && (plat === 'all' || x.plat === plat)) b.rtt.push(x.med);
+    B.set(k, b);
+  }
+  const list = [...B.values()].sort((a, b) => a.t - b.t).map(b => ({ t: b.t, pcs: b.pcs.size, phs: b.phs.size, rtt: med(b.rtt) }));
+  // baseline: all buckets (any time range, same platform filter) where exactly 1 pc played
+  const all = new Map();
+  for (const x of rows) { const k = Math.floor(x.t / BK) * BK; const b = all.get(k) || { pcs: new Set(), rtt: [] }; if (x.role === 'pc') b.pcs.add(x.vid); if (x.kind === 'rtt' && (plat === 'all' || x.plat === plat)) b.rtt.push(x.med); all.set(k, b); }
+  const base = med([...all.values()].filter(b => b.pcs.size === 1).map(b => med(b.rtt)).filter(v => v != null));
+  $('base').textContent = base == null ? 'ยังไม่มีข้อมูลตอนเล่น 1 เครื่อง จึงยังคิด % เทียบไม่ได้' : `ค่าอ้างอิง (เล่นคอม 1 เครื่อง) = ${base} ms · แถวที่หน่วงเพิ่มขึ้นเป็นสีชมพู`;
+  $('tb').innerHTML = [...list].reverse().map(b => {
+    let pct = '–';
+    if (base && b.rtt != null) { const p = Math.round((b.rtt / base - 1) * 100); pct = `<span class="${p > 0 ? 'up' : 'dn'}">${p > 0 ? '+' : ''}${p}%</span>`; }
+    return `<tr><td>${fmt(b.t)}</td><td>${b.pcs}</td><td>${b.phs}</td><td>${b.rtt ?? '–'}</td><td>${pct}</td></tr>`;
+  }).join('');
+  draw(list);
+}
+
+function draw(list) {
+  const cv = $('cv'), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const c = cv.getContext('2d'); c.scale(dpr, dpr); c.clearRect(0, 0, W, H);
+  c.font = '12px sans-serif'; c.fillStyle = '#7a6890';
+  if (!list.length) { c.fillText('ยังไม่มีข้อมูลในช่วงนี้', 20, 30); return; }
+  const L = 36, R = 40, T = 10, Bt = 24, w = W - L - R, h = H - T - Bt;
+  const t0 = list[0].t, t1 = Math.max(list[list.length - 1].t + BK, t0 + BK * 6);
+  const X = t => L + (t - t0) / (t1 - t0) * w;
+  const maxP = Math.max(3, ...list.map(b => b.pcs)), maxR = Math.max(50, ...list.map(b => b.rtt || 0));
+  c.strokeStyle = '#3b2a4d14';
+  for (let i = 0; i <= 3; i++) { const y = T + h - h * i / 3; c.beginPath(); c.moveTo(L, y); c.lineTo(W - R, y); c.stroke(); c.textAlign = 'right'; c.fillText(Math.round(maxP * i / 3), L - 6, y + 4); c.textAlign = 'left'; c.fillText(Math.round(maxR * i / 3) + '', W - R + 6, y + 4); }
+  const bw = Math.max(2, w * BK / (t1 - t0) - 1);
+  c.fillStyle = '#d9ccff';
+  for (const b of list) { const y = h * b.pcs / maxP; c.fillRect(X(b.t), T + h - y, bw, y); }
+  c.strokeStyle = '#ff5c8a'; c.lineWidth = 2; c.beginPath(); let st = false;
+  for (const b of list) { if (b.rtt == null) { st = false; continue; } const x = X(b.t) + bw / 2, y = T + h - h * b.rtt / maxR; st ? c.lineTo(x, y) : c.moveTo(x, y); st = true; }
+  c.stroke();
+  c.fillStyle = '#ff5c8a'; for (const b of list) if (b.rtt != null) { c.beginPath(); c.arc(X(b.t) + bw / 2, T + h - h * b.rtt / maxR, 3, 0, 7); c.fill(); }
+  c.fillStyle = '#7a6890'; c.textAlign = 'center';
+  for (let i = 0; i <= 4; i++) { const t = t0 + (t1 - t0) * i / 4; c.fillText(new Date(t).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }), L + w * i / 4, H - 6); }
+}
+
+$('range').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; hours = +b.dataset.h; [...$('range').querySelectorAll('button')].forEach(x => x.classList.toggle('on', x === b)); render(); });
+$('plat').onchange = e => { plat = e.target.value; render(); };
+addEventListener('resize', render);
+load(); setInterval(load, 30000);
+</script>
+</body>
+</html>
