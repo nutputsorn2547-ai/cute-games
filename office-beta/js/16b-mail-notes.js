@@ -166,6 +166,7 @@ function mailDaily(d) {
   const add = (tpl, cat) => { const [f, s, b] = tpl(), imp = cat === 'work' && Math.random() < .5, at = T(7 + Math.random() * 12); mailPush(null, f, s, imp ? b + '<p><b>⭐ เรื่องสำคัญ รบกวนตอบกลับภายใน 2 วันนะคะ</b></p>' : b, cat, at, imp ? { imp: 1, due: at + 2 * 86400000 } : undefined); };
   if (wk && Math.random() < .75) add(pick(MAIL_WORK), 'work');
   if (Math.random() < .55) add(pick(MAIL_PROMO), 'promo');
+  if (typeof FOOD_PROMO !== 'undefined') { if (Math.random() < .8) add(pick(FOOD_PROMO), 'promo'); if (Math.random() < .35) add(pick(FOOD_PROMO), 'promo'); }
   if (Math.random() < .45) add(pick(MAIL_NEWS), 'news');
 }
 

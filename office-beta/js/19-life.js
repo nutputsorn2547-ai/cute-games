@@ -61,7 +61,7 @@ function stressHud() {
   let vl = $('stressVeil'); if (!vl) { vl = h('div', { id: 'stressVeil' }); $('screen').append(vl); }
   const a = Math.max(0, (life.stress - 35) / 65); vl.style.opacity = String(Math.min(.62, a * .62)); vl.classList.toggle('pulse', life.stress >= 85);
 }
-const slackActive = () => !!(life.play && performance.now() < life.play.end) || !!life.music || [...wins.keys()].some(k => /^game/.test(k)) || (phone.open && phone.app === 'date');
+const slackActive = () => !!(life.play && performance.now() < life.play.end) || !!life.music || (life.tab === 'read' && wins.has('slack')) || [...wins.keys()].some(k => /^game/.test(k)) || (phone.open && phone.app === 'date');
 let stLast = performance.now();
 function stressTick() {
   const now = performance.now(), dt = Math.min(5, (now - stLast) / 1000); stLast = now; if (lk.on) return;
@@ -69,7 +69,7 @@ function stressTick() {
   if (working) life.stress += .015 * dt;
   const cnt = (perf.callMiss || 0) + (perf.mailMiss || 0) + (career[career.id]?.wrong || 0) + (career.tax?.late || 0); if (cnt > life.lastCnt) life.stress += 6 * (cnt - life.lastCnt); life.lastCnt = cnt;
   if (typeof hunger !== 'undefined' && hunger.v < STARVING) life.stress += .05 * dt;
-  let rel = 0; if (life.play && now < life.play.end) rel += life.play.rate; if (life.music) rel += .5; if ([...wins.keys()].some(k => /^game/.test(k))) rel += .4; if (phone.open && phone.app === 'date') rel += .3;
+  let rel = 0; if (life.play && now < life.play.end) rel += life.play.rate; if (life.music) rel += .5; if (life.tab === 'read' && wins.has('slack')) rel += .45; if ([...wins.keys()].some(k => /^game/.test(k))) rel += .4; if (phone.open && phone.app === 'date') rel += .3;
   life.stress = clamp(life.stress - Math.min(1.3, rel) * dt, 0, 100);
   if (typeof hunger !== 'undefined' && hr >= 8 && hr < 22) hunger.v = Math.max(0, hunger.v - life.stress / 100 * 8 * SPEED / 3600 * dt);
   if (life.play && now >= life.play.end) { S.toast(`${life.play.e} ดูจบแล้ว สดชื่นขึ้นเยอะ`, 2); life.play = null; renderSlack(); }
@@ -90,7 +90,7 @@ function openSlack() {
   if (wins.has('slack')) { focusWin(wins.get('slack')); return; }
   const W = openWin('slack', 'มุมอู้งาน — พักสมองหน่อย', h('div', { class: 'slk' }), 560, 430, '#ffe9f0'); W.onClose = () => { life.play = null; life.music = null; };
   W.body.firstChild.addEventListener('click', e => {
-    const t = e.target.closest('[data-sl]'); if (!t) return; const k = t.dataset.sl;
+    const t = e.target.closest('[data-sl]'); if (!t) return; const k = t.dataset.sl; if (typeof slackExtra === 'function' && slackExtra(k, t, e)) return;
     if (k === 'boss') return bossKey(); if (k === 'stop') { life.play = null; return renderSlack(); } if (k === 'back') { life.tab = 'home'; return renderSlack(); }
     if (k === 'game') { openGames(); return; } if (k === 'date') { openPhone('date'); return; }
     if (k === 'music') { life.music = life.music ? null : 1; if (life.music) musicLoop(); return renderSlack(); }
@@ -104,13 +104,15 @@ function renderSlack() {
   const top = `<div class="sltop"><span>ความเครียด <b>${st}</b>/100</span><div class="sbar"><i style="width:${st}%"></i></div><button class="btn2" data-sl="boss">🫣 หัวหน้ามา! (Esc)</button></div>`;
   let main;
   if (life.play) main = `<div class="slp"><h3>${life.play.e} กำลังดู: ${esc(life.play.n)}</h3><div class="plb"><i></i></div><p class="soft">ดูไปเรื่อยๆ ความเครียดจะลดลง แต่ระวังหัวหน้าเดินมานะ</p><button class="btn2" data-sl="stop">⏹ หยุด</button></div>`;
+  else if (life.tab === 'music' && typeof musicHTML === 'function') main = musicHTML();
+  else if ((life.tab === 'novel' || life.tab === 'read') && typeof novelHTML === 'function') main = novelHTML();
   else if (life.tab === 'v' || life.tab === 'm') main = `<button class="btn2" data-sl="back">← กลับ</button><div class="sll">${(life.tab === 'v' ? VIDEOS : MOVIES).map(([n, d], i) => `<button data-sl="${life.tab}" data-i="${i}"><b>${life.tab === 'v' ? '▶️' : '🎬'} ${esc(n)}</b><small>${d} วินาที</small></button>`).join('')}</div>`;
-  else main = `<div class="slg"><button data-sl="v"><i>📺</i>เมี่ยวทูป<small>ดูคลิปสั้นๆ</small></button><button data-sl="music"><i>${life.music ? '⏸️' : '🎵'}</i>ฟังเพลง<small>${life.music ? 'กำลังเล่น… กดเพื่อหยุด' : 'เปิดเพลงชิลๆ'}</small></button><button data-sl="game"><i>🎮</i>เกมในคอม<small>เปิดเกมน้อย</small></button><button data-sl="m"><i>🎬</i>หนังน้อย<small>ดูหนังเรื่องยาวหน่อย</small></button><button data-sl="date"><i>💘</i>เลื่อนหาคู่<small>เปิดแอปในมือถือ</small></button></div><p class="soft">การอู้ช่วยลดความเครียด หน้าจอจะหายแดง และท้องไม่หิวเร็วเกินไป · ถ้าหัวหน้าเห็น จะเครียดกว่าเดิม!</p>`;
+  else main = `<div class="slg"><button data-sl="v"><i>📺</i>เมี่ยวทูป<small>ดูคลิปสั้นๆ</small></button><button data-sl="music"><i>${life.music ? '🎶' : '🎵'}</i>ฟังเพลง<small>${life.music ? 'กำลังเล่นจาก YouTube' : 'เปิดเพลงจาก YouTube จริง'}</small></button><button data-sl="game"><i>🎮</i>เกมในคอม<small>เปิดเกมน้อย</small></button><button data-sl="novel"><i>📖</i>นิยาย<small>กฎ 5 ข้อแห่งห้อง 404</small></button><button data-sl="date"><i>💘</i>เลื่อนหาคู่<small>เปิดแอปในมือถือ</small></button></div><p class="soft">การอู้ช่วยลดความเครียด หน้าจอจะหายแดง และท้องไม่หิวเร็วเกินไป · ถ้าหัวหน้าเห็น จะเครียดกว่าเดิม!</p>`;
   b.innerHTML = top + main; const pb = b.querySelector('.plb i'); if (pb && life.play) pb.style.width = Math.min(100, (performance.now() - life.play.t0) / (life.play.end - life.play.t0) * 100) + '%';
 }
 setInterval(() => { if (life.play && wins.has('slack')) { const pb = wins.get('slack').body.querySelector('.plb i'); if (pb) pb.style.width = Math.min(100, (performance.now() - life.play.t0) / (life.play.end - life.play.t0) * 100) + '%'; } }, 500);
 const MELODY = [523, 659, 784, 659, 587, 698, 880, 698, 523, 659, 784, 1047];
-let mi = 0; function musicLoop() { if (!life.music) return; if (!lk.on) S.tone(MELODY[mi++ % MELODY.length], MELODY[mi % MELODY.length], .35, .04, 'sine'); setTimeout(musicLoop, 520); }
+let mi = 0; function musicLoop() { if (life.music !== 1) return; if (!lk.on) S.tone(MELODY[mi++ % MELODY.length], MELODY[mi % MELODY.length], .35, .04, 'sine'); setTimeout(musicLoop, 520); }
 /* save / load the stress level */
 const _snap2 = snapshot; snapshot = () => ({ ..._snap2(), life: { stress: life.stress } });
 const _load2 = loadGame; loadGame = function () { const ok = _load2(); if (ok) { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.life) life.stress = s.life.stress; } catch (e) {} } return ok; };

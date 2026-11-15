@@ -740,3 +740,21 @@ body.fs .hint.onscr{bottom:auto;top:10px;font-size:12px}
 body.fs .desk .item,body.fs .desk .sticky{scale:.7}
 body.fs .ov>*{scale:.7}
 body.fs #pinDoc{scale:.7;transform-origin:100% 0}
+
+/* ===== มุมอู้งาน: เพลง/นิยาย, ป๊อปอัพโค้ด, สายแก๊ง ===== */
+.mdock{position:absolute;right:10px;bottom:10px;width:min(280px,70%);background:#16131c;border-radius:14px;overflow:hidden;box-shadow:0 14px 28px -10px #000a;z-index:6}
+.mdock .mdh{display:flex;align-items:center;gap:6px;padding:5px 8px;color:#fff;font-size:11px}.mdock .mdh b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mdock .mdh a{color:#9ec5ff}.mdock .mdh button{padding:0 7px;line-height:1.5}
+.mdock iframe{display:block;width:100%;aspect-ratio:16/9;border:0}
+.mlk{display:flex;gap:6px;margin-top:8px}.mlk input{flex:1;min-width:0;font:inherit;padding:8px 10px;border:1px solid #d9cfe0;border-radius:10px}.mfb{font-size:12px;min-height:16px;margin-top:4px}
+.nvr{background:#fffdf8;border-radius:14px;padding:14px 16px;line-height:1.9;font-size:15px;color:#2a2432}.nvr p{margin:0 0 .8em;text-indent:1.4em}.nvh{display:flex;gap:8px;align-items:center;position:sticky;top:-10px;background:#fffdf8;padding:4px 0 8px;z-index:2}.nvh b{flex:1;font-size:14px}
+.nvf{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;border-top:1px solid #eee;padding-top:10px}
+.nvc{background:#fff;border-radius:14px;padding:10px 14px;margin-top:8px}.nvc h3{margin:0}.nvp{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.nvl{background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;margin-top:8px}.nvl h3{margin:0}.nvl button{text-align:left;font:inherit}.nvl small{display:block;color:var(--soft)}
+.pscr{position:relative}
+.fpop{position:absolute;inset:0;background:#0007;display:flex;align-items:center;justify-content:center;z-index:20;padding:14px}
+.fpc{background:#fff;border-radius:18px;padding:14px;width:100%;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:8px;box-shadow:0 18px 40px -10px #000a}.fpc h4{margin:0;font-size:15px}.fpc small{color:var(--soft)}
+.fpl{display:flex;flex-direction:column;gap:6px}.fpr{display:flex;align-items:center;gap:8px;background:#fff6ec;border:1px dashed #ff9a3d;border-radius:12px;padding:8px 10px}.fpr span{flex:1;min-width:0}.fpr b{letter-spacing:1px;color:#d9531e;display:block}.fpr small{display:block}
+.fpr button{font:inherit;border:0;border-radius:99px;padding:6px 12px;background:#ff8a3d;color:#fff;cursor:pointer;flex:none}
+#callPop.scam{border-color:#e5536f}
+
+.hasdock .slk{padding-bottom:190px}
