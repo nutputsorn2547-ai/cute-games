@@ -48,7 +48,6 @@ function jlFired(why) {
   jlModal(`<div class="jlbig">📄</div><h2>คุณถูกเลิกจ้าง</h2><p>เหตุผล: ${esc(why)}</p><p>ตั้งแต่วันนี้คุณนั่งทำงานที่บ้านด้วยคอมส่วนตัว<br>ได้เงินเดือนงวดสุดท้าย ${baht(sev)} บาท<br><b>รีบอัปเดตเรซูเม่แล้วหางานใหม่ในจ๊อบน้อย!</b></p>`, [['รับทราบ…', 'ok', 'pri']], 'dark').then(() => { jl.firing = false; S.tone(220, 120, .6, .08, 'sawtooth'); });
 }
 function jlDaily(d) {
-  if ((() => { const x = new Date(d).getDate(); return x === 1 || x === 16; })()) { try { lottoDraw(d); } catch (e) { console.error(e); } }
   if (career.id === 'jl' || unlockedDay < 3) { jl.doneBase = done.size; return; }
   const wd = new Date(d - 12 * 3600000).getDay(), work = wd >= 1 && wd <= 5, prog = done.size - jl.doneBase, all = TASKS.every(t => done.has(t.id));
   if (work && !all && prog === 0) { jl.heat += 12; jl.why = 'ไม่มีผลงานเลยในวันทำงาน'; }
@@ -59,6 +58,7 @@ let jlLastHeat = -1;
 function jlTick() {
   if (lk.on) return; const t = dayStart(gnow()); if (!jl.day) jl.day = t;
   for (let i = 0; jl.day < t && i < 40; i++) { jl.day = dayStart(jl.day + DAY + 3 * 3600000); jlDaily(jl.day); }
+  const nowT = gnow().getTime(); [...new Set(jl.tix.filter(x => nowT >= x.d + 15 * 3600000).map(x => x.d))].sort().forEach(d => { try { lottoDraw(d); } catch (e) { console.error(e); } });
   if (career.id === 'jl') { jlLow(); return; }
   const cnt = (perf.callMiss || 0) + (perf.mailMiss || 0) + (career[career.id]?.wrong || 0) + (career.tax?.late || 0);
   if (jl.lastCnt === null) jl.lastCnt = cnt; if (cnt > jl.lastCnt) { jl.heat += 14 * (cnt - jl.lastCnt); jl.missToday += cnt - jl.lastCnt; jl.why = 'รับสาย/ตอบอีเมลสำคัญพลาดหลายครั้ง'; } jl.lastCnt = cnt;
@@ -176,7 +176,7 @@ function stkRender() {
 
 /* ---------- lottery app: draws on the 1st and 16th ---------- */
 const LOT_PRICE = 80, lot = { W: null };
-function nextDraw() { let d = dayStart(gnow()) + DAY + 3 * 3600000; for (let i = 0; i < 20; i++) { const x = new Date(d).getDate(); if (x === 1 || x === 16) return dayStart(d); d += DAY; } return dayStart(d); }
+function nextDraw() { const g = gnow(); let d = g.getHours() >= 15 ? dayStart(g) + DAY + 3 * 3600000 : dayStart(g) + 3 * 3600000; for (let i = 0; i < 20; i++) { const x = new Date(d).getDate(); if (x === 1 || x === 16) return dayStart(d); d += DAY; } return dayStart(d); }
 const r6 = () => String(Math.floor(Math.random() * 1e6)).padStart(6, '0'), r3 = () => String(Math.floor(Math.random() * 1e3)).padStart(3, '0');
 function prizesOf(n, D) {
   const pr = [], v = +n, F = +D.first;
@@ -209,12 +209,13 @@ function openLotto() {
   });
   lotRender();
 }
+function ticketHTML(n, buy, d) { return `<${buy ? 'button data-lb="' + n + '"' : 'div'} class="tkt${buy ? '' : ' mine'}"><i>🎟️ สลากน้อย · งวด ${thDate(d || lotStall().d, { day: 'numeric', month: 'short' })}</i><b>${[...n].map(c => `<u>${c}</u>`).join('')}</b><small>${buy ? 'ใบละ ฿80 · กดเพื่อซื้อ' : 'ใบของฉัน'}</small></${buy ? 'button' : 'div'}>`; }
 function lotRender() {
   if (!lot.W) return; const box = lot.W.body.firstChild, nd = nextDraw(), h0 = jl.hist[0];
-  const tx = jl.tix.slice().reverse().slice(0, 30).map(t => `<span class="tk">${t.n}</span>`).join('');
-  box.innerHTML = `<div class="lh"><b>งวดต่อไป ${thDate(nd, { day: 'numeric', month: 'long' })}</b><small>ออกรางวัลวันที่ 1 และ 16 ของเดือน · ใบละ ฿${LOT_PRICE} · เงินในบัญชี ฿${baht(bank.bal)}</small></div>
-    <h4>แผงสลากวันนี้ <small>(เลขสุ่มมาแล้ว เลือกได้เฉพาะที่มีในแผง)</small></h4><div class="tks stall">${lotStall().list.map(n => `<button class="tk" data-lb="${n}">${n}</button>`).join('') || '<small>สลากหมดแผงแล้ว</small>'}</div><div class="lbuy"><button class="btn2 pri" data-lb="rand">🎲 สุ่มซื้อ 1 ใบจากแผง</button></div>
-    <h4>สลากของฉัน (${jl.tix.length} ใบ)</h4><div class="tks">${tx || '<small>ยังไม่มีสลาก</small>'}</div>
+  const tx = jl.tix.slice().reverse().slice(0, 30).map(t => ticketHTML(t.n, false, t.d)).join('');
+  box.innerHTML = `<div class="lh"><b>งวดต่อไป ${thDate(nd, { day: 'numeric', month: 'long' })}</b><small>ออกรางวัลวันที่ 1 และ 16 ของเดือน เวลา 15:00 น. · ใบละ ฿${LOT_PRICE} · เงินในบัญชี ฿${baht(bank.bal)}</small></div>
+    <h4>แผงสลากวันนี้ <small>(เลขสุ่มมาแล้ว เลือกได้เฉพาะที่มีในแผง)</small></h4><div class="tks stall tkg">${lotStall().list.map(n => ticketHTML(n, true)).join('') || '<small>สลากหมดแผงแล้ว</small>'}</div><div class="lbuy"><button class="btn2 pri" data-lb="rand">🎲 สุ่มซื้อ 1 ใบจากแผง</button></div>
+    <h4>สลากของฉัน (${jl.tix.length} ใบ)</h4><div class="tks tkg">${tx || '<small>ยังไม่มีสลาก</small>'}</div>
     ${h0 ? `<h4>ผลงวด ${thDate(h0.d, { day: 'numeric', month: 'short' })}</h4><div class="lres">รางวัลที่ 1 <b>${h0.first}</b><br>เลขหน้า 3 ตัว ${h0.f3.join(' · ')} · เลขท้าย 3 ตัว ${h0.b3.join(' · ')} · เลขท้าย 2 ตัว <b>${h0.b2}</b><br>${h0.win.length ? h0.win.map(w => `🎉 ${w.n}: ${esc(w.l)} ฿${baht(w.a)}`).join('<br>') : `ซื้อ ${h0.cnt} ใบ ไม่ถูกรางวัล`}</div>` : ''}
     <small class="sdis">เกมจำลอง ไม่ใช่การพนันจริง · โอกาสถูกรางวัลในเกมสูงกว่าชีวิตจริงประมาณ 20% · ถูกรางวัลรวมทั้งหมดในเกม ฿${baht(jl.won)}</small>`;
 }
