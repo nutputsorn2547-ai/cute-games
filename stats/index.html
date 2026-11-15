@@ -33,6 +33,18 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
 .up{color:#d6336c}.dn{color:#1a9b6c}
 .note{font-size:14px;color:#7a6890;line-height:1.5}
 #err{background:var(--yel);border-radius:14px;padding:12px 16px;margin-bottom:16px;display:none}
+.ib{display:grid;grid-template-columns:270px 1fr;gap:12px}@media(max-width:700px){.ib{grid-template-columns:1fr}}
+.ibl{max-height:480px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.ith{all:unset;display:block;cursor:pointer;background:#fff7f0;border:2px solid #3b2a4d14;border-radius:14px;padding:8px 10px;font-size:14px;line-height:1.35}
+.ith.on{border-color:var(--pink);background:#fff;color:var(--ink)}.ith b{font-weight:600}.ith small{display:block;color:#7a6890;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ith i{font-style:normal;background:#ff6b8b;color:#fff;border-radius:99px;font-size:12px;padding:0 8px;margin-left:6px}.ith i.ok{background:#1a9b6c}
+.ibc{background:#fff7f0;border-radius:16px;padding:12px;min-height:200px;display:flex;flex-direction:column;gap:8px}
+.ibt{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
+.bb{max-width:86%;padding:8px 12px;border-radius:14px;font-size:15px;line-height:1.45;white-space:pre-wrap;word-break:break-word}.bb.u{align-self:flex-start;background:#fff;border:1px solid #3b2a4d14}.bb.a{align-self:flex-end;background:var(--mint)}
+.bb small{display:block;color:#7a6890;font-size:12px;margin-top:3px}.bb .ch{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}.bb .ch i{font-style:normal;font-size:12px;background:var(--yel);border-radius:99px;padding:0 8px}
+.ibr textarea{width:100%;font:inherit;border:2px solid #3b2a4d22;border-radius:12px;padding:8px 10px;min-height:70px;resize:vertical}
+.rr{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.rr button{font-size:13px;padding:4px 12px}
+.rt{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.rt span{background:#fff7f0;border-radius:99px;padding:3px 12px;font-size:14px}
 </style>
 </head>
 <body>
@@ -77,6 +89,13 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
   <h2>🏷️ เวอร์ชันที่คนเล่นออฟฟิศจำลองอยู่</h2>
   <p class="note" id="vnow">–</p>
   <div class="tw"><table><thead><tr><th>เวอร์ชัน</th><th>เล่นอยู่ตอนนี้ (เครื่อง)</th><th>เข้าเล่นใน 24 ชม. (เครื่อง)</th><th>อัปเดตอะไร</th></tr></thead><tbody id="tv"></tbody></table></div>
+</div>
+
+<div class="panel" id="inboxPanel">
+  <h2>📨 กล่องข้อความจากผู้เล่น <span id="ibBadge" class="note"></span></h2>
+  <div class="bar"><button id="ibAll" class="on">ทั้งหมด</button><button id="ibWait">รอตอบ</button><span class="note" id="ibMsg"></span></div>
+  <div class="rt" id="ibRates"></div>
+  <div class="ib"><div class="ibl" id="ibList"></div><div class="ibc" id="ibConv"><span class="note">เลือกบทสนทนาทางซ้ายเพื่ออ่านและตอบกลับ</span></div></div>
 </div>
 
 <div class="panel">
@@ -221,6 +240,56 @@ $('bump').onclick = async () => {
     else m.textContent = '⚠️ Apps Script ยังไม่รู้จักคำสั่งนี้ (ตอบกลับ: ' + JSON.stringify(j).slice(0, 60) + ') — วาง Code.gs ล่าสุดแล้วทำให้ใช้งานเป็น “เวอร์ชันใหม่”';
   } catch (e) { m.textContent = 'ส่งไม่สำเร็จ: ' + e.message; }
 };
+
+/* ===== กล่องข้อความจากผู้เล่น (คอลเซ็นเตอร์) ===== */
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ib = { rows: [], sel: null, filter: 'all', loaded: false };
+const ibParse = r => ({ t: +r[0], mid: String(r[1]), vid: String(r[2]), name: String(r[3]), from: r[4], games: (() => { try { return JSON.parse(r[5] || '[]'); } catch (e) { return []; } })(), text: String(r[6] ?? '') });
+const ibKey = () => { try { return localStorage.getItem('cg-key') || ''; } catch (e) { return ''; } };
+const ibSeen = v => { try { return +localStorage.getItem('cg-ibseen-' + v) || 0; } catch (e) { return 0; } };
+function ibThreads() {
+  const m = new Map();
+  for (const x of ib.rows) { const t = m.get(x.vid) || { vid: x.vid, name: '', msgs: [], last: 0 }; t.msgs.push(x); t.last = Math.max(t.last, x.t); if (x.from === 'user') t.name = x.name; m.set(x.vid, t); }
+  return [...m.values()].map(t => { t.msgs.sort((a, b) => a.t - b.t); const l = t.msgs[t.msgs.length - 1]; t.wait = l.from === 'user'; t.unread = t.msgs.some(x => x.from === 'user' && x.t > ibSeen(t.vid)); t.snip = l.text || '(ให้ดาวอย่างเดียว)'; return t; })
+    .sort((a, b) => (b.wait - a.wait) || (b.last - a.last));
+}
+function ibRender() {
+  const th = ibThreads(), waiting = th.filter(t => t.wait).length, unread = th.filter(t => t.unread && t.wait).length;
+  $('ibBadge').textContent = th.length ? `· ${th.length} เครื่อง · รอตอบ ${waiting}${unread ? ' · ใหม่ ' + unread : ''}` : '· ยังไม่มีข้อความ';
+  document.title = (waiting ? `(${waiting}) ` : '') + 'สถิติ Cute Games';
+  $('ibAll').classList.toggle('on', ib.filter === 'all'); $('ibWait').classList.toggle('on', ib.filter === 'wait');
+  // average stars per game (latest rating per device per game)
+  const lastR = new Map(); for (const x of ib.rows) if (x.from === 'user') for (const g of x.games) if (g.r) lastR.set(x.vid + '|' + g.g, [g.n, g.r]);
+  const ag = {}; for (const [k, [n, r]] of lastR) (ag[n] ||= []).push(r);
+  $('ibRates').innerHTML = Object.entries(ag).sort((a, b) => b[1].length - a[1].length).map(([n, a]) => `<span>${esc(n)} ★${(a.reduce((x, y) => x + y, 0) / a.length).toFixed(1)} (${a.length})</span>`).join('') || '<span class="note">ยังไม่มีคะแนนดาว</span>';
+  const list = th.filter(t => ib.filter === 'all' || t.wait);
+  $('ibList').innerHTML = list.map(t => `<button class="ith ${t.vid === ib.sel ? 'on' : ''}" data-v="${esc(t.vid)}"><b>${esc(t.name || 'ไม่ระบุชื่อ')}</b> <span class="note">· เครื่อง ${esc(t.vid.slice(0, 4))}</span>${t.wait ? `<i>${t.unread ? 'ใหม่' : 'รอตอบ'}</i>` : '<i class="ok">ตอบแล้ว</i>'}<small>${esc(t.snip)}</small><small>${fmt(t.last)}</small></button>`).join('') || '<span class="note">ไม่มีรายการ</span>';
+  const t = th.find(x => x.vid === ib.sel);
+  if (!t) { if (!$('ibConv').querySelector('.ibr')) $('ibConv').innerHTML = '<span class="note">เลือกบทสนทนาทางซ้ายเพื่ออ่านและตอบกลับ</span>'; return; }
+  const draft = $('ibText') ? $('ibText').value : '', keep = $('ibThr') ? $('ibThr').scrollTop : 1e9;
+  $('ibConv').innerHTML = `<b>${esc(t.name || 'ไม่ระบุชื่อ')} <span class="note">· เครื่อง ${esc(t.vid.slice(0, 4))}…</span></b><div class="ibt" id="ibThr">${t.msgs.map(x => `<div class="bb ${x.from === 'admin' ? 'a' : 'u'}">${x.games.length && x.from === 'user' ? `<div class="ch">${x.games.map(g => `<i>${esc(g.n)}${g.r ? ' ' + '★'.repeat(g.r) : ''}</i>`).join('')}</div>` : ''}${esc(x.text || (x.from === 'user' ? '(ให้ดาวอย่างเดียว)' : ''))}<small>${x.from === 'admin' ? 'คุณตอบ' : esc(x.name)} · ${fmt(x.t)}</small></div>`).join('')}</div>
+    <div class="ibr"><textarea id="ibText" maxlength="800" placeholder="พิมพ์ตอบกลับ… (ผู้เล่นเห็นในแท็บ “ข้อความของฉัน” บนหน้าแรก)">${esc(draft)}</textarea><div class="rr"><button id="ibSend">ส่งตอบ 📤</button><button data-q="ขอบคุณที่แจ้งนะคะ 🙏 จะรีบดูให้ค่ะ">ขอบคุณ</button><button data-q="รับทราบค่ะ จะนำไปปรับปรุงในเวอร์ชันถัดไปนะคะ ✨">จะปรับปรุง</button><button data-q="ขอบคุณที่ชอบเกมนะคะ 💕 ดีใจมากๆ ค่ะ">ดีใจที่ชอบ</button></div><span class="note" id="ibRes"></span></div>`;
+  $('ibThr').scrollTop = keep;
+}
+async function loadInbox() {
+  const key = ibKey(); if (!key || !ENDPOINT) return;
+  try { const j = await (await fetch(ENDPOINT + '?inbox=' + encodeURIComponent(key) + '&_=' + Date.now())).json(); if (j.error) { $('ibMsg').textContent = '⚠️ ' + (j.error === 'key' ? 'รหัสไม่ตรง' : j.error); return; } if (!j.rows) { $('ibMsg').textContent = '⚠️ Apps Script ยังไม่รู้จักกล่องข้อความ — วาง Code.gs ล่าสุดแล้ว Deploy เวอร์ชันใหม่'; return; } $('ibMsg').textContent = ''; ib.rows = j.rows.map(ibParse); ib.loaded = true; ibRender(); } catch (e) { $('ibMsg').textContent = 'โหลดกล่องข้อความไม่ได้: ' + e.message; }
+}
+$('inboxPanel').addEventListener('click', async e => {
+  const bt = e.target.closest('button'); if (!bt) return;
+  if (bt.id === 'ibAll') { ib.filter = 'all'; return ibRender(); }
+  if (bt.id === 'ibWait') { ib.filter = 'wait'; return ibRender(); }
+  if (bt.dataset.v) { ib.sel = bt.dataset.v; try { localStorage.setItem('cg-ibseen-' + ib.sel, String(Date.now())); } catch (x) {} $('ibConv').innerHTML = ''; return ibRender(); }
+  if (bt.dataset.q) { $('ibText').value = bt.dataset.q; $('ibText').focus(); return; }
+  if (bt.id === 'ibSend') {
+    const text = $('ibText').value.trim(), key = ibKey(), id = Math.random().toString(36).slice(2, 10); if (!text || !ib.sel) return; if (!key) { $('ibRes').textContent = 'ยังไม่มีรหัส — รีเฟรชหน้าแล้วใส่รหัสก่อน'; return; }
+    bt.disabled = true; $('ibRes').textContent = 'กำลังส่ง…';
+    try { await fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ reply: { key, vid: ib.sel, text, id } }) }); } catch (x) { $('ibRes').textContent = 'ส่งไม่สำเร็จ: ' + x.message; bt.disabled = false; return; }
+    for (let i = 0; i < 5; i++) { await new Promise(r => setTimeout(r, 1500)); await loadInbox(); if (ib.rows.some(r => r.mid === id)) { $('ibText') && ($('ibText').value = ''); ibRender(); $('ibRes').textContent = '✅ ส่งตอบแล้ว ' + new Date().toLocaleTimeString('th-TH'); return; } }
+    if ($('ibRes')) { $('ibRes').textContent = '⚠️ ส่งแล้วแต่ยังไม่เห็นในกล่อง — ตรวจว่า KEY ตรงกันและ Deploy Code.gs ล่าสุดแล้ว'; $('ibSend') && ($('ibSend').disabled = false); }
+  }
+});
+setTimeout(loadInbox, 2500); setInterval(loadInbox, 30000);
 load(); setInterval(load, 30000);
 </script>
 </body>
