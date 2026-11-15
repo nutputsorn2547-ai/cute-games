@@ -82,7 +82,7 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
 <div class="panel">
   <h2>🔄 บังคับรีเฟรชเกมออฟฟิศจำลอง</h2>
   <p class="note">กดแล้วทุกคนที่เปิด <b>เกมออฟฟิศจำลอง</b> อยู่จะเห็นข้อความ "มีอัปเดตใหม่" เซฟเกมให้อัตโนมัติ แล้วรีเฟรชหน้าเองภายในไม่เกิน 90 วินาที (คนที่ปิดเกมอยู่จะได้เวอร์ชันล่าสุดเมื่อเปิดครั้งหน้า) · คนที่เปิดค้างด้วยเวอร์ชันเก่าที่ยังไม่มีระบบนี้ ต้องรีเฟรชเองสักครั้งก่อน</p>
-  <div class="bar"><input id="bumpText" maxlength="200" placeholder="ข้อความที่จะโชว์ให้ผู้เล่น (ไม่ใส่ก็ได้)" style="min-width:220px;padding:6px 8px;border-radius:8px;border:1px solid #888;font:inherit"> <button id="bump">🔄 บังคับรีเฟรชทุกคน</button><span id="bumpmsg" class="note"></span></div>
+  <div class="bar"><input id="bumpText" maxlength="200" placeholder="ข้อความประกาศ (เว้นว่าง = แจ้งเวอร์ชันล่าสุดให้อัตโนมัติ)" style="min-width:220px;padding:6px 8px;border-radius:8px;border:1px solid #888;font:inherit"> <button id="bump">🔄 บังคับรีเฟรชทุกคน</button><span id="bumpmsg" class="note"></span></div>
 </div>
 
 <p class="note">นับคอมจากรหัสสุ่มที่เก็บในเบราว์เซอร์แต่ละเครื่อง (ไม่เก็บชื่อ ไม่เก็บ IP) · เปิดจากเบราว์เซอร์เดียวกันหลายแท็บนับเป็น 1 เครื่อง · ล้างข้อมูลเบราว์เซอร์แล้วจะนับเป็นเครื่องใหม่<br>
@@ -215,7 +215,7 @@ $('bump').onclick = async () => {
   if (!confirm('ให้ทุกคนที่เล่นออฟฟิศจำลองอยู่รีเฟรชหน้าเกมตอนนี้เลยไหม?')) return;
   const m = $('bumpmsg'); m.textContent = 'กำลังส่งคำสั่ง…';
   try {
-    const j = await (await fetch(ENDPOINT + '?bump=' + encodeURIComponent(key) + '&msg=' + encodeURIComponent($('bumpText').value.trim()) + '&_=' + Date.now())).json();
+    const j = await (await fetch(ENDPOINT + '?bump=' + encodeURIComponent(key) + '&msg=' + encodeURIComponent($('bumpText').value.trim() || ('✨ อัปเดตเป็นเวอร์ชัน ' + VERSION + '\n' + CHANGELOG[0].note)) + '&_=' + Date.now())).json();
     if (j.ok) m.textContent = '✅ ส่งคำสั่งแล้ว ' + new Date(+j.r).toLocaleTimeString('th-TH') + ' (ผู้เล่นจะรีเฟรชภายใน 90 วินาที)';
     else if (j.error === 'key') { try { localStorage.removeItem('cg-key'); } catch (e) {} m.textContent = '⚠️ รหัสไม่ตรงกับ KEY ในสคริปต์ — กดใหม่แล้วใส่รหัสอีกครั้ง'; }
     else m.textContent = '⚠️ Apps Script ยังไม่รู้จักคำสั่งนี้ (ตอบกลับ: ' + JSON.stringify(j).slice(0, 60) + ') — วาง Code.gs ล่าสุดแล้วทำให้ใช้งานเป็น “เวอร์ชันใหม่”';
