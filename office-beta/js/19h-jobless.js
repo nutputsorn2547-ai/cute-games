@@ -198,13 +198,14 @@ function lottoDraw(d) {
   if (total) { bankTx(`🎟️ ถูกสลาก งวด ${thDate(d, { day: 'numeric', month: 'short' })}`, total); jl.won += total; renderBank(); S.big(`🎉 ถูกสลาก ฿${baht(total)}!`, 3, '#e5536f'); S.jingle(); } else S.toast(`🎟️ ผลสลากงวด ${thDate(d, { day: 'numeric', month: 'short' })} ออกแล้ว — ไม่ถูกรางวัล`, 3.2);
   if (lot.W && wins.has('lotto')) lotRender();
 }
+function lotStall() { const nd = nextDraw(); if (!jl.stall || jl.stall.d !== nd) jl.stall = { d: nd, list: Array.from({ length: 24 }, r6) }; return jl.stall; }
 function openLotto() {
   if (wins.has('lotto')) { focusWin(wins.get('lotto')); return; }
   lot.W = openWin('lotto', 'หวยน้อย — สลากกินแบ่งจำลอง', h('div', { class: 'lot' }), 520, 480, '#ffe9ee'); lot.W.onClose = () => { lot.W = null; };
   lot.W.body.firstChild.addEventListener('click', e => {
-    const b = e.target.closest('[data-lb]'); if (!b) return; let nums = [];
-    if (b.dataset.lb === 'r1') nums = [r6()]; else if (b.dataset.lb === 'r5') nums = Array.from({ length: 5 }, r6); else { const v = lot.W.body.querySelector('.ln').value.replace(/\D/g, ''); if (v.length !== 6) return S.toast('ใส่เลข 6 หลักก่อนนะ', 1.6); nums = [v]; }
-    if (!bankPay(LOT_PRICE * nums.length, `🎟️ ซื้อสลาก ${nums.length} ใบ`)) return; const d = nextDraw(); nums.forEach(n => jl.tix.push({ n, d })); S.tone(600, 900, .08, .06); lotRender();
+    const b = e.target.closest('[data-lb]'); if (!b) return; const st = lotStall(); let n = b.dataset.lb;
+    if (n === 'rand') n = st.list[Math.floor(Math.random() * st.list.length)]; if (!n || !st.list.includes(n)) return lotRender();
+    if (!bankPay(LOT_PRICE, `🎟️ ซื้อสลาก ${n}`)) return; st.list.splice(st.list.indexOf(n), 1); jl.tix.push({ n, d: st.d }); S.tone(600, 900, .08, .06); lotRender();
   });
   lotRender();
 }
@@ -212,14 +213,14 @@ function lotRender() {
   if (!lot.W) return; const box = lot.W.body.firstChild, nd = nextDraw(), h0 = jl.hist[0];
   const tx = jl.tix.slice().reverse().slice(0, 30).map(t => `<span class="tk">${t.n}</span>`).join('');
   box.innerHTML = `<div class="lh"><b>งวดต่อไป ${thDate(nd, { day: 'numeric', month: 'long' })}</b><small>ออกรางวัลวันที่ 1 และ 16 ของเดือน · ใบละ ฿${LOT_PRICE} · เงินในบัญชี ฿${baht(bank.bal)}</small></div>
-    <div class="lbuy"><input class="ln" maxlength="6" inputmode="numeric" placeholder="เลข 6 หลัก"><button class="btn2 pri" data-lb="mine">ซื้อเลขนี้</button><button class="btn2" data-lb="r1">สุ่ม 1 ใบ</button><button class="btn2" data-lb="r5">สุ่ม 5 ใบ</button></div>
+    <h4>แผงสลากวันนี้ <small>(เลขสุ่มมาแล้ว เลือกได้เฉพาะที่มีในแผง)</small></h4><div class="tks stall">${lotStall().list.map(n => `<button class="tk" data-lb="${n}">${n}</button>`).join('') || '<small>สลากหมดแผงแล้ว</small>'}</div><div class="lbuy"><button class="btn2 pri" data-lb="rand">🎲 สุ่มซื้อ 1 ใบจากแผง</button></div>
     <h4>สลากของฉัน (${jl.tix.length} ใบ)</h4><div class="tks">${tx || '<small>ยังไม่มีสลาก</small>'}</div>
     ${h0 ? `<h4>ผลงวด ${thDate(h0.d, { day: 'numeric', month: 'short' })}</h4><div class="lres">รางวัลที่ 1 <b>${h0.first}</b><br>เลขหน้า 3 ตัว ${h0.f3.join(' · ')} · เลขท้าย 3 ตัว ${h0.b3.join(' · ')} · เลขท้าย 2 ตัว <b>${h0.b2}</b><br>${h0.win.length ? h0.win.map(w => `🎉 ${w.n}: ${esc(w.l)} ฿${baht(w.a)}`).join('<br>') : `ซื้อ ${h0.cnt} ใบ ไม่ถูกรางวัล`}</div>` : ''}
     <small class="sdis">เกมจำลอง ไม่ใช่การพนันจริง · โอกาสถูกรางวัลในเกมสูงกว่าชีวิตจริงประมาณ 20% · ถูกรางวัลรวมทั้งหมดในเกม ฿${baht(jl.won)}</small>`;
 }
 
 /* ---------- save / load ---------- */
-const _snap5 = snapshot; snapshot = () => ({ ..._snap5(), jl: { heat: jl.heat, day: jl.day, lastCnt: jl.lastCnt, doneBase: jl.doneBase, late: jl.late, warn: jl.warn, lowArm: jl.lowArm, lowAt: jl.lowAt, why: jl.why, px: jl.px, port: jl.port, tix: jl.tix, hist: jl.hist, won: jl.won, news: jl.news } });
+const _snap5 = snapshot; snapshot = () => ({ ..._snap5(), jl: { heat: jl.heat, day: jl.day, lastCnt: jl.lastCnt, doneBase: jl.doneBase, late: jl.late, warn: jl.warn, lowArm: jl.lowArm, lowAt: jl.lowAt, why: jl.why, px: jl.px, port: jl.port, tix: jl.tix, hist: jl.hist, won: jl.won, news: jl.news, stall: jl.stall } });
 const _load5 = loadGame;
 loadGame = function () { const ok = _load5(); if (ok) { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.jl) Object.assign(jl, s.jl); } catch (e) {} } jlTheme(); try { careerChip(); } catch (e) {} return ok; };
 setTimeout(() => { try { syncApps(); renderDesktop(); jlTheme(); } catch (e) { console.error(e); } }, 0);
