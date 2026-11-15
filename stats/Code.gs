@@ -16,6 +16,11 @@ function doPost(e) {
   lock.waitLock(10000);
   try {
     const row = JSON.parse(e.postData.contents);
+    if (row && row.bump !== undefined) { // ปุ่ม "บังคับรีเฟรช" ในหน้า stats
+      if (row.bump !== KEY) return ContentService.createTextOutput('forbidden');
+      PropertiesService.getScriptProperties().setProperty('refresh', String(Date.now()));
+      return ContentService.createTextOutput('ok');
+    }
     if (!Array.isArray(row) || row.length !== 10) return ContentService.createTextOutput('bad');
     sheet_().appendRow([Date.now()].concat(row.map(v => String(v).slice(0, 40))));
     CacheService.getScriptCache().remove('sum');
@@ -24,6 +29,7 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  if (e && e.parameter && e.parameter.r) return ContentService.createTextOutput(JSON.stringify({ r: PropertiesService.getScriptProperties().getProperty('refresh') || '0' })).setMimeType(ContentService.MimeType.JSON); // เกมถามว่ามีคำสั่งรีเฟรชไหม (ไม่ต้องใช้รหัส)
   if (!e || !e.parameter || e.parameter.key !== KEY) return ContentService.createTextOutput(JSON.stringify({ error: 'forbidden' })).setMimeType(ContentService.MimeType.JSON);
   const cache = CacheService.getScriptCache();
   let out = cache.get('sum');

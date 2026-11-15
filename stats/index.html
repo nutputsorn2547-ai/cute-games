@@ -73,6 +73,12 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
   <div class="tw"><table><thead><tr><th>เกม</th><th>เข้าเล่น (ครั้ง)</th><th>เวลารวม (นาที)</th><th>เฉลี่ยต่อครั้ง</th><th>เครื่องไม่ซ้ำ</th><th>เล่นอยู่ตอนนี้</th></tr></thead><tbody id="tg"></tbody></table></div>
 </div>
 
+<div class="panel">
+  <h2>🔄 บังคับรีเฟรชเกมออฟฟิศจำลอง</h2>
+  <p class="note">กดแล้วทุกคนที่เปิด <b>เกมออฟฟิศจำลอง</b> อยู่จะเห็นข้อความ "มีอัปเดตใหม่" เซฟเกมให้อัตโนมัติ แล้วรีเฟรชหน้าเองภายในไม่เกิน 90 วินาที (คนที่ปิดเกมอยู่จะได้เวอร์ชันล่าสุดเมื่อเปิดครั้งหน้า) · คนที่เปิดค้างด้วยเวอร์ชันเก่าที่ยังไม่มีระบบนี้ ต้องรีเฟรชเองสักครั้งก่อน</p>
+  <div class="bar"><button id="bump">🔄 บังคับรีเฟรชทุกคน</button><span id="bumpmsg" class="note"></span></div>
+</div>
+
 <p class="note">นับคอมจากรหัสสุ่มที่เก็บในเบราว์เซอร์แต่ละเครื่อง (ไม่เก็บชื่อ ไม่เก็บ IP) · เปิดจากเบราว์เซอร์เดียวกันหลายแท็บนับเป็น 1 เครื่อง · ล้างข้อมูลเบราว์เซอร์แล้วจะนับเป็นเครื่องใหม่<br>
 เวลาเล่น = นับจากสัญญาณทุก 1 นาทีที่หน้าเกมเปิดอยู่ (แท็บที่ซ่อนอยู่ไม่นับ ยกเว้นมีมือถือเชื่อมอยู่) ส่วนสถานะ "เล่นอยู่ตอนนี้" จะเปลี่ยนทันทีที่ปิดหน้า (ถ้าเน็ตหลุดหรือเครื่องดับ จะหายไปเองหลังประมาณ 2 นาที) จึงคลาดเคลื่อนได้ราว ±1 นาทีต่อครั้ง<br>ความหน่วง = เวลาไป-กลับ (RTT) ระหว่างมือถือกับคอม วัดทุก 3 วินาทีผ่านลิงก์ที่ใช้บังคับเกม ค่าที่หน่วงมากขึ้นตอนมีหลายเครื่องอาจมาจากเน็ต/ไวไฟของแต่ละคนด้วย ไม่ได้มาจากเซิร์ฟเวอร์ทั้งหมด</p>
 </div>
@@ -185,6 +191,16 @@ function draw(list) {
 $('range').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; hours = +b.dataset.h; [...$('range').querySelectorAll('button')].forEach(x => x.classList.toggle('on', x === b)); render(); });
 $('plat').onchange = e => { plat = e.target.value; render(); };
 addEventListener('resize', render);
+$('bump').onclick = async () => {
+  if (!ENDPOINT) return; let key = ''; try { key = localStorage.getItem('cg-key') || ''; } catch (e) {}
+  if (!key) { key = prompt('ใส่รหัสดูสถิติ') || ''; try { localStorage.setItem('cg-key', key); } catch (e) {} }
+  if (!confirm('ให้ทุกคนที่เล่นออฟฟิศจำลองอยู่รีเฟรชหน้าเกมตอนนี้เลยไหม?')) return;
+  const m = $('bumpmsg'); m.textContent = 'กำลังส่งคำสั่ง…';
+  const before = await (async () => { try { return (await (await fetch(ENDPOINT + '?r=1&_=' + Date.now())).json()).r; } catch (e) { return null; } })();
+  try { await fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ bump: key }) }); } catch (e) { m.textContent = 'ส่งไม่สำเร็จ: ' + e.message; return; }
+  await new Promise(r => setTimeout(r, 1500));
+  try { const j = await (await fetch(ENDPOINT + '?r=1&_=' + Date.now())).json(); m.textContent = j.r !== before ? '✅ ส่งคำสั่งแล้ว ' + new Date(+j.r).toLocaleTimeString('th-TH') + ' (ผู้เล่นจะรีเฟรชภายใน 90 วินาที)' : '⚠️ ยังไม่เห็นผล — รหัสอาจไม่ถูก หรือยังไม่ได้วาง Code.gs ใหม่ใน Apps Script'; } catch (e) { m.textContent = 'ตรวจผลไม่ได้: ' + e.message; }
+};
 load(); setInterval(load, 30000);
 </script>
 </body>
