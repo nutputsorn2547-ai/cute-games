@@ -340,15 +340,17 @@ function start() {
     Rb.addEventListener('pointerdown', e => { e.preventDefault(); st.taps.rclick++; Rb.classList.add('on'); vib(15); push(); });
     Rb.addEventListener('pointerup', () => Rb.classList.remove('on')); Rb.addEventListener('pointercancel', () => Rb.classList.remove('on'));
     // on-screen keyboard
-    const TH = [['ๅ', '/', '-', 'ภ', 'ถ', 'ุ', 'ึ', 'ค', 'ต', 'จ', 'ข', 'ช'], ['ๆ', 'ไ', 'ำ', 'พ', 'ะ', 'ั', 'ี', 'ร', 'น', 'ย', 'บ', 'ล'], ['ฟ', 'ห', 'ก', 'ด', 'เ', '้', '่', 'า', 'ส', 'ว', 'ง'], ['⇧', 'ผ', 'ป', 'แ', 'อ', 'ิ', 'ื', 'ท', 'ม', 'ใ', 'ฝ', '⌫'], ['ABC', ' ', '.', '↵']];
-    const THS = [['+', '๑', '๒', '๓', '๔', 'ู', '฿', '๕', '๖', '๗', '๘', '๙'], ['๐', '"', 'ฎ', 'ฑ', 'ธ', 'ํ', '๊', 'ณ', 'ฯ', 'ญ', 'ฐ', ','], ['ฤ', 'ฆ', 'ฏ', 'โ', 'ฌ', '็', '๋', 'ษ', 'ศ', 'ซ', '.'], ['⇧', '(', ')', 'ฉ', 'ฮ', 'ฺ', '์', '?', 'ฒ', 'ฬ', 'ฦ', '⌫'], ['ABC', ' ', '.', '↵']];
-    const EN = [['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'], ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'], ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'], ['⇧', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '⌫'], ['ไทย', '@', ' ', '.', '↵']];
-    const ENS = [['!', '@', '#', '$', '%', '=', '&', '*', '(', ')', '_'], ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'], ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'], ['⇧', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫'], ['ไทย', '@', ' ', ',', '↵']];
+    const TH = [['ๅ', '/', '-', 'ภ', 'ถ', 'ุ', 'ึ', 'ค', 'ต', 'จ', 'ข', 'ช'], ['ๆ', 'ไ', 'ำ', 'พ', 'ะ', 'ั', 'ี', 'ร', 'น', 'ย', 'บ', 'ล'], ['ฟ', 'ห', 'ก', 'ด', 'เ', '้', '่', 'า', 'ส', 'ว', 'ง'], ['⇧', 'ผ', 'ป', 'แ', 'อ', 'ิ', 'ื', 'ท', 'ม', 'ใ', 'ฝ', '⌫'], ['ABC', '123', ' ', '.', '↵']];
+    const THS = [['+', '๑', '๒', '๓', '๔', 'ู', '฿', '๕', '๖', '๗', '๘', '๙'], ['๐', '"', 'ฎ', 'ฑ', 'ธ', 'ํ', '๊', 'ณ', 'ฯ', 'ญ', 'ฐ', ','], ['ฤ', 'ฆ', 'ฏ', 'โ', 'ฌ', '็', '๋', 'ษ', 'ศ', 'ซ', '.'], ['⇧', '(', ')', 'ฉ', 'ฮ', 'ฺ', '์', '?', 'ฒ', 'ฬ', 'ฦ', '⌫'], ['ABC', '123', ' ', '.', '↵']];
+    const EN = [['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'], ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'], ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'], ['⇧', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '⌫'], ['ไทย', '123', '@', ' ', '.', '↵']];
+    const ENS = [['!', '@', '#', '$', '%', '=', '&', '*', '(', ')', '_'], ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'], ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'], ['⇧', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫'], ['ไทย', '123', '@', ' ', ',', '↵']];
+    if (new URLSearchParams(location.search).get('np') !== '1') [TH, THS, EN, ENS].forEach(a => { a[a.length - 1] = a[a.length - 1].filter(k => k !== '123'); }); // แป้นเลขเปิดเฉพาะ office-beta
+    const NUM = [['1', '2', '3', '-'], ['4', '5', '6', '.'], ['7', '8', '9', ','], ['฿', '0', '⌫', '↵'], ['ไทย', 'ABC', ' ']];
     const vk = document.createElement('div'); vk.className = 'vkb'; ctr.append(vk);
     let lang = 'th', shift = false, typed = '';
     const draw = () => {
-      const rows = lang === 'th' ? (shift ? THS : TH) : (shift ? ENS : EN);
-      vk.innerHTML = `<div class="pv">${typed ? typed.replace(/[<&]/g, '').slice(-40) : (lang === 'th' ? 'แป้นไทย · พิมพ์แล้วขึ้นบนคอม' : 'English keyboard')}</div>` + rows.map(r => `<div class="kr">${r.map(k => `<button type="button" data-k="${k === '"' ? '&quot;' : k}" class="${k === ' ' ? 'sp' : ['⇧', '⌫', '↵', 'ABC', 'ไทย'].includes(k) ? 'w' : ''}${k === '⇧' && shift ? ' on' : ''}">${k === ' ' ? (lang === 'th' ? 'เว้นวรรค' : 'space') : k}</button>`).join('')}</div>`).join('');
+      const rows = lang === 'num' ? NUM : lang === 'th' ? (shift ? THS : TH) : (shift ? ENS : EN);
+      vk.innerHTML = `<div class="pv">${typed ? typed.replace(/[<&]/g, '').slice(-40) : (lang === 'th' ? 'แป้นไทย · พิมพ์แล้วขึ้นบนคอม' : lang === 'num' ? 'แป้นตัวเลข' : 'English keyboard')}</div>` + rows.map(r => `<div class="kr">${r.map(k => `<button type="button" data-k="${k === '"' ? '&quot;' : k}" class="${k === ' ' ? 'sp' : ['⇧', '⌫', '↵', 'ABC', 'ไทย', '123'].includes(k) ? 'w' : ''}${k === '⇧' && shift ? ' on' : ''}">${k === ' ' ? (lang === 'th' ? 'เว้นวรรค' : 'space') : k}</button>`).join('')}</div>`).join('');
     };
     const send = t => { st.textN += t.length; st.text = (st.text + t).slice(-300); push(); };
     let rep = null;
@@ -356,6 +358,7 @@ function start() {
       const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); vib(8);
       const k = b.dataset.k;
       if (k === '⇧') { shift = !shift; draw(); return; }
+      if (k === '123') { lang = 'num'; shift = false; draw(); return; }
       if (k === 'ABC' || k === 'ไทย') { lang = k === 'ABC' ? 'en' : 'th'; shift = false; draw(); return; }
       if (k === '⌫') { send('\b'); typed = typed.slice(0, -1); rep = setTimeout(function again() { send('\b'); typed = typed.slice(0, -1); rep = setTimeout(again, 70); }, 420); draw(); return; }
       if (k === '↵') { send('\n'); typed = ''; draw(); return; }
