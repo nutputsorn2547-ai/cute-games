@@ -735,3 +735,8 @@ body.fs .tasks.fsopen>#careerChip{display:block}
 
 .hint.onscr{position:absolute;left:auto;right:12px;top:12px;bottom:auto;transform:none;max-width:min(320px,60%);font-size:13px;padding:8px 14px;border-radius:16px;z-index:60}
 body.fs .hint.onscr{bottom:auto;top:10px;font-size:12px}
+
+/* โหมดเต็มจอ: ของบนโต๊ะ + เอกสารที่หยิบขึ้นมาอ่านเล็กลง 30% (ปุ่มซูมยังอยู่) */
+body.fs .desk .item,body.fs .desk .sticky{scale:.7}
+body.fs .ov>*{scale:.7}
+body.fs #pinDoc{scale:.7;transform-origin:100% 0}
