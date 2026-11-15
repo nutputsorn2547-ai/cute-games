@@ -64,3 +64,10 @@ setInterval(() => {
 }, 250);
 
 addEventListener('focusout', () => setTimeout(() => { if (!fsTyping()) fsFit(); }, 350));
+
+// มือถือ: หลังแตะของบนโต๊ะ (pointerup) overlay เปิดขึ้น แล้วคลิกที่ตามมาไปตกที่พื้นหลัง overlay ทำให้ปิดทันที → กลืนคลิกนั้น
+new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1 && (n.classList.contains('phov') || n.classList.contains('ov'))) n._born = Date.now(); }))).observe(document.body, { childList: true });
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t && t._born && Date.now() - t._born < 500 && (t.classList.contains('phov') || t.classList.contains('ov'))) { e.stopImmediatePropagation(); e.preventDefault(); }
+}, true);
