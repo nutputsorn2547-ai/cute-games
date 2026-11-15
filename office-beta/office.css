@@ -732,3 +732,6 @@ body.fs .tasks.fsopen>#careerChip{display:block}
 @media (pointer:coarse){.overlay .card{padding:16px 18px;gap:14px}.overlay .card h1{font-size:22px}.overlay .qr{width:140px;height:140px}}
 
 #icons .icon{transform:scale(var(--iz,1));transform-origin:0 0}
+
+.hint.onscr{position:absolute;left:auto;right:12px;top:12px;bottom:auto;transform:none;max-width:min(320px,60%);font-size:13px;padding:8px 14px;border-radius:16px;z-index:60}
+body.fs .hint.onscr{bottom:auto;top:10px;font-size:12px}

@@ -47,3 +47,10 @@ document.addEventListener('pointerup', e => {
   if (window.ResizeObserver) new ResizeObserver(go).observe(icons);
   addEventListener('resize', go);
 })();
+
+// แจ้งเตือน (toast) ขึ้นบนจอจำลองมุมขวาบนเมื่ออยู่มุมมองจอ; มุมมองโต๊ะใช้ตำแหน่งเดิม
+setInterval(() => {
+  const hn = $('hint'), want = currentView === 'desk' ? document.body : screen;
+  if (hn && hn.parentNode !== want) want.append(hn);
+  hn && hn.classList.toggle('onscr', want === screen);
+}, 250);

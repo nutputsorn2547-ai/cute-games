@@ -88,8 +88,8 @@ function loop(now) {
   const mn = gnow().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   if (mn !== lastMin) { lastMin = mn; enforceDate(); $('clock').textContent = thDate(gnow(), { day: 'numeric', month: 'short' }) + ' ' + mn; phoneItem.querySelector('.pt').textContent = mn; const tw = wins.get('time'); if (tw && tw.body.querySelector('.hh')) { const g = gnow(); tw.body.querySelector('.hh').textContent = p2(g.getHours()); tw.body.querySelector('.mm').textContent = p2(g.getMinutes()); } applyTime(); updateDeskCal(); const slot = Math.floor((gnow() - T0) / 10800000); if (slot > jr.slot) { jr.slot = slot; juniorAsk(); } }
   if (S.pairing()) S.hint('');
-  else if (pad.live) S.hint(currentView === 'desk' ? 'แตะของบนโต๊ะเพื่อหยิบ/เปิด · แตะค้างแล้วลาก = ย้ายของ · ปุ่มสลับบนมือถือ = กลับไปที่จอ' : 'แตะสองทีที่ว่าง = เมนู · แตะค้างแล้วลาก = ลากไฟล์/ปรับขนาดหน้าต่างที่มุมขวาล่าง · พิมพ์ในช่องคีย์บอร์ดบนมือถือ');
-  else S.hint(currentView === 'desk' ? 'คลิกของบนโต๊ะเพื่อหยิบ/เปิด · ลากเพื่อย้าย · Esc ปิด · F2 สลับมุมมอง' : 'ดับเบิลคลิกที่ว่าง/คลิกขวา = เมนู · ลากมุมขวาล่างของหน้าต่างเพื่อปรับขนาด · Esc ปิด');
+  else if (pad.live) S.hint(currentView === 'desk' ? 'แตะของบนโต๊ะเพื่อหยิบ/เปิด · แตะค้างแล้วลาก = ย้ายของ · ปุ่มสลับบนมือถือ = กลับไปที่จอ' : '');
+  else S.hint(currentView === 'desk' ? 'คลิกของบนโต๊ะเพื่อหยิบ/เปิด · ลากเพื่อย้าย · Esc ปิด · F2 สลับมุมมอง' : '');
   requestAnimationFrame(loop);
 }
 const loaded = loadGame();
