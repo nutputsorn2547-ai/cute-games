@@ -8,32 +8,67 @@ document.addEventListener('focusin', e => {
   else if (t.dataset.im !== undefined) { if (t.dataset.im) t.setAttribute('inputmode', t.dataset.im); else t.removeAttribute('inputmode'); delete t.dataset.im; }
 });
 
-/* ================= เพลง YouTube ================= */
-const YT_TRACKS = [
-  ['Lofi hip hop radio — beats to relax/study to', 'jfKfPfyJRdk'],
-  ['Lofi hip hop radio — beats to sleep/chill to', '5qap5aO4i9A'],
-  ['Synthwave radio — beats to chill/game to', '4xDzrJKXOOY'],
-  ['Chillhop Radio — jazz / lofi beats', '5yx6BWlEVcY'],
+/* ================= เพลงที่แต่งเอง (สังเคราะห์เสียงในเกม ไม่ต้องใช้อินเทอร์เน็ต) ================= */
+const SONGS = [
+  { n: '☀️ เช้านี้ที่ออฟฟิศ', d: 'ป๊อปสดใส · 112 BPM', bpm: 112, sw: 0, root: 'C', lead: 'triangle', drum: { k: [0, 8], s: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }, bass: [0, 8, 12], stab: [],
+    prog: ['C', 'G', 'Am', 'F', 'C', 'G', 'F', 'G', 'F', 'G', 'Em', 'Am', 'F', 'G', 'C', 'C'],
+    mel: ['E5:2 G5:2 E5:2 G5:2 C6:4 G5:4', 'B5:2 G5:2 D5:2 G5:2 B5:4 r:4', 'A5:2 E5:2 C5:2 E5:2 A5:4 E5:4', 'A5:2 F5:2 C5:2 F5:2 A5:4 r:4', 'G5:2 E5:2 G5:2 C6:2 E6:4 C6:4', 'D6:2 B5:2 G5:2 B5:2 D6:4 r:4', 'C6:2 A5:2 F5:2 A5:2 C6:4 A5:4', 'B5:4 D6:4 G5:8',
+      'C6:4 A5:4 F5:4 A5:4', 'D6:4 B5:4 G5:4 B5:4', 'E6:4 B5:4 G5:4 B5:4', 'C6:4 A5:4 E5:4 A5:4', 'A5:2 C6:2 F6:4 E6:4 C6:4', 'B5:2 D6:2 G6:4 F6:4 D6:4', 'E6:4 C6:4 G5:4 E5:4', 'C6:12 r:4'],
+    ly: ['ตื่นเช้ามาพร้อมกาแฟแก้วโปรด', 'เปิดคอมแล้วยิ้มให้วันใหม่', 'งานเยอะแค่ไหนก็ไม่เป็นไร', 'มีเพื่อนร่วมโต๊ะคอยเป็นกำลังใจ', 'ตัวเลขเรียงกันเป็นแถวตรง', 'ค่อยๆ ทำไปทีละบรรทัด', 'ใครว่าบัญชีมันน่าเบื่อ', 'วันนี้เราจะทำให้สนุกกัน'] },
+  { n: '🌧️ ฝนตกบนโต๊ะทำงาน', d: 'โลฟายชิลๆ · 78 BPM', bpm: 78, sw: .32, root: 'A', lead: 'sine', drum: { k: [0, 7, 10], s: [8], h: [0, 2, 4, 6, 8, 10, 12, 14] }, bass: [0, 6, 10], stab: [],
+    prog: ['Am7', 'Fmaj7', 'C', 'G', 'Am7', 'Fmaj7', 'Dm7', 'E7', 'F', 'C', 'G', 'Am', 'F', 'C', 'Dm7', 'E7'],
+    mel: ['E5:4 r:2 C5:2 E5:4 G5:4', 'A5:4 r:2 F5:2 C5:4 r:4', 'G5:4 r:2 E5:2 C5:4 E5:4', 'D5:4 B4:4 D5:4 r:4', 'E5:4 r:2 C5:2 A4:4 C5:4', 'F5:4 A5:4 C6:4 A5:4', 'D5:4 F5:4 A5:4 F5:4', 'G#5:4 B5:4 E5:8',
+      'A5:6 G5:2 F5:8', 'E5:6 D5:2 C5:8', 'D5:6 B4:2 G4:8', 'A4:8 C5:4 E5:4', 'F5:4 A5:4 C6:8', 'G5:4 E5:4 C5:8', 'D5:4 F5:4 A5:4 D6:4', 'B5:8 G#5:4 E5:4'],
+    ly: ['ฝนตกพรำๆ นอกหน้าต่าง', 'กาแฟร้อนวางข้างแป้นพิมพ์', 'ตัวเลขเรียงกันเงียบๆ', 'ใจเย็นๆ ไม่ต้องรีบร้อน', 'งานยังมีให้ทำอีกเยอะ', 'แต่พักหายใจสักนิดก็ได้', 'ปิดงบเดือนนี้ก็ผ่านไป', 'เหมือนฝนที่ซาลงในที่สุด'] },
+  { n: '🍖 ปิดงบแล้วไปกินหมูกระทะ', d: 'ฟังก์สนุก · 128 BPM', bpm: 128, sw: 0, root: 'G', lead: 'square', drum: { k: [0, 3, 8, 11], s: [4, 12], h: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] }, bass: [0, 3, 6, 8, 11, 14], stab: [2, 6, 10, 14],
+    prog: ['G', 'C', 'D', 'Em', 'G', 'C', 'D', 'D', 'C', 'G', 'D', 'Em', 'C', 'G', 'D', 'G'],
+    mel: ['G5:2 B5:2 D6:4 B5:2 G5:2 r:4', 'E6:2 C6:2 G5:4 C6:2 E6:2 r:4', 'F#5:2 A5:2 D6:4 A5:2 F#5:2 r:4', 'G5:2 B5:2 E6:4 D6:4 B5:4', 'G5:2 B5:2 D6:2 G6:2 D6:4 B5:4', 'E6:2 G6:2 E6:2 C6:2 G5:4 r:4', 'A5:2 D6:2 F#6:4 D6:2 A5:2 r:4', 'D6:8 r:8',
+      'C6:2 E6:2 G6:4 E6:4 C6:4', 'B5:2 D6:2 G6:4 D6:4 B5:4', 'A5:2 D6:2 F#6:4 D6:4 A5:4', 'G6:4 E6:4 B5:4 G5:4', 'E6:2 G6:2 C7:4 G6:4 E6:4', 'D6:2 G6:2 B6:4 G6:4 D6:4', 'F#6:4 A6:4 F#6:4 D6:4', 'G6:12 r:4'],
+    ly: ['ปิดงบเสร็จแล้ว เย้!', 'วางเครื่องคิดเลขลงเลย', 'ใครเอาเตาไปจองโต๊ะนั้น', 'หมูสามชั้นชั้นดีมาเต็มถาด', 'แจกันสลัดผักก็ต้องมี', 'ใครไม่กินต้องโดนจับตรวจนับ', 'หารเท่าๆ กันเดี๋ยวบัญชีจัดให้', 'วันนี้เลี้ยงตัวเองให้เต็มที่!'] },
 ];
-function parseYT(raw) {
-  const s = String(raw || '').trim(); if (!s) return null;
-  const list = /[?&]list=([\w-]{10,})/.exec(s), id = /(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([\w-]{11})/.exec(s) || /^([\w-]{11})$/.exec(s);
-  if (id) return { id: id[1] }; if (list) return { list: list[1] }; return null;
+const NOTE_ST = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const noteMidi = t => { const m = /^([A-G])(#?)(\d)$/.exec(t); return m ? 12 * (+m[3] + 1) + NOTE_ST[m[1]] + (m[2] ? 1 : 0) : null; };
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+const CH_Q = { '': [0, 4, 7], m: [0, 3, 7], m7: [0, 3, 7, 10], maj7: [0, 4, 7, 11], 7: [0, 4, 7, 10] };
+function chordNotes(name) { const m = /^([A-G]#?)(.*)$/.exec(name), r = 48 + NOTE_ST[m[1][0]] + (m[1][1] ? 1 : 0); return { root: r, notes: (CH_Q[m[2]] || CH_Q['']).map(i => r + i) }; }
+const mus = { ctx: null, song: -1, step: 0, nextT: 0, timer: null, noise: null };
+function musTone(t, f, dur, vol, type, att = .01) { const c = mus.ctx, o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + att); g.gain.exponentialRampToValueAtTime(.0001, t + Math.max(.06, dur)); o.connect(g).connect(mus.out); o.start(t); o.stop(t + dur + .05); }
+function musNoise(t, dur, vol, hp) { const c = mus.ctx, s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter(); s.buffer = mus.noise; f.type = 'highpass'; f.frequency.value = hp; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(f).connect(g).connect(mus.out); s.start(t); s.stop(t + dur + .02); }
+function musKick(t) { const c = mus.ctx, o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + .12); g.gain.setValueAtTime(.7, t); g.gain.exponentialRampToValueAtTime(.0001, t + .2); o.connect(g).connect(mus.out); o.start(t); o.stop(t + .22); }
+function musBar(sg, bar, t0) {
+  const sd = 60 / sg.bpm / 4, ch = chordNotes(sg.prog[bar]), toks = sg.mel[bar].split(' '); let st = 0;
+  const T = s => t0 + (s * sd) + (s % 2 ? sg.sw * sd : 0);
+  // chord pad
+  ch.notes.forEach(n => musTone(T(0), mtof(n + 12), 16 * sd * .95, .035, 'triangle', .05));
+  sg.stab.forEach(s => ch.notes.forEach(n => musTone(T(s), mtof(n + 12), sd * 1.3, .03, 'square', .005)));
+  // bass
+  sg.bass.forEach((s, i) => { const o = (sg.stab.length && i % 3 === 2) ? 12 : (i === sg.bass.length - 1 ? 7 : 0); musTone(T(s), mtof(ch.root - 12 + o), sd * 2.2, .16, 'triangle', .01); });
+  // melody
+  for (const tk of toks) { const [n, l] = tk.split(':'), len = +l; if (n !== 'r') { const mi = noteMidi(n); if (mi != null) musTone(T(st), mtof(mi), len * sd * .92, .09, sg.lead, .015); } st += len; }
+  // drums
+  sg.drum.k.forEach(s => musKick(T(s))); sg.drum.s.forEach(s => musNoise(T(s), .14, .22, 1500)); sg.drum.h.forEach((s, i) => musNoise(T(s), .04, i % 2 ? .05 : .08, 7000));
 }
-function musicPlay(src, name) {
-  const W = wins.get('slack'); if (!W) return; musicStop(true);
-  const url = src.list ? `https://www.youtube-nocookie.com/embed/videoseries?list=${src.list}&autoplay=1&rel=0&playsinline=1` : `https://www.youtube-nocookie.com/embed/${src.id}?autoplay=1&rel=0&playsinline=1`;
-  const link = src.list ? `https://www.youtube.com/playlist?list=${src.list}` : `https://www.youtube.com/watch?v=${src.id}`;
-  const dock = h('div', { class: 'mdock' }, `<div class="mdh"><b>🎶 ${esc(name)}</b><a href="${link}" target="_blank" rel="noopener">เปิดใน YouTube</a><button class="btn2" data-sl="mstop" aria-label="หยุดเพลง">✕</button></div><iframe src="${url}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`);
-  W.body.style.position = 'relative'; W.body.classList.add('hasdock'); W.body.append(dock); life.music = { n: name };
+function musicStopAll() { clearInterval(mus.timer); mus.timer = null; const old = mus.ctx, oo = mus.out; mus.ctx = null; if (old) { try { oo.gain.setTargetAtTime(0, old.currentTime, .05); } catch (e) {} setTimeout(() => { try { old.close(); } catch (e) {} }, 300); } life.music = null; mus.song = -1; }
+function musicPlay(i) {
+  musicStopAll(); const sg = SONGS[i], AC = window.AudioContext || window.webkitAudioContext; if (!AC) { S.toast('เบราว์เซอร์นี้เล่นเสียงไม่ได้', 2); return; }
+  setTimeout(() => {
+    mus.ctx = new AC(); mus.out = mus.ctx.createGain(); mus.out.gain.value = .9; mus.out.connect(mus.ctx.destination);
+    const len = mus.ctx.sampleRate; mus.noise = mus.ctx.createBuffer(1, len, mus.ctx.sampleRate); const d = mus.noise.getChannelData(0); for (let k = 0; k < len; k++) d[k] = Math.random() * 2 - 1;
+    mus.song = i; mus.step = 0; mus.nextT = mus.ctx.currentTime + .15; life.music = { n: sg.n }; const barDur = 16 * 60 / sg.bpm / 4;
+    mus.timer = setInterval(() => {
+      if (!life.music || !wins.has('slack') || !mus.ctx) return musicStopAll();
+      if (typeof lk !== 'undefined' && lk.on) { mus.nextT = Math.max(mus.nextT, mus.ctx.currentTime + .1); return; }
+      while (mus.nextT < mus.ctx.currentTime + .4) { const bar = mus.step % 16; musBar(sg, bar, mus.nextT); const ln = sg.ly[Math.floor(bar / 2)], at = Math.max(0, (mus.nextT - mus.ctx.currentTime) * 1000); if (bar % 2 === 0) setTimeout(() => { const el = document.querySelector('.mlyr'); if (el) el.textContent = '♪ ' + ln; }, at); mus.step++; mus.nextT += barDur; }
+    }, 80);
+    renderSlack();
+  }, 30);
 }
-function musicStop(quiet) {
-  const W = wins.get('slack'); W?.body.querySelector('.mdock')?.remove(); W?.body.classList.remove('hasdock'); life.music = null; if (!quiet) renderSlack();
-}
+function musicStop() { musicStopAll(); renderSlack(); }
 function musicHTML() {
-  return `<button class="btn2" data-sl="back">← กลับ</button><p class="soft" style="margin:6px 0 0">🎵 เปิดจาก YouTube จริง · ฟังไปความเครียดจะลดลง (ถ้าวิดีโอไม่เล่น ให้กด “เปิดใน YouTube” ที่เครื่องเล่น หรือวางลิงก์ใหม่)</p>
-  <div class="sll">${YT_TRACKS.map(([n], i) => `<button data-sl="mplay" data-i="${i}"><b>▶️ ${esc(n)}</b><small>YouTube · เพลงสตรีมต่อเนื่อง</small></button>`).join('')}</div>
-  <div class="mlk"><input class="mlink" placeholder="วางลิงก์ YouTube ของคุณเอง (วิดีโอหรือเพลย์ลิสต์)" autocomplete="off"><button class="btn2 pri" data-sl="mlink">▶ เล่น</button></div><div class="mfb soft"></div>`;
+  const cur = mus.song >= 0 && life.music ? SONGS[mus.song] : null;
+  return `<button class="btn2" data-sl="back">← กลับ</button><p class="soft" style="margin:6px 0 0">🎵 เพลงที่แต่งขึ้นเองสำหรับเกมนี้ · ฟังไปความเครียดจะลดลง (กด Esc ถ้าหัวหน้ามา)</p>
+  ${cur ? `<div class="nowp"><b>🎶 กำลังเล่น: ${esc(cur.n)}</b><div class="mlyr">♪ …</div><button class="btn2" data-sl="mstop">⏹ หยุดเพลง</button></div>` : ''}
+  <div class="sll">${SONGS.map((s, i) => `<button data-sl="mplay" data-i="${i}"><b>${mus.song === i && life.music ? '🔊' : '▶️'} ${esc(s.n)}</b><small>${s.d} · บรรเลงพร้อมเนื้อร้อง</small></button>`).join('')}</div>`;
 }
 
 /* ================= นิยาย ================= */
@@ -65,12 +100,7 @@ function slackExtra(k, t) {
   const R = () => { renderSlack(); const W = wins.get('slack'); if (W) W.body.firstChild.scrollTop = 0; return true; };
   if (k === 'music') { life.tab = 'music'; return R(); }
   if (k === 'mstop') { musicStop(); return true; }
-  if (k === 'mplay') { const [n, id] = YT_TRACKS[+t.dataset.i]; musicPlay({ id }, n); return true; }
-  if (k === 'mlink') {
-    const inp = wins.get('slack')?.body.querySelector('.mlink'), fb = wins.get('slack')?.body.querySelector('.mfb'), r = parseYT(inp && inp.value);
-    if (!r) { if (fb) fb.textContent = '❌ ลิงก์นี้ไม่ใช่ลิงก์ YouTube (ลองคัดลอกจากแถบที่อยู่ของวิดีโอ)'; return true; }
-    musicPlay(r, 'เพลงที่คุณเลือก'); return true;
-  }
+  if (k === 'mplay') { musicPlay(+t.dataset.i); return true; }
   if (k === 'novel') { life.tab = 'novel'; nv.lock = null; return R(); }
   if (k === 'nvopen') { const i = +t.dataset.i; if (nvOk(i)) { nv.cur = i; nv.lock = null; life.tab = 'read'; } else { nv.lock = i; life.tab = 'novel'; } return R(); }
   if (k === 'nvbuy') { const i = +t.dataset.i; if (bankPay(NV_PRICE, `📖 นิยาย “${NOVEL.title}” ${NOVEL.eps[i].t}`)) { nv.owned[i] = 1; nv.cur = i; nv.lock = null; life.tab = 'read'; S.jingle?.(); S.toast('ปลดล็อกแล้ว อ่านให้สนุกนะ 📖', 2); } return R(); }
