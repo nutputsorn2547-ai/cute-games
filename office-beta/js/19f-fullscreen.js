@@ -2,7 +2,9 @@
 // Office game (beta) — full-screen mode for phones/tablets: the fake monitor fills the device, the task note folds into a top bar,
 // and a double-tap on touch screens counts as a double-click.
 const fsMode = { on: false, api: false };
-function fsFit() {
+const fsTyping = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable); };
+function fsFit(force) {
+  if (fsTyping() && force !== true) return; // กำลังพิมพ์: แป้นพิมพ์ทำให้ขนาดจอเปลี่ยน ห้ามจัดหน้าใหม่ (ไม่งั้นแป้นเด้งออก)
   const small = fsMode.on && (innerWidth < 900 || innerHeight < 600); 
   const sr = screen.getBoundingClientRect();
   for (const W of wins.values()) {
@@ -43,7 +45,7 @@ document.addEventListener('pointerup', e => {
 // จัดไอคอนใหม่ทุกครั้งที่พื้นที่เดสก์ท็อปเปลี่ยนขนาด (กันซ้อนกัน)
 (function () {
   let t = 0, lw = 0, lh = 0;
-  const go = () => { clearTimeout(t); t = setTimeout(() => { const w = icons.clientWidth, h = icons.clientHeight; if (w < 120 || h < 120 || (w === lw && h === lh)) return; lw = w; lh = h; renderDesktop(); }, 120); };
+  const go = () => { clearTimeout(t); t = setTimeout(() => { if (fsTyping()) return; const w = icons.clientWidth, h = icons.clientHeight; if (w < 120 || h < 120 || (w === lw && h === lh)) return; lw = w; lh = h; renderDesktop(); }, 120); };
   if (window.ResizeObserver) new ResizeObserver(go).observe(icons);
   addEventListener('resize', go);
 })();
@@ -54,3 +56,5 @@ setInterval(() => {
   if (hn && hn.parentNode !== want) want.append(hn);
   hn && hn.classList.toggle('onscr', want === screen);
 }, 250);
+
+addEventListener('focusout', () => setTimeout(() => { if (!fsTyping()) fsFit(); }, 350));
