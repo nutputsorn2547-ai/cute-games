@@ -75,7 +75,7 @@ function stressTick() {
   if (life.play && now >= life.play.end) { S.toast(`${life.play.e} ดูจบแล้ว สดชื่นขึ้นเยอะ`, 2); life.play = null; renderSlack(); }
   // the boss walks by while somebody is slacking
   if (life.boss) { if (now >= life.boss) { life.boss = null; if (slackActive()) { life.stress = Math.min(100, life.stress + 10); S.big('😾 หัวหน้าเห็นว่าอู้!', 2.2, '#e5536f'); pushMsg('boss', 'boss', pick(['เห็นนะว่าอู้อยู่ 😾 รีบกลับมาทำงาน', 'ทำงานหรือยังคะ/ครับ ตอนนี้ไม่ใช่เวลาเล่นนะ']), 800); } else S.toast('😮‍💨 รอดตัว! หัวหน้าเดินผ่านไป', 2); } }
-  else if (slackActive() && hr >= 9 && hr < 19 && Math.random() < .004 * dt * 5) { life.boss = now + 4500; S.toast('👀 พี่หัวหน้ากำลังเดินมา! กด Esc หรือปุ่ม “หัวหน้ามา” เร็ว', 3.6); S.tone(500, 400, .3, .08); }
+  else if (career.id !== 'jl' && slackActive() && hr >= 9 && hr < 19 && Math.random() < .004 * dt * 5) { life.boss = now + 4500; S.toast('👀 พี่หัวหน้ากำลังเดินมา! กด Esc หรือปุ่ม “หัวหน้ามา” เร็ว', 3.6); S.tone(500, 400, .3, .08); }
   stressHud();
 }
 function bossKey() { if (life.music) life.music = null; life.play = null; [...wins.keys()].filter(k => /^(slack|game)/.test(k)).forEach(k => closeWin(k, true)); if (phone.open && phone.app === 'date') closePhone(); if (life.boss) { life.boss = null; S.toast('😮‍💨 รอดตัว! หัวหน้าเดินผ่านไป', 2); } else S.toast('🫣 เก็บหน้าจออู้แล้ว', 1.4); }

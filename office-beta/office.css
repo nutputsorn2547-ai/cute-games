@@ -792,3 +792,4 @@ body[data-career="jl"] #taskbar [data-app="chat"],body[data-career="jl"] #taskba
 .tkt i{font-style:normal;font-size:10px;letter-spacing:.3px;background:#d9486a;color:#fff;border-radius:4px;padding:1px 4px}
 .tkt b{display:flex;justify-content:center;gap:2px}.tkt u{text-decoration:none;background:#fff;border:1px solid #d9486a;border-radius:3px;width:17px;font:600 15px monospace;line-height:22px}
 .tkt small{font-size:10px;color:#a0405c}
+body[data-career="jl"] [data-sl="boss"]{display:none}
