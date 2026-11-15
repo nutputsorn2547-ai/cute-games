@@ -20,8 +20,8 @@ CAREERS.jl = {
   tasks: [{ id: 'jl_apply', t: 'สมัครงานใหม่ในจ๊อบน้อย (เงินเดือนสูง = โอกาสติดต่ำ)' }, { id: 'jl_offer', t: 'ได้ข้อเสนองาน แล้วกด “ตอบรับ” ในจ๊อบน้อย' }],
 };
 const JL_APPS = new Set(['app-design', 'app-jobs', 'app-excel', 'app-word', 'app-slack', 'app-calc', 'app-bank', 'app-stock', 'app-lotto']);
-const _sync = syncApps; syncApps = function () { _sync(); if (career.id === 'jl') { const k = APPS.filter(a => JL_APPS.has(a.id)); APPS.length = 0; APPS.push(...k); } };
-function jlTheme() { let v = $('jlVeil'); if (career.id === 'jl') { if (!v) { v = h('div', { id: 'jlVeil' }); $('screen').append(v); } } else if (v) v.remove(); }
+const _sync = syncApps; syncApps = function () { _sync(); if (career.id === 'jl') { const k = APPS.filter(a => JL_APPS.has(a.id)); APPS.length = 0; APPS.push(...k); } const ids = new Set(APPS.map(a => a.id)); Object.keys(deskPos).filter(x => x.startsWith('app-') && !ids.has(x)).forEach(x => delete deskPos[x]); };
+function jlTheme() { try { deskCal.style.display = career.id === 'jl' ? 'none' : ''; } catch (e) {} let v = $('jlVeil'); if (career.id === 'jl') { if (!v) { v = h('div', { id: 'jlVeil' }); $('screen').append(v); } } else if (v) v.remove(); }
 const _ac = applyCareer; applyCareer = function (id) { _ac(id); if (career.id === 'jl') { const k = TASKS.filter(t => !['hr', 'call'].includes(t.id)); TASKS.length = 0; TASKS.push(...k); try { renderTasks(); } catch (e) {} } jlTheme(); };
 const _sw = switchCareer;
 switchCareer = function (id, q) {
