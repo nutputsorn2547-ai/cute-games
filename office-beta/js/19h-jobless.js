@@ -31,6 +31,11 @@ switchCareer = function (id, q) {
 const _salary = salaryDay; salaryDay = function () { if (career.id === 'jl') return; _salary(); };
 const _ring = ring; ring = function () { if (career.id === 'jl') { call.next = gnow().getTime() + 5 * 3600000; return; } _ring(); };
 
+/* ---------- after being fired: nothing from the old workplace arrives any more ---------- */
+const JL_WORK = ['boss', 'bear', 'bun', 'duck', 'cust', 'hr', 'g'];
+const _say = say; say = function (c, who, ...r) { if (career.id === 'jl' && (JL_WORK.includes(c.id) || JL_WORK.includes(who))) return; return _say(c, who, ...r); };
+const _mp = mailPush; mailPush = function (to, from, subj, body, cat, ...r) { if (career.id === 'jl' && cat === 'work') return; return _mp(to, from, subj, body, cat, ...r); };
+
 /* ---------- getting fired ---------- */
 function jlWarn(n) {
   const b = n === 1 ? ['นี่เป็นการเตือนครั้งที่ 1 นะ ช่วงนี้งานพลาด/ล่าช้าเยอะเกินไป ปรับปรุงด่วน 😾', 'หนังสือเตือนครั้งที่ 1'] : ['เตือนครั้งสุดท้ายแล้วนะ ถ้ายังเป็นแบบนี้ ต้องคุยเรื่องเลิกจ้างจริงๆ 😡', 'หนังสือเตือนครั้งสุดท้าย'];
@@ -44,7 +49,7 @@ function jlFired(why) {
   life.music = null; life.play = null; try { musicStopAll(); } catch (e) {}
   switchCareer('jl', true); hr.base = 0; hr.pending = 0; jl.heat = 0; jl.warn = 0; jl.lowArm = true; jl.lowAt = 0;
   if (sev > 0) bankTx('💼 เงินเดือนงวดสุดท้าย (ค้างจ่ายครึ่งเดือน)', sev); try { renderBank(); careerChip(); } catch (e) {}
-  mailPush(null, 'ฝ่ายบุคคล ' + from.co, 'หนังสือเลิกจ้าง', `<p>เรียนพนักงาน</p><p>บริษัทขอเลิกจ้างคุณมีผลทันที เหตุผล: ${esc(why)}</p><p>บริษัทโอนเงินเดือนงวดสุดท้ายให้ ${baht(sev)} บาท</p>`, 'work');
+  mailPush(null, 'ฝ่ายบุคคล ' + from.co, 'หนังสือเลิกจ้าง', `<p>เรียนพนักงาน</p><p>บริษัทขอเลิกจ้างคุณมีผลทันที เหตุผล: ${esc(why)}</p><p>บริษัทโอนเงินเดือนงวดสุดท้ายให้ ${baht(sev)} บาท</p>`, 'news');
   jlModal(`<div class="jlbig">📄</div><h2>คุณถูกเลิกจ้าง</h2><p>เหตุผล: ${esc(why)}</p><p>ตั้งแต่วันนี้คุณนั่งทำงานที่บ้านด้วยคอมส่วนตัว<br>ได้เงินเดือนงวดสุดท้าย ${baht(sev)} บาท<br><b>รีบอัปเดตเรซูเม่แล้วหางานใหม่ในจ๊อบน้อย!</b></p>`, [['รับทราบ…', 'ok', 'pri']], 'dark').then(() => { jl.firing = false; S.tone(220, 120, .6, .08, 'sawtooth'); });
 }
 function jlDaily(d) {
