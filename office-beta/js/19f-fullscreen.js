@@ -16,7 +16,9 @@ function fsFit(force) {
   renderDesktop();
 }
 let fsT = 0; const fsLater = () => { clearTimeout(fsT); fsT = setTimeout(fsFit, 120); };
-const fsLay = {};
+let fsLay = {};
+function fsLayExport() { const o = { ...fsLay }; o[fsMode.on ? 'fs' : 'n'] = deskPos; return JSON.parse(JSON.stringify(o)); }
+function fsLayLoad(l) { fsLay = l && typeof l === 'object' ? l : {}; delete fsLay.n; if (fsMode.on && fsLay.fs) deskPos = JSON.parse(JSON.stringify(fsLay.fs)); }
 function fsSet(on, viaApi) {
   if (window.__setScale) window.__setScale(on ? .49 : .7);
   if (fsMode.on === on) return;
