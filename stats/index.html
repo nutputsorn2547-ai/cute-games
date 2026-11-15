@@ -110,10 +110,10 @@ function render() {
   const last = new Map(); for (const x of rows) last.set(x.sid, x); // latest row per session
   const live = new Set(); for (const [sid, x] of last) if (x.kind !== 'leave' && now - x.t < 130000) live.add(sid);
   const recent = rows.filter(x => live.has(x.sid) && now - x.t < 130000);
-  const pcRows = rows.filter(x => x.role === 'pc' && x.plat === 'desktop'); // computers only
+  const pcRows = rows.filter(x => x.role === 'pc'); // computer mode = any game page (incl. pc+ios)
   const gameRows = rows.filter(x => x.role === 'pc'); // any device that opened a game page
   const day0 = new Date(); day0.setHours(0, 0, 0, 0);
-  $('c-now').textContent = new Set(recent.filter(x => x.role === 'pc' && x.plat === 'desktop').map(x => x.vid)).size;
+  $('c-now').textContent = new Set(recent.filter(x => x.role === 'pc').map(x => x.vid)).size;
   const phNow = new Set(recent.filter(x => x.role === 'phone').map(x => x.vid)).size;
   $('c-ph').textContent = phNow;
   $('c-all').textContent = new Set(pcRows.map(x => x.vid)).size;
