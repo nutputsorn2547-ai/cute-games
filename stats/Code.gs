@@ -29,6 +29,11 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  if (e && e.parameter && e.parameter.bump !== undefined) { // ปุ่ม "บังคับรีเฟรช" ในหน้า stats (ส่งเป็น GET เพื่อให้เห็นผลลัพธ์ชัดเจน)
+    if (e.parameter.bump !== KEY) return ContentService.createTextOutput(JSON.stringify({ error: 'key' })).setMimeType(ContentService.MimeType.JSON);
+    const t = String(Date.now()); PropertiesService.getScriptProperties().setProperty('refresh', t);
+    return ContentService.createTextOutput(JSON.stringify({ ok: 1, r: t })).setMimeType(ContentService.MimeType.JSON);
+  }
   if (e && e.parameter && e.parameter.r) return ContentService.createTextOutput(JSON.stringify({ r: PropertiesService.getScriptProperties().getProperty('refresh') || '0' })).setMimeType(ContentService.MimeType.JSON); // เกมถามว่ามีคำสั่งรีเฟรชไหม (ไม่ต้องใช้รหัส)
   if (!e || !e.parameter || e.parameter.key !== KEY) return ContentService.createTextOutput(JSON.stringify({ error: 'forbidden' })).setMimeType(ContentService.MimeType.JSON);
   const cache = CacheService.getScriptCache();
