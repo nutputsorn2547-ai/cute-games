@@ -151,7 +151,7 @@ function dedupeDesk() { // ไอคอนห้ามซ้อนกัน: ต
   for (const z of [1, .85, .72, .6]) {
     CELLW = Math.round(100 * z); CELLH = Math.round(104 * z); icons.style.setProperty('--iz', z);
     cols = Math.max(1, Math.floor((icons.clientWidth - 20) / CELLW)); rows = Math.max(1, Math.floor((icons.clientHeight - 10) / CELLH));
-    if (cols * rows >= ids.length + 2) break;
+    if (cols * rows >= FOLDERS.length + FILES.length + APPS.length + 2) break; // นับจากจำนวนสูงสุดที่เป็นไปได้ ขนาดไอคอนจึงคงที่ตลอดเกม
   }
   const used = new Set([(cols - 1) + ',' + (rows - 1)]), k = p => p[0] + ',' + p[1]; // มุมขวาล่างเว้นไว้ให้ปุ่มพักเกม
   for (const id of ids) { // ตัวที่มีตำแหน่งอยู่แล้วและอยู่ในกรอบ ได้ที่ก่อน
