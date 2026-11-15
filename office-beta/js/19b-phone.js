@@ -33,7 +33,7 @@ renderPhone = function () {
   if (phone.app === 'food') { scr.innerHTML = sb + pfRender(); return; }
   if (phone.app === 'date') { scr.innerHTML = sb + dateRender(); return; }
   const n = chat.list.reduce((s, c) => s + (c.hidden ? 0 : c.unread), 0), um = typeof mailUnread === 'function' ? mailUnread() : 0;
-  scr.innerHTML = sb + `<div class="phg"><button data-pa="chat"><i style="background:#2fbf5a">💬</i>แชท${n ? `<em>${n}</em>` : ''}</button><button data-pa="food"><i style="background:#ff8a3d">🍱</i>หิวแล้ว</button><button data-pa="date"><i style="background:#ff5c8a">💘</i>คู่น้อย</button><button disabled class="dim"><i style="background:#3b82f6">📧</i>เมล${um ? `<em>${um}</em>` : ''}<small>ดูที่คอม</small></button></div><div class="phn">แตะแอปเพื่อเปิด · สั่งข้าวได้ที่นี่แล้ว</div>`;
+  scr.innerHTML = sb + `<div class="phg"><button data-pa="chat"><i style="background:#2fbf5a">💬</i>แชท${n ? `<em>${n}</em>` : ''}</button><button data-pa="food"><i style="background:#ff8a3d">🍱</i>หิวแล้ว</button><button data-pa="date"><i style="background:#ff5c8a">💘</i>คู่น้อย${typeof dtUnread === 'function' && dtUnread() ? `<em>${dtUnread()}</em>` : ''}</button><button disabled class="dim"><i style="background:#3b82f6">📧</i>เมล${um ? `<em>${um}</em>` : ''}<small>ดูที่คอม</small></button></div><div class="phn">แตะแอปเพื่อเปิด · สั่งข้าวได้ที่นี่แล้ว</div>`;
   syncTaskbar();
 };
 function phoneLifeClick(e) {

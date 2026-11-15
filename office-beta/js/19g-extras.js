@@ -223,3 +223,85 @@ function scamTick() {
   scamRing();
 }
 const _ct = callTick; callTick = function () { _ct(); scamTick(); };
+
+/* ================= คู่น้อย: โหมดแชท + พวกหลอกเอาเงิน ================= */
+life.mt = life.mt || []; life.dtTab = 'swipe'; life.dtCur = null; let mtId = 0;
+const DT_TOPICS = [
+  { q: n => `สวัสดี! ชื่อ${n}นะ ขอทักก่อนได้ไหม 😊 วันนี้ทำงานเหนื่อยไหม?`, o: [['เหนื่อยมากเลย งานเยอะ', 'เข้าใจเลย เดี๋ยวฉันคอยให้กำลังใจนะ 💪'], ['ก็โอเคนะ สบายๆ', 'ดีจัง ขอแบ่งพลังงานบวกหน่อย ✨'], ['กำลังอู้อยู่ ชู่ว์ 🤫', '555 ลับเฉพาะเรา ไม่บอกใครแน่นอน']] },
+  { q: () => 'ปกติชอบกินอะไรตอนเที่ยง?', o: [['ข้าวมันไก่', 'เมนูคลาสสิก! 🍗'], ['ส้มตำ', 'โห สายแซ่บเลย 🥗'], ['ชานมไข่มุกแทนข้าว', 'อย่าบอกนะว่าไม่ได้กินข้าวอีกแล้ว 🧋']] },
+  { q: () => 'วันหยุดชอบทำอะไรเหรอ?', o: [['นอนทั้งวัน', 'ฟังดูสุดยอดเลย 😴'], ['ดูซีรีส์ที่บ้าน', 'ชอบเรื่องไหนอยู่ เล่าให้ฟังหน่อยสิ'], ['เดินตลาดนัด', 'อยากไปด้วยเลย 🛍️']] },
+  { q: () => 'มีสัตว์เลี้ยงไหม? ฉันอยากมีแมวสักตัว 🐱', o: [['มีแมวส้มหนึ่งตัว', 'น่ารักจัง! ขอดูรูปหน่อย'], ['ไม่มี ไม่ค่อยมีเวลา', 'เข้าใจ งานเยอะแบบนี้'], ['ชอบหมามากกว่า', 'ทีมหมาก็ดีเหมือนกัน 🐶']] },
+];
+const DT_END = { q: () => 'คุยกับคุณแล้วสบายใจจัง ไว้ว่างๆ ไปนั่งกินกาแฟกันนะ ☕', o: [['ได้เลย ไว้นัดกัน', 'ดีใจจัง! ไว้ทักกันนะ 💚', 'end'], ['ขอคุยกันก่อนนะ', 'ได้เลย ไม่รีบ ไว้คุยกันต่อ 😊', 'end'], ['ไว้ก่อนนะ ยุ่งอยู่', 'เข้าใจ ขอบคุณที่คุยด้วยนะ', 'end']] };
+const DT_SCAMS = {
+  crypto: { lose: 3000, q: () => 'เล่าให้ฟังนะ ฉันเพิ่งได้กำไรจากลงทุนคริปโตเดือนละ 30% มีแอปให้ลงด้วย ลองโอนมาทดสอบ 3,000 บาทดูไหม เดี๋ยวสอนให้ 📈', push: 'รอบนี้ปิดรับวันนี้นะ ถ้าไม่รีบโอน พลาดแน่ๆ ใครๆ ก็รวยกันแล้ว' },
+  parcel: { lose: 2800, q: () => 'ฉันส่งของขวัญจากต่างประเทศมาให้คุณ แต่ติดศุลกากร ต้องจ่ายค่าภาษี 2,800 บาท ช่วยโอนให้ก่อนได้ไหม แล้วฉันจะคืนให้ 🎁', push: 'ถ้าไม่จ่ายวันนี้ ของจะถูกตีกลับ ฉันอุตส่าห์เลือกให้เลยนะ' },
+  emergency: { lose: 1500, q: () => 'กระเป๋าตังค์ฉันหายแล้ว… ขอยืม 1,500 บาทค่ารถไปหาคุณได้ไหม สัญญาจะคืนพรุ่งนี้ 🥺', push: 'ขอร้องล่ะ ฉันไม่มีใครให้พึ่งแล้ว ถ้าคุณไม่ช่วยฉันจะกลับบ้านไม่ได้' },
+  medical: { lose: 5000, q: () => 'แม่ฉันป่วยกะทันหัน ต้องจ่ายค่ารักษา 5,000 บาทด่วน ช่วยฉันหน่อยนะ ขอร้อง 😭', push: 'โรงพยาบาลรอเงินอยู่ ถ้าคุณรักฉันจริง ต้องช่วยตอนนี้เลย' },
+  video: { lose: 1200, q: () => 'คุยแชทไม่ชัดเจน เปิดวิดีโอคอลดีกว่า กดลิงก์นี้ได้เลย ต้องติดตั้งแอปก่อนนะ (ค่ายืนยันตัวตน 1,200 บาท) 📹', push: 'กดเลยๆ ไม่ต้องกลัว ฉันไม่ใช่คนไม่ดีหรอก' },
+};
+function dtTurns(sc, pushed) {
+  const t = [DT_TOPICS[0], DT_TOPICS[1]];
+  if (sc) {
+    const S2 = DT_SCAMS[sc]; t.push({ q: S2.q, o: [['ลองฟังรายละเอียดก่อน', S2.push, 'push'], ['ได้เลย โอนให้เลย', 'ขอบคุณจ้า… (อ่านแล้ว แต่ไม่มีการตอบกลับอีกเลย)', 'lose'], ['ไม่เอา สงสัยว่าเป็นแก๊งหลอกลวง บล็อกเลย 🚫', 'ฮึ ไม่คุยก็ได้!', 'safe']] });
+    if (pushed) t.push({ q: null, o: [['ลองฟังรายละเอียดก่อน', 'งั้นไม่คุยแล้ว ไปล่ะ!', 'end'], ['ได้เลย โอนให้เลย', 'ขอบคุณจ้า… (อ่านแล้ว แต่ไม่มีการตอบกลับอีกเลย)', 'lose'], ['ไม่เอา สงสัยว่าเป็นแก๊งหลอกลวง บล็อกเลย 🚫', 'ฮึ ไม่คุยก็ได้!', 'safe']] });
+  } else t.push(DT_TOPICS[2], DT_TOPICS[3], DT_END);
+  return t;
+}
+function dtMk(pr, scamKey) {
+  const n = pr[0], m = { id: ++mtId, n, e: pr[2], bio: pr[3], sc: scamKey || null, msgs: [], st: 0, unread: 0, done: false, blocked: false, pushed: false };
+  m.turns = dtTurns(m.sc, false); m.msgs.push({ f: 't', t: m.turns[0].q(n) }); m.unread = 1; life.mt.push(m); return m;
+}
+const dtUnread = () => life.mt.reduce((s, m) => s + (m.blocked ? 0 : m.unread), 0);
+function dtApply(m, fx) {
+  if (fx === 'lose') { const S2 = DT_SCAMS[m.sc], amt = Math.min(S2.lose, Math.max(0, bank.bal)); if (amt > 0) bankTx('⚠️ โอนให้คนในแอปหาคู่ (โดนหลอก)', -amt); m.lost = amt; m.done = true; life.stress = Math.min(100, life.stress + 10); scam.lost += amt; S.big('โดนหลอกในแอปหาคู่! 😱', 2.4, '#e5536f'); S.tone(300, 150, .4, .09); if (typeof renderBank === 'function') renderBank(); m.msgs.push({ f: 's', t: `😱 คุณเสียเงิน ${baht(amt)} บาท — คนนี้เป็นมิจฉาชีพ! ระวังคนที่เพิ่งรู้จักแล้วขอเงิน ชวนลงทุน หรือให้กดลิงก์แปลกๆ` }); }
+  else if (fx === 'safe') { m.done = true; m.blocked = true; scam.safe++; life.stress = Math.max(0, life.stress - 3); S.toast('🛡️ บล็อกมิจฉาชีพได้แล้ว เก่งมาก!', 2.4); S.jingle?.(); m.msgs.push({ f: 's', t: '🛡️ ถูกต้อง! คนที่ขอเงิน ชวนลงทุน หรือให้โอนค่าธรรมเนียม คือสัญญาณหลอกลวง' }); }
+  else if (fx === 'end') { m.done = true; life.stress = Math.max(0, life.stress - 2); }
+}
+function dtReply(m, i) {
+  const t = m.turns[m.st]; if (!t || m.done) return; const o = t.o[i]; m.msgs.push({ f: 'me', t: o[0] }); m.unread = 0; life.stress = Math.max(0, life.stress - .6);
+  const fx = o[2], later = (ms, fn) => setTimeout(() => { if (!life.mt.includes(m)) return; fn(); if (life.dtCur === m.id && phone.open && phone.app === 'date') renderPhone(); else m.unread++; }, ms);
+  if (fx === 'push') { m.pushed = true; m.turns = dtTurns(m.sc, true); }
+  m.st++; const next = m.turns[m.st];
+  if (fx === 'lose' || fx === 'safe' || fx === 'end') { m.msgs.push({ f: 't', t: o[1] }); dtApply(m, fx); return; }
+  later(700, () => { m.msgs.push({ f: 't', t: o[1] }); });
+  if (next && next.q) later(1700, () => { m.msgs.push({ f: 't', t: next.q(m.n) }); });
+  else if (!next) m.done = true;
+}
+function dtInbound() {
+  if (life.mt.filter(m => !m.done && !m.blocked).length >= 5) return;
+  const pr = pick(PROFILES), sc = Math.random() < .6 ? pick(Object.keys(DT_SCAMS)) : null; dtMk(pr, sc);
+  S.toast('💘 คู่น้อย: มีคนทักมาหาคุณ ลองเปิดดูในมือถือ', 2.6); S.tone(900, 1300, .1, .06, 'triangle'); if (typeof phoneBadge === 'function') try { phoneBadge(); } catch (e) {}
+}
+function dateRender() {
+  const head = `<div class="ph"><button data-phome aria-label="หน้าหลัก">⌂</button>💘 คู่น้อย</div>`, un = dtUnread();
+  const tabs = `<div class="dtt"><button data-dt="tab:swipe" class="${life.dtTab === 'swipe' ? 'on' : ''}">💚 เลื่อนหา</button><button data-dt="tab:chat" class="${life.dtTab !== 'swipe' ? 'on' : ''}">💬 แชท${un ? ` <em>${un}</em>` : ''}</button></div>`;
+  if (life.dtTab === 'swipe') {
+    const p = PROFILES[dtI % PROFILES.length];
+    return head + tabs + `<div class="pam pdt"><div class="dcard2"><div class="dem">${p[2]}</div><b>${p[0]}, ${p[1]}</b><small>${p[3]}</small></div><div class="dbt"><button data-dt="no">❌</button><button data-dt="yes">💚</button></div><p class="soft">เลื่อนแล้ว ${life.swipes} · แมตช์ ${life.matches}${life.dm ? '<br>' + esc(life.dm) : ''}</p></div>`;
+  }
+  const m = life.mt.find(x => x.id === life.dtCur);
+  if (life.dtTab === 'chat' || !m) {
+    const list = life.mt.filter(x => !x.blocked || x.sc == null).slice().reverse();
+    return head + tabs + `<div class="pam">${list.length ? list.map(x => `<button class="dtr" data-dt="open:${x.id}"><i>${x.e}</i><span><b>${esc(x.n)}</b><small>${esc((x.msgs[x.msgs.length - 1] || {}).t || '')}</small></span>${x.unread && !x.blocked ? `<em>${x.unread}</em>` : ''}</button>`).join('') : '<p class="soft">ยังไม่มีแชท · เลื่อนหาคู่แล้วกด 💚 ให้แมตช์ หรือรอมีคนทักมา</p>'}</div>`;
+  }
+  const t = m.turns[m.st], opts = !m.done && t && m.msgs.length && m.msgs[m.msgs.length - 1].f === 't' ? t.o : null;
+  return `<div class="ph"><button data-dt="tab:chat" aria-label="กลับ">‹</button>${m.e} ${esc(m.n)}<button data-dt="blk" style="margin-left:auto;font-size:12px">🚫 บล็อก</button></div><div class="pm dtmsgs">${m.msgs.map(x => `<div class="dtb ${x.f}">${esc(x.t)}</div>`).join('')}</div>${opts ? `<div class="dto">${opts.map((o, i) => `<button data-dt="r:${i}">${esc(o[0])}</button>`).join('')}</div>` : `<div class="dto"><small class="soft">${m.done ? 'จบการสนทนาแล้ว' : 'กำลังพิมพ์…'}</small></div>`}`;
+}
+function dateClick(k) {
+  if (k.startsWith('tab:')) { life.dtTab = k.slice(4); life.dtCur = null; return renderPhone(); }
+  if (k.startsWith('open:')) { const m = life.mt.find(x => x.id === +k.slice(5)); if (m) { life.dtCur = m.id; life.dtTab = 'room'; m.unread = 0; } return renderPhone(); }
+  if (k === 'blk') { const m = life.mt.find(x => x.id === life.dtCur); if (m && !m.done) { if (m.sc) { dtApply(m, 'safe'); } else { m.done = true; m.blocked = true; m.msgs.push({ f: 's', t: 'คุณบล็อกคนนี้แล้ว' }); } } life.dtTab = 'chat'; life.dtCur = null; return renderPhone(); }
+  if (k.startsWith('r:')) { const m = life.mt.find(x => x.id === life.dtCur); if (m) dtReply(m, +k.slice(2)); S.tone(700, 900, .04, .04); return renderPhone(); }
+  life.swipes++; life.stress = Math.max(0, life.stress - .8); dtI++; life.dm = '';
+  if (k === 'yes' && Math.random() < .35) { life.matches++; const pr = PROFILES[(dtI - 1) % PROFILES.length]; dtMk(pr, Math.random() < .25 ? pick(Object.keys(DT_SCAMS)) : null); life.dm = '🎉 แมตช์กับ ' + pr[0] + '! ไปทักในแท็บ “แชท” ได้เลย'; S.tone(880, 1320, .15, .07, 'triangle'); } else S.tone(500, 600, .04, .04);
+  renderPhone();
+}
+// มีคนทักเข้ามาเป็นระยะ (บางคนเป็นมิจฉาชีพ)
+const dtSch = { next: null };
+const _ct2 = callTick; callTick = function () {
+  _ct2(); const now = gnow().getTime(); if (dtSch.next == null) { dtSch.next = now + (2 + Math.random() * 2) * 3600000; return; }
+  if (now >= dtSch.next) { dtSch.next = now + (3 + Math.random() * 3) * 3600000; dtInbound(); }
+};
+const _snap4 = snapshot; snapshot = () => ({ ..._snap4(), dating: { mt: life.mt.map(m => { const c = { ...m }; delete c.turns; return c; }), id: mtId } });
+const _load4 = loadGame; loadGame = function () { const ok = _load4(); if (ok) { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.dating) { life.mt = (s.dating.mt || []).map(m => { m.turns = dtTurns(m.sc, m.pushed); return m; }); mtId = s.dating.id || 0; } } catch (e) {} } return ok; };
