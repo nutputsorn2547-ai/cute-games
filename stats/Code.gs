@@ -1,13 +1,14 @@
 // Google Apps Script — paste into the sheet: Extensions > Apps Script
-// Columns on sheet "log": time(ms) | kind | vid | sid | game | role | plat | phones | rtt_med | rtt_max | rtt_n
+// Columns on sheet "log": time(ms) | kind | vid | sid | game | role | plat | phones | rtt_med | rtt_max | rtt_n | ver
 const SHEET = 'log';
 const KEY = 'ตั้งรหัสของคุณตรงนี้'; // รหัสสำหรับเปิดดูหน้า stats — เปลี่ยนเป็นรหัสที่คุณตั้งเอง
-const HEAD = ['time', 'kind', 'vid', 'sid', 'game', 'role', 'plat', 'phones', 'rtt_med', 'rtt_max', 'rtt_n'];
+const HEAD = ['time', 'kind', 'vid', 'sid', 'game', 'role', 'plat', 'phones', 'rtt_med', 'rtt_max', 'rtt_n', 'ver'];
 
 function sheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let s = ss.getSheetByName(SHEET);
   if (!s) { s = ss.insertSheet(SHEET); s.appendRow(HEAD); s.setFrozenRows(1); }
+  if (s.getRange(1, HEAD.length).getValue() !== 'ver') s.getRange(1, HEAD.length).setValue('ver'); // เพิ่มหัวคอลัมน์ ver ให้ชีตเดิมอัตโนมัติ
   return s;
 }
 
@@ -21,7 +22,7 @@ function doPost(e) {
       PropertiesService.getScriptProperties().setProperty('refresh', String(Date.now()));
       return ContentService.createTextOutput('ok');
     }
-    if (!Array.isArray(row) || row.length !== 10) return ContentService.createTextOutput('bad');
+    if (!Array.isArray(row) || (row.length !== 10 && row.length !== 11)) return ContentService.createTextOutput('bad');
     sheet_().appendRow([Date.now()].concat(row.map(v => String(v).slice(0, 40))));
     CacheService.getScriptCache().remove('sum');
   } finally { lock.releaseLock(); }
