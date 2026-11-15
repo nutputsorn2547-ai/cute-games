@@ -145,7 +145,7 @@ function folderIcon(fo) {
   return h('div', { class: 'icon', 'data-id': fo.id, 'data-folder': fo.id }, `<div class="fo" style="--c:${fo.c};--c2:${fo.c2 || '#f3b73a'}">${n ? `<i>${n}</i>` : ''}</div><span>${esc(fo.name)}</span>`);
 }
 function dedupeDesk() { // ไอคอนห้ามซ้อนกัน: ตัวที่ชนกันย้ายไปช่องว่างแรก
-  if (icons.clientWidth < 120 || icons.clientHeight < 120) return;
+  if (icons.clientWidth < 120 || icons.clientHeight < 120 || Date.now() < (window.fsBusyUntil || 0)) return;
   const ids = [...FOLDERS.filter(folderOnDesk).map(x => x.id), ...FILES.filter(f => f.loc === 'desk').map(f => f.id), ...APPS.filter(a => appOpen(a.id)).map(a => a.id)];
   let cols, rows; // ไอคอนไม่พอดีช่อง → ย่อลงเป็นระดับๆ จนพอ
   for (const z of [1, .85, .72, .6]) {

@@ -12,7 +12,6 @@ function fsFit(force) {
     if (w !== el.offsetWidth) el.style.width = w + 'px'; if (hg !== el.offsetHeight) el.style.height = hg + 'px';
     el.style.left = clamp(el.offsetLeft, 0, Math.max(0, sr.width - w)) + 'px'; el.style.top = clamp(el.offsetTop, 0, Math.max(0, sr.height - hg - 44)) + 'px';
   }
-  const cols = Math.max(1, Math.floor((icons.clientWidth - 20) / CELLW)), rows = Math.max(1, Math.floor((icons.clientHeight - 10) / CELLH)); for (const k in deskPos) if (deskPos[k][0] >= cols || deskPos[k][0] < 0 || deskPos[k][1] >= rows) delete deskPos[k];
   renderDesktop();
 }
 let fsT = 0; const fsLater = () => { clearTimeout(fsT); fsT = setTimeout(fsFit, 120); };
@@ -23,6 +22,7 @@ function fsSet(on, viaApi) {
   if (window.__setScale) window.__setScale(on ? .49 : .7);
   if (fsMode.on === on) return;
   fsLay[fsMode.on ? 'fs' : 'n'] = JSON.parse(JSON.stringify(deskPos)); // จำการจัดไอคอนของโหมดที่ออกจาก
+  window.fsBusyUntil = Date.now() + 1300; setTimeout(() => { if (!fsTyping()) renderDesktop(); }, 1350); // ช่วงสลับโหมดขนาดจอยังไม่นิ่ง ห้ามขยับตำแหน่งไอคอน
   fsMode.on = on; if (fsLay[on ? 'fs' : 'n']) deskPos = JSON.parse(JSON.stringify(fsLay[on ? 'fs' : 'n'])); // คืนการจัดของโหมดที่เข้า
   document.body.classList.toggle('fs', on);
   $('tasks').classList.remove('fsopen'); renderTasks();
