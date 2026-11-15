@@ -2,16 +2,17 @@
 // Office game — save Word/Excel as PDF, print to the desk, sign with a pen, scan back in. All made up, nothing leaves the game.
 let printSeq = 0;
 function sheetHTML(B) {
-  let mc = 0, mr = 0; const keys = new Set([...Object.keys(B.cells), ...Object.keys(B.fmt || {}).filter(k => (B.fmt[k] || {}).bg)]);
+  let mc = 0, mr = 0; const keys = new Set([...Object.keys(B.cells), ...Object.keys(B.fmt || {}).filter(k => { const q = B.fmt[k] || {}; return q.bg || q.bt || q.bb || q.bl || q.br; })]);
   keys.forEach(k => { mc = Math.max(mc, ci(k)); mr = Math.max(mr, ri(k)); });
-  mc = Math.max(mc, 2); mr = Math.max(mr, 3); let rows = '';
+  (B.merges || []).forEach(m => { const b = m.split(':')[1]; mc = Math.max(mc, ci(b)); mr = Math.max(mr, ri(b)); });
+  mc = Math.max(mc, 2); mr = Math.max(mr, 3); let rows = ''; const MM = mergeMap(B);
   for (let r = 1; r <= mr; r++) {
     rows += '<tr>';
     for (let c = 0; c <= mc; c++) {
-      const ref = COLS[c] + r, v = value(B, ref), f = B.fmt[ref] || {};
-      let st = ''; if (f.b) st += 'font-weight:600;'; if (f.i) st += 'font-style:italic;'; if (f.u) st += 'text-decoration:underline;'; if (f.bg) st += `background:${f.bg};`; if (f.fg) st += `color:${f.fg};`;
+      const ref = COLS[c] + r; if (MM.cov.has(ref)) continue; const mg = MM.top[ref], v = value(B, ref), f = B.fmt[ref] || {};
+      let st = BD_CSS(f); if (f.b) st += 'font-weight:600;'; if (f.i) st += 'font-style:italic;'; if (f.u) st += 'text-decoration:underline;'; if (f.bg) st += `background:${f.bg};`; if (f.fg) st += `color:${f.fg};`;
       st += `text-align:${f.al || (typeof v === 'number' ? 'right' : 'left')};`;
-      rows += `<td style="${st}">${esc(show(v, f))}</td>`;
+      rows += `<td${mg ? ` colspan="${mg.cs}" rowspan="${mg.rs}"` : ''} style="${st}">${esc(show(v, f))}</td>`;
     }
     rows += '</tr>';
   }

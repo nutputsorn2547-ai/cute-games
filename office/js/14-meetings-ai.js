@@ -29,7 +29,7 @@ MEETS.forEach(mt => scheduleMeet(mt, mt.d));
 
 /* ================= in-game AI helper ================= */
 const ai = { W: null, tray: [], busy: false, msgs: [{ ai: 1, html: 'สวัสดีค่ะ น้องเอไอเอง 🤖✨ ช่วยทำเอกสารจากเทมเพลต เทียบราคา คำนวณ ปรึกษาทั่วไป หรือเล่นมุกก็ได้นะ<br><b>ลากไฟล์มาวางในหน้าต่างนี้</b> หรือกด 📎 เพื่อให้น้องใช้ไฟล์ได้' }] };
-const AI_CHIPS = ['ช่วยอะไรได้บ้าง', 'ทำสรุปทริป', 'ทำวาระประชุม', 'เทียบราคา', 'เล่นมุกหน่อย', 'ชมหน่อย', 'ช่วยดูเรื่องเงิน', 'อยากย้ายหอ', 'คำนวณ 2800*6*2'];
+const AI_CHIPS = ['ช่วยอะไรได้บ้าง', 'ทำสรุปทริป', 'ทำวาระประชุม', 'เทียบราคา', 'เล่นมุกหน่อย', 'ชมหน่อย', 'ช่วยดูเรื่องเงิน', 'อยากย้ายหอ', 'คำนวณ 2800*6*2', 'ขอเคสลูกค้าใหม่'];
 const JOKES = ['รู้ไหมทำไมเครื่องคิดเลขไม่เคยเหงา? เพราะมีคนมากด "บวก" ให้ทุกวัน ➕😆', 'Excel บอกคอลัมน์ว่าอะไร? "เธออยู่ในเซลล์ใจฉันเสมอ" 📊💕', 'หัวหน้าถามว่างานเสร็จยัง ฉันตอบว่า "เสร็จแล้วค่ะ… ในใจ" 🫠', 'ทำไมแมวชอบนั่งบนคีย์บอร์ด? เพราะอยากช่วยกด Ctrl+S ให้ไง 🐱💾', 'เงินเดือนออกวันที่ 25 แต่หายวันที่ 26 เพราะรีบไปหาเพื่อนชื่อ "บิล" 🧾💨', 'วันจันทร์กับกาแฟเป็นอะไรกัน? เป็นคู่ที่ขาดกันไม่ได้ ☕❤️', 'ประชุมที่ยาวที่สุดในโลกคือประชุมที่สรุปว่า "เดี๋ยวนัดประชุมใหม่" 😂'];
 const PRAISE = ['วันนี้คุณทำงานเก่งมาก น้องเอไอยกนิ้วให้เลย 👍✨', 'ไฟล์เป็นระเบียบสุดๆ หัวหน้าต้องปลื้มแน่นอน 📁💖', 'คุณคือดาวเด่นของออฟฟิศวันนี้ 🌟', 'สูตร SUM ของคุณสวยที่สุดในตึก 📊😍', 'พักดื่มน้ำบ้างนะ คนเก่งต้องดูแลตัวเองด้วย 💧💕'];
 function openAI() {
@@ -79,6 +79,7 @@ function aiDoc(name, html, extra) {
 const docActs = f => `<div class="aacts"><button data-open="${f.id}">📄 เปิดดู</button><button data-tomeet="${f.id}">📁 ใส่โฟลเดอร์เอกสารประชุม</button></div>`;
 function aiReply(raw) {
   const t = raw.trim(), tf = trayFiles();
+  if (typeof csAIAsk === 'function') { const r = csAIAsk(t); if (r) return r; }
   if (/ช่วยอะไร|ทำอะไรได้|help|เมนู/i.test(t)) return 'น้องเอไอทำได้หลายอย่างเลย ✨<ul><li><b>ทำสรุปทริป</b> — ใช้เทมเพลตทีม + ทริปปีใหม่.xlsx + ไฟล์ข้อมูลที่พักทั้งหมด</li><li><b>ทำวาระประชุม</b> — ใช้เทมเพลตวาระประชุม กับนัดประชุมถัดไปในปฏิทิน</li><li><b>เทียบราคา</b> — ที่พักหรือหอพักจากไฟล์ที่ลากมา</li><li><b>คำนวณ</b> เช่น "คำนวณ 2800*6*2"</li><li>ปรึกษาเรื่องเงิน ย้ายหอ งาน หรือขอกำลังใจ เล่นมุก</li></ul>เทมเพลตอยู่ในโฟลเดอร์ <b>งานด่วน</b> นะ';
   if (/สรุป.*ทริป|ทริป.*สรุป/.test(t)) return aiTrip(tf);
   if (/วาระ|เอกสารประชุม|เตรียมประชุม/.test(t)) return aiAgenda(tf);
@@ -137,9 +138,9 @@ function aiCompare(tf) {
 }
 function aiMoney() {
   const unpaid = bank.bills.filter(b => !b.paid), due = unpaid.reduce((s, b) => s + b.amt, 0);
-  return `ข้อมูลจากธนาคารน้อย 🏦<ul><li>เงินในบัญชี <b>${baht(bank.bal)}</b> บาท</li><li>เงินเดือน ${baht(hr.base)} บาท/เดือน${hr.pending ? ` (จะเป็น ${baht(hr.pending)})` : ''}</li><li>ค่าเช่า ${baht(bank.home.rent)} บาท = ${Math.round(bank.home.rent / hr.base * 100)}% ของเงินเดือน</li><li>${unpaid.length ? `บิลค้าง ${unpaid.length} รายการ รวม ${baht(due)} บาท จ่ายก่อนครบกำหนดจะไม่โดนปรับ` : 'ไม่มีบิลค้าง เยี่ยม! 🎉'}</li>${Object.keys(debts).some(k => debts[k]) ? `<li>ยืมคนรู้จักอยู่ ${baht(Object.values(debts).reduce((a, b) => a + b, 0))} บาท อย่าลืมคืนนะ</li>` : ''}${bank.loan ? `<li>หนี้สินเชื่อ ${baht(bank.loan)} บาท ดอกเบี้ย 1%/เดือน รีบคืนได้จะดี</li>` : ''}</ul>ลองแบ่งเก็บ 10–20% ของเงินเดือน = ${baht(Math.round(hr.base * .1))}–${baht(Math.round(hr.base * .2))} บาท/เดือน 💰 <small>(คำแนะนำในเกมนะ)</small>`;
+  return `ข้อมูลจากธนาคารน้อย 🏦<ul><li>เงินในบัญชี <b>${baht(bank.bal)}</b> บาท</li><li>เงินเดือน ${baht(hr.base)} บาท/เดือน${hr.pending ? ` (จะเป็น ${baht(hr.pending)})` : ''}</li><li>ค่าเช่า ${baht(bank.home.rent)} บาท = ${(hr.base ? Math.round(bank.home.rent / hr.base * 100) : '—')}% ของเงินเดือน</li><li>${unpaid.length ? `บิลค้าง ${unpaid.length} รายการ รวม ${baht(due)} บาท จ่ายก่อนครบกำหนดจะไม่โดนปรับ` : 'ไม่มีบิลค้าง เยี่ยม! 🎉'}</li>${Object.keys(debts).some(k => debts[k]) ? `<li>ยืมคนรู้จักอยู่ ${baht(Object.values(debts).reduce((a, b) => a + b, 0))} บาท อย่าลืมคืนนะ</li>` : ''}${bank.loan ? `<li>หนี้สินเชื่อ ${baht(bank.loan)} บาท ดอกเบี้ย 1%/เดือน รีบคืนได้จะดี</li>` : ''}</ul>ลองแบ่งเก็บ 10–20% ของเงินเดือน = ${baht(Math.round(hr.base * .1))}–${baht(Math.round(hr.base * .2))} บาท/เดือน 💰 <small>(คำแนะนำในเกมนะ)</small>`;
 }
 function aiDorm() {
-  const cheap = DORMS.slice().sort((a, b) => a.rent - b.rent)[0], near = DORMS.slice().sort((a, b) => a.km - b.km)[0], pct = Math.round(bank.home.rent / hr.base * 100);
+  const cheap = DORMS.slice().sort((a, b) => a.rent - b.rent)[0], near = DORMS.slice().sort((a, b) => a.km - b.km)[0], pct = (hr.base ? Math.round(bank.home.rent / hr.base * 100) : '—');
   return `ตอนนี้ค่าเช่า ${baht(bank.home.rent)} บาท = ${pct}% ของเงินเดือน ${pct > 30 ? '(ค่อนข้างสูงนะ)' : '(โอเคเลย)'}<br>หอที่ถูกสุด: <b>${esc(cheap.name)}</b> ${baht(cheap.rent)} บาท แต่ห่าง ${cheap.km} กม.<br>ใกล้ออฟฟิศสุด: <b>${esc(near.name)}</b> ${baht(near.rent)} บาท<br>ย้ายเข้าต้องเตรียมเงินประมาณ 3 เท่าของค่าเช่า + ค่าขนย้าย ดูได้ในเสิร์ชน้อย แท็บ <b>หอพัก</b> 🏠`;
 }

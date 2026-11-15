@@ -49,7 +49,7 @@ function renderBank(force) {
   const row = (a, b, cls = '') => `<div class="row3"><span>${a}</span><b class="${cls}">${b}</b></div>`;
   let body = '';
   if (bank.tab === 'home') body = `<div class="card3">${row('💼 เงินเดือนปัจจุบัน', baht(hr.base) + ' บาท')}${hr.pending ? row('📈 ปรับเป็น', `${baht(hr.pending)} บาท (มีผล ${thDate(hr.eff, { day: 'numeric', month: 'short' })})`, 'pos') : ''}${row('📅 เงินเดือนออกครั้งถัดไป', thDate(nextPayday(), { day: 'numeric', month: 'short', year: 'numeric' }))}</div>
-    <div class="card3">${row('🏠 ที่พักตอนนี้', esc(bank.home.name))}${row('ค่าเช่า/เดือน', baht(bank.home.rent) + ' บาท')}${row('ค่าเช่าคิดเป็น', Math.round(bank.home.rent / hr.base * 100) + '% ของเงินเดือน', bank.home.rent / hr.base > .3 ? 'neg' : 'pos')}</div>
+    <div class="card3">${row('🏠 ที่พักตอนนี้', esc(bank.home.name))}${row('ค่าเช่า/เดือน', baht(bank.home.rent) + ' บาท')}${row('ค่าเช่าคิดเป็น', (hr.base ? Math.round(bank.home.rent / hr.base * 100) : '—') + '% ของเงินเดือน', bank.home.rent / hr.base > .3 ? 'neg' : 'pos')}</div>
     <div class="card3">${row('🧾 บิลค้างจ่าย', unpaid.length ? `${unpaid.length} รายการ · ${baht(due)} บาท` : 'ไม่มี 🎉', unpaid.length ? 'neg' : 'pos')}${row('🏦 หนี้สินเชื่อ', bank.loan ? baht(bank.loan) + ' บาท' : '0', bank.loan ? 'neg' : '')}</div>
     ${Object.keys(debts).some(k => debts[k]) ? `<div class="card3"><b style="font-weight:500">🤝 ยืมเงินคนรู้จัก (คืนได้ที่แท็บโอนเงิน)</b>${Object.keys(debts).filter(k => debts[k]).map(k => row(PEOPLE[k].n, baht(debts[k]) + ' บาท', 'neg')).join('')}</div>` : ''}
     <small style="color:var(--soft)">เป็นธนาคารในเกม ไม่ได้คิดภาษีหรือประกันสังคม · ค่าเช่าเรียกเก็บวันที่ 1 · ค่าน้ำไฟวันที่ 10 · มีค่าใช้จ่ายสุ่มบางวัน</small>`;

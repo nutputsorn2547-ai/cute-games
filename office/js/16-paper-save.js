@@ -104,7 +104,7 @@ function snapshot() {
     v: 1, at: Date.now(), name: saveName || `เซฟ ${slot}`,
     time: { el: loadOff + (Date.now() - R0) * SPEED, dayOff, timeOff, reachedDay, nightMsgSent, unlockedDay },
     done: [...done], tmin: $('tasks').classList.contains('min'),
-    files: FILES, folders: FOLDERS, deskPos, uid, wallNow,
+    files: FILES, folders: FOLDERS, deskPos: (typeof fsLayExport === 'function' && fsLayExport().n) || deskPos, deskLay: typeof fsLayExport === 'function' ? fsLayExport() : null, uid, wallNow,
     chat: { account: chat.account, cur: chat.cur, list: chat.list.map(c => ({ ...c, typing: null })) },
     people: Object.fromEntries(Object.entries(PEOPLE).filter(([k]) => k.startsWith('co-'))),
     hr, sisBear, broTold, trip: tripHotel ? tripHotel.id : null,
@@ -134,7 +134,7 @@ function loadGame() {
     saveName = s.name || '';
     loadOff = s.time.el; R0 = Date.now(); dayOff = s.time.dayOff; timeOff = s.time.timeOff; reachedDay = s.time.reachedDay; nightMsgSent = s.time.nightMsgSent; unlockedDay = s.time.unlockedDay || 1;
     done.clear(); s.done.forEach(x => done.add(x)); $('tasks').classList.toggle('min', !!s.tmin);
-    FILES.length = 0; FILES.push(...s.files); FOLDERS.length = 0; FOLDERS.push(...s.folders); deskPos = s.deskPos; uid = s.uid;
+    FILES.length = 0; FILES.push(...s.files); FOLDERS.length = 0; FOLDERS.push(...s.folders); deskPos = s.deskPos; if (typeof fsLayLoad === 'function') fsLayLoad(s.deskLay); uid = s.uid;
     chat.account = s.chat.account; chat.cur = s.chat.cur; chat.list.length = 0; chat.list.push(...s.chat.list); Object.assign(PEOPLE, s.people);
     Object.assign(hr, s.hr); sisBear = s.sisBear; broTold = s.broTold; tripHotel = s.trip ? HOTELS.find(x => x.id === s.trip) : null;
     Object.assign(bank, s.bank); bid = s.bid; Object.keys(debts).forEach(k => delete debts[k]); Object.assign(debts, s.debts);
