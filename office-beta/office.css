@@ -770,7 +770,7 @@ body.fs #pinDoc{scale:.7;transform-origin:100% 0}
 #jlVeil{position:absolute;inset:0;pointer-events:none;z-index:40;background:radial-gradient(ellipse at 50% 40%,rgba(10,14,40,0) 25%,rgba(4,6,22,.72) 100%)}
 body[data-career="jl"] #screen{filter:brightness(.66) saturate(.75) hue-rotate(-6deg)}
 body[data-career="jl"] .desk{filter:brightness(.55) saturate(.7)}
-body[data-career="jl"] #taskbar [data-app="search"],body[data-career="jl"] #taskbar [data-app="chat"],body[data-career="jl"] #taskbar [data-app="career"]{display:none}
+body[data-career="jl"] #taskbar [data-app="chat"],body[data-career="jl"] #taskbar [data-app="career"]{display:none}
 .jlm{position:fixed;inset:0;z-index:99999;background:rgba(5,6,18,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .jlc{background:#fff;border-radius:18px;padding:18px 20px;max-width:380px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.4)}
 .jlm.dark .jlc{background:#1d2036;color:#e8eaff}.jlm.dark .btn2{background:#2c3052;color:#e8eaff;border-color:#40456f}.jlm.dark .btn2.pri{background:#5a78e6;color:#fff}
