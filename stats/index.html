@@ -74,15 +74,14 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
 </div>
 
 <p class="note">นับคอมจากรหัสสุ่มที่เก็บในเบราว์เซอร์แต่ละเครื่อง (ไม่เก็บชื่อ ไม่เก็บ IP) · เปิดจากเบราว์เซอร์เดียวกันหลายแท็บนับเป็น 1 เครื่อง · ล้างข้อมูลเบราว์เซอร์แล้วจะนับเป็นเครื่องใหม่<br>
-1 แถวในชีต = 1 ครั้งที่เข้าเล่น (อัปเดตทับแถวเดิมตอนเข้า ระหว่างเล่นทุก 3 นาที และตอนออก) · เวลาเล่น = เวลาที่หน้าเกมเปิดอยู่จริง (แท็บที่ซ่อนอยู่ไม่นับ ยกเว้นมีมือถือเชื่อมอยู่) ส่วนสถานะ "เล่นอยู่ตอนนี้" จะเปลี่ยนทันทีที่ปิดหน้า (ถ้าเน็ตหลุดหรือเครื่องดับ จะหายไปเองหลังประมาณ 7 นาที) จึงคลาดเคลื่อนได้ราว ±1 นาทีต่อครั้ง<br>ความหน่วง = เวลาไป-กลับ (RTT) ระหว่างมือถือกับคอม วัดทุก 3 วินาทีผ่านลิงก์ที่ใช้บังคับเกม ค่าที่หน่วงมากขึ้นตอนมีหลายเครื่องอาจมาจากเน็ต/ไวไฟของแต่ละคนด้วย ไม่ได้มาจากเซิร์ฟเวอร์ทั้งหมด</p>
+เวลาเล่น = นับจากสัญญาณทุก 1 นาทีที่หน้าเกมเปิดอยู่ (แท็บที่ซ่อนอยู่ไม่นับ ยกเว้นมีมือถือเชื่อมอยู่) ส่วนสถานะ "เล่นอยู่ตอนนี้" จะเปลี่ยนทันทีที่ปิดหน้า (ถ้าเน็ตหลุดหรือเครื่องดับ จะหายไปเองหลังประมาณ 2 นาที) จึงคลาดเคลื่อนได้ราว ±1 นาทีต่อครั้ง<br>ความหน่วง = เวลาไป-กลับ (RTT) ระหว่างมือถือกับคอม วัดทุก 3 วินาทีผ่านลิงก์ที่ใช้บังคับเกม ค่าที่หน่วงมากขึ้นตอนมีหลายเครื่องอาจมาจากเน็ต/ไวไฟของแต่ละคนด้วย ไม่ได้มาจากเซิร์ฟเวอร์ทั้งหมด</p>
 </div>
 
 <script type="module">
 import { ENDPOINT } from '../lib/stats.js';
 const $ = id => document.getElementById(id);
 const BK = 5 * 60000;
-let SES = [], RTT = [], hours = 24, plat = 'all';
-const LIVE_MS = 7 * 60000; // เข้าเล่นอยู่ = ยังไม่ออก และมีสัญญาณล่าสุดไม่เกิน 7 นาที (ส่งทุก 3 นาที)
+let rows = [], hours = 24, plat = 'all';
 const med = a => { const s = a.filter(x => x !== '' && !isNaN(x)).map(Number).sort((x, y) => x - y); return s.length ? s[s.length >> 1] : null; };
 const fmt = t => new Date(t).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
@@ -93,56 +92,65 @@ async function load() {
     if (!key) { key = prompt('ใส่รหัสดูสถิติ') || ''; try { localStorage.setItem('cg-key', key); } catch (e) {} }
     const r = await fetch(ENDPOINT + '?key=' + encodeURIComponent(key)); const j = await r.json();
     if (j.error) { try { localStorage.removeItem('cg-key'); } catch (e) {} throw new Error('รหัสไม่ถูกต้อง — รีเฟรชหน้าแล้วใส่ใหม่'); }
-    SES = (j.sessions || []).map(a => ({ sid: a[0], vid: a[1], game: a[2] === 'cute-games' ? 'home' : a[2], role: a[3], plat: a[4], start: +a[5], last: +a[6], act: +a[7] || 0, ph: +a[8] || 0, ended: +a[9] === 1 }));
-    RTT = (j.rtt || []).map(a => ({ t: +a[0], vid: a[1], sid: a[2], game: a[3], plat: a[4], phones: +a[5] || 0, med: +a[6], max: +a[7], n: +a[8] }));
+    rows = j.rows.map(a => ({ t: +a[0], kind: a[1], vid: a[2], sid: a[3], game: a[4] === 'cute-games' ? 'home' : a[4], role: a[5], plat: a[6], phones: a[7], med: a[8], max: a[9], n: a[10] }));
     $('err').style.display = 'none';
-    $('upd').textContent = 'อัปเดตล่าสุด ' + new Date().toLocaleTimeString('th-TH') + ' · ' + SES.length + ' ครั้งที่เข้าเล่น';
+    $('upd').textContent = 'อัปเดตล่าสุด ' + new Date().toLocaleTimeString('th-TH') + ' · ข้อมูล ' + rows.length + ' แถว';
     render();
   } catch (e) { $('err').style.display = 'block'; $('err').textContent = 'โหลดข้อมูลไม่ได้: ' + e.message; }
 }
 
 function render() {
-  const now = Date.now(), live = x => !x.ended && now - x.last < LIVE_MS, endOf = x => live(x) ? now : x.last;
-  const pcRows = SES.filter(x => x.role === 'pc' && x.plat === 'desktop'); // computers only
+  const now = Date.now();
+  const last = new Map(); for (const x of rows) last.set(x.sid, x); // latest row per session
+  const live = new Set(); for (const [sid, x] of last) if (x.kind !== 'leave' && now - x.t < 130000) live.add(sid);
+  const recent = rows.filter(x => live.has(x.sid) && now - x.t < 130000);
+  const pcRows = rows.filter(x => x.role === 'pc' && x.plat === 'desktop'); // computers only
+  const gameRows = rows.filter(x => x.role === 'pc'); // any device that opened a game page
   const day0 = new Date(); day0.setHours(0, 0, 0, 0);
-  const vids = a => new Set(a.map(x => x.vid)).size;
-  $('c-now').textContent = vids(pcRows.filter(live));
-  $('c-ph').textContent = vids(SES.filter(x => x.role === 'phone' && live(x)));
-  $('c-all').textContent = vids(pcRows);
-  $('c-today').textContent = vids(pcRows.filter(x => x.last >= +day0));
-  const dv = p => vids(SES.filter(x => x.plat === p));
+  $('c-now').textContent = new Set(recent.filter(x => x.role === 'pc' && x.plat === 'desktop').map(x => x.vid)).size;
+  const phNow = new Set(recent.filter(x => x.role === 'phone').map(x => x.vid)).size;
+  $('c-ph').textContent = phNow;
+  $('c-all').textContent = new Set(pcRows.map(x => x.vid)).size;
+  $('c-today').textContent = new Set(pcRows.filter(x => x.t >= +day0).map(x => x.vid)).size;
+  const dv = p => new Set(rows.filter(x => x.plat === p).map(x => x.vid)).size;
   $('c-dev').textContent = dv('desktop') + ' / ' + dv('android') + ' / ' + dv('ios');
-  const ph = SES.filter(x => x.role === 'phone');
-  $('c-pl').textContent = vids(ph.filter(x => x.plat === 'android')) + ' / ' + vids(ph.filter(x => x.plat === 'ios'));
+  const ph = rows.filter(x => x.role === 'phone');
+  $('c-pl').textContent = new Set(ph.filter(x => x.plat === 'android').map(x => x.vid)).size + ' / ' + new Set(ph.filter(x => x.plat === 'ios').map(x => x.vid)).size;
 
-  // per game: visits = sessions (1 row each), time = play minutes counted on the page
+  // per game: visits = page opens, time = visible heartbeats (~1 min each)
   const NAME = { jenga:'จังก้า', fishing:'ตกปลา', cooking:'ครัวน่ารัก', latte:'ลาเต้อาร์ต', domino:'โดมิโน', dental:'คลินิกฟัน', sewing:'ซ่อมตุ๊กตา', cereal:'ซีเรียลตัวอักษร', carving:'แกะสลัก', chess:'หมากรุก', lego:'ตัวต่อ', office:'ออฟฟิศจำลอง', home:'หน้าแรก' };
   const gm = {};
-  for (const x of SES) {
-    if (x.role !== 'pc' || x.game === 'home') continue;
-    const g = gm[x.game] ||= { visits: 0, mins: 0, all: new Set(), now: new Set() };
-    g.visits++; g.mins += x.act; g.all.add(x.vid); if (live(x)) g.now.add(x.vid);
+  for (const x of gameRows) {
+    if (x.game === 'home') continue;
+    const g = gm[x.game] ||= { visits: 0, beats: 0, sess: new Set(), all: new Set(), now: new Set() };
+    if (x.kind === 'visit') g.visits++;
+    if (x.kind === 'hb') g.beats++;
+    g.sess.add(x.sid); g.all.add(x.vid);
+    if (live.has(x.sid)) g.now.add(x.vid);
   }
-  const gl = Object.entries(gm).map(([k, g]) => ({ k, n: NAME[k] || k, visits: g.visits, mins: Math.round(g.mins), avg: g.mins / Math.max(1, g.visits), pcs: g.all.size, now: g.now.size }));
+  const gl = Object.entries(gm).map(([k, g]) => ({ k, n: NAME[k] || k, visits: g.visits || g.sess.size, mins: g.beats, avg: g.beats / Math.max(1, g.sess.size), pcs: g.all.size, now: g.now.size }));
   const top1 = [...gl].sort((a, b) => b.visits - a.visits)[0], top2 = [...gl].sort((a, b) => b.mins - a.mins)[0];
   $('c-top1').textContent = top1 ? top1.n + ' · ' + top1.visits : '–';
   $('c-top2').textContent = top2 && top2.mins ? top2.n + ' · ' + top2.mins + ' นาที' : '–';
   $('tg').innerHTML = gl.sort((a, b) => b.visits - a.visits).map(g => `<tr><td>${g.n}</td><td>${g.visits}</td><td>${g.mins}</td><td>${g.avg.toFixed(1)} นาที</td><td>${g.pcs}</td><td>${g.now}</td></tr>`).join('');
 
-  // 5-minute buckets: a session counts in every bucket between its start and its last signal
-  const buckets = from => {
-    const B = new Map(), get = k => B.get(k) || (B.set(k, { t: k, pcs: new Set(), phs: new Set(), rtt: [] }), B.get(k));
-    for (const x of SES) {
-      const e = endOf(x); if (e < from) continue;
-      for (let k = Math.floor(Math.max(x.start, from) / BK) * BK; k <= e; k += BK) { const b = get(k); (x.role === 'pc' ? b.pcs : b.phs).add(x.vid); }
-    }
-    for (const x of RTT) if (x.t >= from && (plat === 'all' || x.plat === plat)) get(Math.floor(x.t / BK) * BK).rtt.push(x.med);
-    return [...B.values()].sort((a, b) => a.t - b.t).map(b => ({ t: b.t, pcs: b.pcs.size, phs: b.phs.size, rtt: med(b.rtt) }));
-  };
-  const list = buckets(hours ? now - hours * 3600000 : 0);
+  // buckets
+  const from = hours ? now - hours * 3600000 : 0;
+  const B = new Map();
+  for (const x of rows) {
+    if (x.t < from) continue;
+    const k = Math.floor(x.t / BK) * BK;
+    const b = B.get(k) || { t: k, pcs: new Set(), phs: new Set(), rtt: [] };
+    if (x.role === 'pc') b.pcs.add(x.vid); else b.phs.add(x.vid);
+    if (x.kind === 'rtt' && (plat === 'all' || x.plat === plat)) b.rtt.push(x.med);
+    B.set(k, b);
+  }
+  const list = [...B.values()].sort((a, b) => a.t - b.t).map(b => ({ t: b.t, pcs: b.pcs.size, phs: b.phs.size, rtt: med(b.rtt) }));
   // baseline: all buckets (any time range, same platform filter) where exactly 1 pc played
-  const base = med(buckets(0).filter(b => b.pcs === 1 && b.rtt != null).map(b => b.rtt));
-  $('base').textContent = base == null ? 'ยังไม่มีข้อมูลตอนเล่น 1 เครื่อง จึงยังคิด % เทียบไม่ได้' : `ค่าอ้างอิง: ความหน่วงตอนมีคอมเล่น 1 เครื่อง ≈ ${base} ms`;
+  const all = new Map();
+  for (const x of rows) { const k = Math.floor(x.t / BK) * BK; const b = all.get(k) || { pcs: new Set(), rtt: [] }; if (x.role === 'pc') b.pcs.add(x.vid); if (x.kind === 'rtt' && (plat === 'all' || x.plat === plat)) b.rtt.push(x.med); all.set(k, b); }
+  const base = med([...all.values()].filter(b => b.pcs.size === 1).map(b => med(b.rtt)).filter(v => v != null));
+  $('base').textContent = base == null ? 'ยังไม่มีข้อมูลตอนเล่น 1 เครื่อง จึงยังคิด % เทียบไม่ได้' : `ค่าอ้างอิง (เล่นคอม 1 เครื่อง) = ${base} ms · แถวที่หน่วงเพิ่มขึ้นเป็นสีชมพู`;
   $('tb').innerHTML = [...list].reverse().map(b => {
     let pct = '–';
     if (base && b.rtt != null) { const p = Math.round((b.rtt / base - 1) * 100); pct = `<span class="${p > 0 ? 'up' : 'dn'}">${p > 0 ? '+' : ''}${p}%</span>`; }
