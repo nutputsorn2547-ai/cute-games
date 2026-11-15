@@ -199,7 +199,8 @@ $('bump').onclick = async () => {
   const before = await (async () => { try { return (await (await fetch(ENDPOINT + '?r=1&_=' + Date.now())).json()).r; } catch (e) { return null; } })();
   try { await fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ bump: key }) }); } catch (e) { m.textContent = 'ส่งไม่สำเร็จ: ' + e.message; return; }
   await new Promise(r => setTimeout(r, 1500));
-  try { const j = await (await fetch(ENDPOINT + '?r=1&_=' + Date.now())).json(); m.textContent = j.r !== before ? '✅ ส่งคำสั่งแล้ว ' + new Date(+j.r).toLocaleTimeString('th-TH') + ' (ผู้เล่นจะรีเฟรชภายใน 90 วินาที)' : '⚠️ ยังไม่เห็นผล — รหัสอาจไม่ถูก หรือยังไม่ได้วาง Code.gs ใหม่ใน Apps Script'; } catch (e) { m.textContent = 'ตรวจผลไม่ได้: ' + e.message; }
+  try { const j = await (await fetch(ENDPOINT + '?r=1&_=' + Date.now())).json(); if (j.r !== undefined && j.r === before) { try { localStorage.removeItem('cg-key'); } catch (e) {} }
+  m.textContent = j.r === undefined ? '⚠️ Apps Script ตอบกลับเป็นโค้ดเวอร์ชันเก่า (ไม่รู้จักคำสั่งรีเฟรช) — ต้องวาง Code.gs ใหม่ แล้วทำให้ใช้งานเป็น “เวอร์ชันใหม่” ที่ URL …' + ENDPOINT.slice(-12) : j.r === before ? '⚠️ Apps Script เป็นโค้ดใหม่แล้ว แต่รหัส (KEY) ที่ใส่ไม่ตรงกับในสคริปต์ — กดปุ่มอีกครั้งแล้วใส่รหัสให้ตรง' : '✅ ส่งคำสั่งแล้ว ' + new Date(+j.r).toLocaleTimeString('th-TH') + ' (ผู้เล่นจะรีเฟรชภายใน 90 วินาที)'; } catch (e) { m.textContent = 'ตรวจผลไม่ได้: ' + e.message; }
 };
 load(); setInterval(load, 30000);
 </script>
