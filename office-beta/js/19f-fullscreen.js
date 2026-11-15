@@ -16,9 +16,13 @@ function fsFit(force) {
   renderDesktop();
 }
 let fsT = 0; const fsLater = () => { clearTimeout(fsT); fsT = setTimeout(fsFit, 120); };
+const fsLay = {};
 function fsSet(on, viaApi) {
   if (window.__setScale) window.__setScale(on ? .49 : .7);
-  if (fsMode.on === on) return; fsMode.on = on; document.body.classList.toggle('fs', on);
+  if (fsMode.on === on) return;
+  fsLay[fsMode.on ? 'fs' : 'n'] = JSON.parse(JSON.stringify(deskPos)); // จำการจัดไอคอนของโหมดที่ออกจาก
+  fsMode.on = on; if (fsLay[on ? 'fs' : 'n']) deskPos = JSON.parse(JSON.stringify(fsLay[on ? 'fs' : 'n'])); // คืนการจัดของโหมดที่เข้า
+  document.body.classList.toggle('fs', on);
   $('tasks').classList.remove('fsopen'); renderTasks();
   const de = document.documentElement;
   if (on) {
