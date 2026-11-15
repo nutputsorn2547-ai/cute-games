@@ -765,3 +765,22 @@ body.fs #pinDoc{scale:.7;transform-origin:100% 0}
 .dtr{display:flex;align-items:center;gap:10px;width:100%;font:inherit;border:0;background:#fff;border-radius:14px;padding:10px;margin-bottom:6px;text-align:left;cursor:pointer;box-shadow:0 1px 0 #eee}.dtr i{font-style:normal;font-size:28px}.dtr span{flex:1;min-width:0}.dtr small{display:block;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dtr em{font-style:normal;background:#ff3b5c;color:#fff;border-radius:99px;font-size:11px;padding:0 7px}
 .dtmsgs{display:flex;flex-direction:column;gap:6px}.dtb{max-width:82%;padding:7px 11px;border-radius:14px;font-size:13px;line-height:1.5;background:#fff}.dtb.me{align-self:flex-end;background:#a8e6b4}.dtb.s{align-self:center;background:#fff3cd;font-size:12px;text-align:center;max-width:94%}
 .dto{display:flex;flex-direction:column;gap:6px;padding:8px 10px 14px;border-top:1px solid #eee;background:#fff}.dto button{font:inherit;font-size:13px;border:1px solid #ddd;border-radius:12px;background:#fafafa;padding:7px 10px;text-align:left;cursor:pointer}
+
+/* ---- ตกงาน / หุ้น / หวย ---- */
+#jlVeil{position:absolute;inset:0;pointer-events:none;z-index:40;background:radial-gradient(ellipse at 50% 40%,rgba(10,14,40,0) 25%,rgba(4,6,22,.72) 100%)}
+body[data-career="jl"] #screen{filter:brightness(.66) saturate(.75) hue-rotate(-6deg)}
+body[data-career="jl"] .desk{filter:brightness(.55) saturate(.7)}
+body[data-career="jl"] #taskbar [data-app="search"],body[data-career="jl"] #taskbar [data-app="chat"],body[data-career="jl"] #taskbar [data-app="career"]{display:none}
+.jlm{position:fixed;inset:0;z-index:99999;background:rgba(5,6,18,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.jlc{background:#fff;border-radius:18px;padding:18px 20px;max-width:380px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.jlm.dark .jlc{background:#1d2036;color:#e8eaff}.jlm.dark .btn2{background:#2c3052;color:#e8eaff;border-color:#40456f}.jlm.dark .btn2.pri{background:#5a78e6;color:#fff}
+.jlc h2{margin:4px 0 8px;font-size:18px}.jlc p{margin:0 0 8px;line-height:1.55;font-size:14px}.jlbig{font-size:44px}.jlb{display:flex;flex-direction:column;gap:8px;margin-top:10px}.jlb .btn2{padding:9px 12px}
+.jlheat{height:7px;border-radius:9px;background:#0002;margin-top:6px;overflow:hidden}.jlheat i{display:block;height:100%;background:linear-gradient(90deg,#ffb84d,#e5536f)}
+.jlsos{margin-top:6px;font:inherit;font-size:12px;border:0;border-radius:9px;background:#ff7aa8;color:#fff;padding:5px 8px;cursor:pointer}
+.stk{display:flex;height:100%;font-size:13px}.stk .sl{width:42%;overflow:auto;border-right:1px solid #0001;padding:6px;display:flex;flex-direction:column;gap:4px}
+.stk .srow{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"a c" "b d";gap:0 6px;text-align:left;font:inherit;border:1px solid #0001;border-radius:10px;background:#fff;padding:6px 8px;cursor:pointer}.stk .srow.on{border-color:#12a150;background:#e9fbef}
+.stk .srow b{grid-area:a}.stk .srow span{grid-area:b;font-size:11px;color:var(--soft)}.stk .srow em{grid-area:c;font-style:normal;text-align:right}.stk .srow i{grid-area:d;font-style:normal;text-align:right;font-size:11px}
+.stk .sr{flex:1;padding:10px;overflow:auto;display:flex;flex-direction:column;gap:6px}.stk h3{margin:0}.stk .sp{font-size:24px;font-weight:600}.stk .sg{width:100%;height:74px;background:#fff;border-radius:10px}
+.stk .up{color:#12a150}.stk .dn{color:#e5536f}.stk .sbt{display:flex;gap:6px;flex-wrap:wrap}.stk .snw{background:#fff;border-radius:10px;padding:6px 8px;display:flex;flex-direction:column;gap:2px;font-size:12px}.sdis{color:var(--soft);font-size:11px}
+.lot{padding:12px;display:flex;flex-direction:column;gap:8px;overflow:auto;height:100%;font-size:13px}.lot h4{margin:4px 0 0}.lh{display:flex;flex-direction:column}.lbuy{display:flex;gap:6px;flex-wrap:wrap}.lbuy .ln{flex:1;min-width:110px;font:inherit;padding:6px 8px;border:1px solid #0002;border-radius:9px;letter-spacing:2px}
+.tks{display:flex;flex-wrap:wrap;gap:5px}.tk{background:#fff;border:1px dashed #e5536f;border-radius:7px;padding:3px 7px;font-family:monospace;letter-spacing:1px}.lres{background:#fff;border-radius:10px;padding:8px 10px;line-height:1.6}
