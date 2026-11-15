@@ -136,10 +136,10 @@ function render() {
   const vNow = {}, v24 = {};
   for (const sid of live) { const x = last.get(sid); if (!x || x.game !== 'office' || x.role !== 'pc') continue; (vNow[verOf.get(sid) || '?'] ||= new Set()).add(x.vid); }
   for (const x of off) if (x.t >= d24) (v24[x.ver || '?'] ||= new Set()).add(x.vid);
-  const vl = CHANGELOG.map(c => c.v); if (vNow['?'] || v24['?']) vl.push('?');
+  const vl = CHANGELOG.map(c => c.v); for (const v of new Set([...Object.keys(vNow), ...Object.keys(v24)])) if (v !== '?' && !vl.includes(v)) vl.unshift(v); if (vNow['?'] || v24['?']) vl.push('?');
   const oldN = Object.entries(vNow).filter(([v]) => v !== VERSION).reduce((a, [, s]) => a + s.size, 0);
   $('vnow').textContent = 'เวอร์ชันล่าสุด: ' + VERSION + ' (' + CHANGELOG[0].date + ') — ' + CHANGELOG[0].note + (oldN ? ' · ตอนนี้ยังมี ' + oldN + ' เครื่องที่เล่นรุ่นเก่ากว่า' : '');
-  $('tv').innerHTML = vl.map(v => { const c = CHANGELOG.find(x => x.v === v); return `<tr><td>${v === '?' ? 'ไม่ทราบรุ่น' : v + (v === VERSION ? ' ✅' : '')}</td><td>${vNow[v] ? vNow[v].size : 0}</td><td>${v24[v] ? v24[v].size : 0}</td><td>${c ? c.date + ' · ' + c.note : 'เปิดค้างไว้ตั้งแต่ก่อนมีระบบนับเวอร์ชัน (เก่ากว่า 1.1.1) — ต้องรีเฟรช'}</td></tr>`; }).join('');
+  $('tv').innerHTML = vl.map(v => { const c = CHANGELOG.find(x => x.v === v); return `<tr><td>${v === '?' ? 'ไม่ทราบรุ่น' : v + (v === VERSION ? ' ✅' : '')}</td><td>${vNow[v] ? vNow[v].size : 0}</td><td>${v24[v] ? v24[v].size : 0}</td><td>${c ? c.date + ' · ' + c.note : v.endsWith('-beta') ? 'รุ่นทดสอบ (เบต้า) ยังไม่ปล่อยจริง' : 'เปิดค้างไว้ตั้งแต่ก่อนมีระบบนับเวอร์ชัน (เก่ากว่า 1.1.1) — ต้องรีเฟรช'}</td></tr>`; }).join('');
 
   // per game: visits = page opens, time = visible heartbeats (~1 min each)
   const NAME = { jenga:'จังก้า', fishing:'ตกปลา', cooking:'ครัวน่ารัก', latte:'ลาเต้อาร์ต', domino:'โดมิโน', dental:'คลินิกฟัน', sewing:'ซ่อมตุ๊กตา', cereal:'ซีเรียลตัวอักษร', carving:'แกะสลัก', chess:'หมากรุก', lego:'ตัวต่อ', office:'ออฟฟิศจำลอง', home:'หน้าแรก' };
