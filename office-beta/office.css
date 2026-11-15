@@ -719,14 +719,16 @@ body.fs .desk{padding-top:38px;box-sizing:border-box}
 body.fs .home-btn{display:none!important}
 body.fs .tasks>:not(h3):not(#taskList):not(.tfoot){display:none}
 body.fs .tasks.fsopen>#careerChip{display:block}
-body.fs.fs-sm .icon{width:72px;font-size:11px;padding:3px 1px;gap:2px}
-body.fs.fs-sm .icon span{max-width:70px;line-height:1.15}
-body.fs.fs-sm .ap{width:40px;height:40px;font-size:22px;border-radius:12px;margin-top:2px}
-body.fs.fs-sm .ap .tx{font-size:19px}
-body.fs.fs-sm .fi{width:34px;height:42px;padding-bottom:4px;font-size:9px}
-body.fs.fs-sm .fo{width:44px;height:34px;margin-top:6px}
-body.fs.fs-sm .icon .th{width:50px;height:40px}
-body.fs.fs-sm .icon .th img{max-width:100%;max-height:100%}
 #pwrApp{touch-action:manipulation}
-body.fs.fs-sm #pwrApp{width:56px;bottom:46px;right:4px;font-size:10px}
-body.fs.fs-sm #pwrApp i{width:38px;height:38px;border-radius:11px}
+
+/* ปุ่มเต็มจอสีฟ้า + ข้อความกำกับ */
+.fsb{width:auto!important;height:30px!important;padding:0 14px!important;gap:6px;grid-auto-flow:column;align-items:center;background:#1e88ff!important;color:#fff;font:700 13px/1 inherit;font-family:inherit;box-shadow:0 4px 10px -2px #1e88ff99;bottom:-10px!important;border-radius:0 0 16px 16px!important}
+.fsb:hover{background:#3a99ff!important}
+.fsb span,.fsx span{font-size:13px;font-weight:700;white-space:nowrap}
+.fsx{width:auto!important;padding:0 12px!important;gap:6px;grid-auto-flow:column;align-items:center;background:#1e88ff!important;color:#fff;font-family:inherit;box-shadow:0 3px 8px -2px #1e88ff99}
+@media (max-width:640px){body.fs .fsx span{display:inline}}
+/* ป๊อปอัพเชื่อมมือถือ: ไม่ให้ใหญ่เกินจอ */
+.overlay .card{max-height:92dvh;overflow:auto}
+@media (pointer:coarse){.overlay .card{padding:16px 18px;gap:14px}.overlay .card h1{font-size:22px}.overlay .qr{width:140px;height:140px}}
+
+#icons .icon{transform:scale(var(--iz,1));transform-origin:0 0}

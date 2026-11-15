@@ -3,11 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<script>(function(){var t=false;try{t=matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<1100}catch(e){}
+window.__touch=t;window.__setScale=function(k){if(!t)return;var m=document.querySelector('meta[name=viewport]');m.setAttribute('content','width=device-width,initial-scale='+k+',minimum-scale='+k+',maximum-scale='+k+',viewport-fit=cover')};window.__setScale(.7)})()</script>
 <title>ออฟฟิศจำลอง (ทดสอบ)</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Mali:wght@400;600&display=swap">
-<link rel="stylesheet" href="office.css?v=d4">
+<link rel="stylesheet" href="office.css?v=d9">
 <link rel="stylesheet" href="../lib/shell.css">
 </head>
 <body>
@@ -21,7 +23,7 @@
         <button data-app="chat" title="แชทน้อย"><i class="ab" style="--c:#2fbf5a">ช</i><span class="lb">แชทน้อย</span></button>
         <span class="clock" id="clock"></span>
       </div>
-    </div><button class="fsb" id="fsBtn" title="ขยายเต็มจอ" aria-label="ขยายเต็มจอ"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 9l7 7 7-7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    </div><button class="fsb" id="fsBtn" title="ขยายเต็มจอ" aria-label="ขยายเต็มจอ"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 9l7 7 7-7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>เต็มจอ</span></button></div>
   </section>
   <section class="view" id="vDesk" aria-label="โต๊ะทำงาน">
     <div class="desk" id="desk">
@@ -29,7 +31,7 @@
     </div>
   </section>
 </div>
-<div class="brbtns"><button class="fsx" id="fsExit" title="ออกจากโหมดเต็มจอ" aria-label="ออกจากโหมดเต็มจอ"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 15l7-7 7 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="notebtn" id="noteBtn" title="แปะโพสต์อิทจดอิสระ">📝<span class="bl"> โพสต์อิท</span></button><button class="switch" id="switchBtn"><span class="bl">ไปที่โต๊ะ</span> ↓</button></div>
+<div class="brbtns"><button class="fsx" id="fsExit" title="ออกจากโหมดเต็มจอ" aria-label="ออกจากโหมดเต็มจอ"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 15l7-7 7 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>ออกเต็มจอ</span></button><button class="notebtn" id="noteBtn" title="แปะโพสต์อิทจดอิสระ">📝<span class="bl"> โพสต์อิท</span></button><button class="switch" id="switchBtn"><span class="bl">ไปที่โต๊ะ</span> ↓</button></div>
 <div class="tasks" id="tasks"><h3 id="taskHead"></h3><div id="taskList"></div><div class="tfoot"><span id="saveNote">💾 เซฟอัตโนมัติ</span><button id="savesBtn">💾 จัดการเซฟ</button></div></div>
 <svg class="vcur" id="vcur" viewBox="0 0 22 22" hidden><path d="M2 2 L2 18 L6.5 13.8 L9.6 20.4 L12.6 19 L9.6 12.6 L15.6 12.6 Z" fill="#fff" stroke="#3a3245" stroke-width="1.6" stroke-linejoin="round"/></svg>
 <script src="../lib/qrcode.js"></script>
@@ -38,42 +40,42 @@
 import { setupShell, shellMarkup } from '../lib/shell.js?v=4';
 window.__shellLib = { setupShell, shellMarkup };
 </script>
-<script defer src="js/01-core.js?v=d4"></script>
-<script defer src="js/02-windows.js?v=d4"></script>
-<script defer src="js/03-sheet.js?v=d4"></script>
-<script defer src="js/04-search.js?v=d4"></script>
-<script defer src="js/05-chat.js?v=d4"></script>
-<script defer src="js/06-food.js?v=d4"></script>
-<script defer src="js/07-desk.js?v=d4"></script>
-<script defer src="js/08-time-people.js?v=d4"></script>
-<script defer src="js/09-design.js?v=d4"></script>
-<script defer src="js/10-jobs-games.js?v=d4"></script>
-<script defer src="js/10b-games2.js?v=d4"></script>
-<script defer src="js/10c-games3.js?v=d4"></script>
-<script defer src="js/11-phone.js?v=d4"></script>
-<script defer src="js/12-calendar.js?v=d4"></script>
-<script defer src="js/13-bank.js?v=d4"></script>
-<script defer src="js/14-meetings-ai.js?v=d4"></script>
-<script defer src="js/15-work.js?v=d4"></script>
-<script defer src="js/16-paper-save.js?v=d4"></script>
-<script defer src="js/16b-mail-notes.js?v=d4"></script>
-<script defer src="js/16c-word.js?v=d4"></script>
-<script defer src="js/16d-hunger-calls.js?v=d4"></script>
-<script defer src="js/16e-print-pdf.js?v=d4"></script>
-<script defer src="js/16f-invoice-flow.js?v=d4"></script>
-<script defer src="js/18-careers.js?v=d4"></script>
-<script defer src="js/18b-cafe.js?v=d4"></script>
-<script defer src="js/18c-cs.js?v=d4"></script>
-<script defer src="js/18d-tax.js?v=d4"></script>
-<script defer src="js/18e-audit.js?v=d4"></script>
-<script defer src="js/18f-logi.js?v=d4"></script>
-<script defer src="js/19-life.js?v=d4"></script>
-<script defer src="js/19b-phone.js?v=d4"></script>
-<script defer src="js/19c-work.js?v=d4"></script>
-<script defer src="js/19d-guide.js?v=d4"></script>
-<script defer src="js/19e-csbank.js?v=d4"></script>
-<script defer src="js/19f-fullscreen.js?v=d4"></script>
-<script defer src="js/17-main.js?v=d4"></script>
+<script defer src="js/01-core.js?v=d9"></script>
+<script defer src="js/02-windows.js?v=d9"></script>
+<script defer src="js/03-sheet.js?v=d9"></script>
+<script defer src="js/04-search.js?v=d9"></script>
+<script defer src="js/05-chat.js?v=d9"></script>
+<script defer src="js/06-food.js?v=d9"></script>
+<script defer src="js/07-desk.js?v=d9"></script>
+<script defer src="js/08-time-people.js?v=d9"></script>
+<script defer src="js/09-design.js?v=d9"></script>
+<script defer src="js/10-jobs-games.js?v=d9"></script>
+<script defer src="js/10b-games2.js?v=d9"></script>
+<script defer src="js/10c-games3.js?v=d9"></script>
+<script defer src="js/11-phone.js?v=d9"></script>
+<script defer src="js/12-calendar.js?v=d9"></script>
+<script defer src="js/13-bank.js?v=d9"></script>
+<script defer src="js/14-meetings-ai.js?v=d9"></script>
+<script defer src="js/15-work.js?v=d9"></script>
+<script defer src="js/16-paper-save.js?v=d9"></script>
+<script defer src="js/16b-mail-notes.js?v=d9"></script>
+<script defer src="js/16c-word.js?v=d9"></script>
+<script defer src="js/16d-hunger-calls.js?v=d9"></script>
+<script defer src="js/16e-print-pdf.js?v=d9"></script>
+<script defer src="js/16f-invoice-flow.js?v=d9"></script>
+<script defer src="js/18-careers.js?v=d9"></script>
+<script defer src="js/18b-cafe.js?v=d9"></script>
+<script defer src="js/18c-cs.js?v=d9"></script>
+<script defer src="js/18d-tax.js?v=d9"></script>
+<script defer src="js/18e-audit.js?v=d9"></script>
+<script defer src="js/18f-logi.js?v=d9"></script>
+<script defer src="js/19-life.js?v=d9"></script>
+<script defer src="js/19b-phone.js?v=d9"></script>
+<script defer src="js/19c-work.js?v=d9"></script>
+<script defer src="js/19d-guide.js?v=d9"></script>
+<script defer src="js/19e-csbank.js?v=d9"></script>
+<script defer src="js/19f-fullscreen.js?v=d9"></script>
+<script defer src="js/17-main.js?v=d9"></script>
 <script src="../lib/home.js"></script>
 <script type="module" src="../lib/stats.js"></script>
 </body>

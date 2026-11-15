@@ -144,8 +144,28 @@ function folderIcon(fo) {
   const n = FILES.filter(f => f.loc === fo.id).length + FOLDERS.filter(x => x.loc === fo.id).length;
   return h('div', { class: 'icon', 'data-id': fo.id, 'data-folder': fo.id }, `<div class="fo" style="--c:${fo.c};--c2:${fo.c2 || '#f3b73a'}">${n ? `<i>${n}</i>` : ''}</div><span>${esc(fo.name)}</span>`);
 }
+function dedupeDesk() { // ไอคอนห้ามซ้อนกัน: ตัวที่ชนกันย้ายไปช่องว่างแรก
+  if (icons.clientWidth < 120 || icons.clientHeight < 120) return;
+  const ids = [...FOLDERS.filter(folderOnDesk).map(x => x.id), ...FILES.filter(f => f.loc === 'desk').map(f => f.id), ...APPS.filter(a => appOpen(a.id)).map(a => a.id)];
+  let cols, rows; // ไอคอนไม่พอดีช่อง → ย่อลงเป็นระดับๆ จนพอ
+  for (const z of [1, .85, .72, .6]) {
+    CELLW = Math.round(100 * z); CELLH = Math.round(104 * z); icons.style.setProperty('--iz', z);
+    cols = Math.max(1, Math.floor((icons.clientWidth - 20) / CELLW)); rows = Math.max(1, Math.floor((icons.clientHeight - 10) / CELLH));
+    if (cols * rows >= ids.length + 2) break;
+  }
+  const used = new Set([(cols - 1) + ',' + (rows - 1)]), k = p => p[0] + ',' + p[1]; // มุมขวาล่างเว้นไว้ให้ปุ่มพักเกม
+  for (const id of ids) { // ตัวที่มีตำแหน่งอยู่แล้วและอยู่ในกรอบ ได้ที่ก่อน
+    const p = deskPos[id]; if (p && p[0] >= 0 && p[1] >= 0 && p[0] < cols && p[1] < rows && !used.has(k(p))) used.add(k(p)); else delete deskPos[id];
+  }
+  for (const id of ids) if (!deskPos[id]) {
+    let q = null;
+    if (id.startsWith('app-')) { const i = APPS.findIndex(a => a.id === id); for (let n = i; n < i + 200 && !q; n++) { const c = cols - 1 - Math.floor(n / rows), r = n % rows; if (c >= 0 && !used.has(c + ',' + r)) q = [c, r]; } }
+    for (let c = 0; c < cols && !q; c++) for (let r = 0; r < rows && !q; r++) if (!used.has(c + ',' + r)) q = [c, r];
+    deskPos[id] = q || [0, 0]; used.add(k(deskPos[id]));
+  }
+}
 function renderDesktop() {
-  icons.innerHTML = '';
+  icons.innerHTML = ''; dedupeDesk();
   for (const fo of FOLDERS) { if (!folderOnDesk(fo)) continue; const el = folderIcon(fo); place(el, fo.id); icons.append(el); }
   for (const f of FILES) if (f.loc === 'desk') { const el = fileIcon(f); place(el, f.id); icons.append(el); }
   for (const a of APPS) { if (!appOpen(a.id)) continue; const el = h('div', { class: 'icon', 'data-id': a.id }, `<div class="ap" style="--c:${a.c}">${a.e}</div><span>${esc(a.n)}</span>`); place(el, a.id); icons.append(el); }

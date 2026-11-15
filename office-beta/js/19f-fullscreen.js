@@ -3,7 +3,7 @@
 // and a double-tap on touch screens counts as a double-click.
 const fsMode = { on: false, api: false };
 function fsFit() {
-  const small = fsMode.on && (innerWidth < 900 || innerHeight < 600); document.body.classList.toggle('fs-sm', small); CELLW = small ? 76 : 100; CELLH = small ? 80 : 104;
+  const small = fsMode.on && (innerWidth < 900 || innerHeight < 600); 
   const sr = screen.getBoundingClientRect();
   for (const W of wins.values()) {
     const el = W.el, w = Math.min(el.offsetWidth, sr.width - 8), hg = Math.min(el.offsetHeight, sr.height - 52);
@@ -15,6 +15,7 @@ function fsFit() {
 }
 let fsT = 0; const fsLater = () => { clearTimeout(fsT); fsT = setTimeout(fsFit, 120); };
 function fsSet(on, viaApi) {
+  if (window.__setScale) window.__setScale(on ? .49 : .7);
   if (fsMode.on === on) return; fsMode.on = on; document.body.classList.toggle('fs', on);
   $('tasks').classList.remove('fsopen'); renderTasks();
   const de = document.documentElement;
@@ -38,3 +39,11 @@ document.addEventListener('pointerup', e => {
   if (lastTap && now - lastTap.t < 380 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 28) { lastTap = null; t.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window })); }
   else lastTap = { t: now, x: e.clientX, y: e.clientY };
 }, true);
+
+// จัดไอคอนใหม่ทุกครั้งที่พื้นที่เดสก์ท็อปเปลี่ยนขนาด (กันซ้อนกัน)
+(function () {
+  let t = 0, lw = 0, lh = 0;
+  const go = () => { clearTimeout(t); t = setTimeout(() => { const w = icons.clientWidth, h = icons.clientHeight; if (w < 120 || h < 120 || (w === lw && h === lh)) return; lw = w; lh = h; renderDesktop(); }, 120); };
+  if (window.ResizeObserver) new ResizeObserver(go).observe(icons);
+  addEventListener('resize', go);
+})();
