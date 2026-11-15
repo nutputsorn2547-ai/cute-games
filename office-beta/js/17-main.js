@@ -4,7 +4,7 @@
 let currentView = 'screen';
 function setView(v) {
   currentView = v; $('views').classList.toggle('desk', v === 'desk');
-  $('switchBtn').textContent = v === 'desk' ? 'กลับไปที่จอคอม ↑' : 'ไปที่โต๊ะ ↓';
+  $('switchBtn').innerHTML = v === 'desk' ? '<span class="bl">กลับไปที่จอคอม</span> ↑' : '<span class="bl">ไปที่โต๊ะ</span> ↓';
   if (v === 'screen') { closeOverlay(); closePhone(); } hideCtx(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   S.noise(.2, 600, .05);
 }

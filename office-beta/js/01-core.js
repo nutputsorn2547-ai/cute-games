@@ -74,14 +74,15 @@ const TASKS = [
 ];
 const done = new Set();
 function renderTasks() {
-  $('taskHead').innerHTML = `<span>งาน · วันที่ ${unlockedDay}</span><span>${TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay && done.has(t.id)).length}/${TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay).length} ${$('tasks').classList.contains('min') ? '▸' : '▾'}</span>`;
+  $('taskHead').innerHTML = `<span>งาน · วันที่ ${unlockedDay}</span><span>${TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay && done.has(t.id)).length}/${TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay).length} ${tasksOpen() ? '▾' : '▸'}</span>`;
   const vis = TASKS.filter(t => (DAYPLAN.tasks[t.id] || 1) <= unlockedDay);
   const dueTxt = t => { if (!t.due || done.has(t.id)) return ''; const late = t.due < unlockedDay; return `<small class="due${late ? ' late' : ''}">${late ? 'เลยกำหนดแล้ว' : 'ภายใน'} ${new Date(2026, 0, t.due).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</small>`; };
   const li = list => list.map(t => `<li class="${done.has(t.id) ? 'done' : ''}">${esc(t.t)}${dueTxt(t)}</li>`).join('');
   const later = TASKS.length - vis.length;
   $('taskList').innerHTML = `<div class="tsec">💼 งานบริษัท</div><ol>${li(vis.filter(t => !t.me))}</ol>${vis.some(t => t.me) ? `<div class="tsec">🏠 เรื่องส่วนตัว</div><ol>${li(vis.filter(t => t.me))}</ol>` : ''}${later ? `<div class="tsoon">🔒 อีก ${later} งานจะเปิดในวันถัดๆ ไป</div>` : ''}`;
 }
-$('taskHead').addEventListener('click', () => { $('tasks').classList.toggle('min'); renderTasks(); });
+const tasksOpen = () => document.body.classList.contains('fs') ? $('tasks').classList.contains('fsopen') : !$('tasks').classList.contains('min');
+$('taskHead').addEventListener('click', () => { $('tasks').classList.toggle(document.body.classList.contains('fs') ? 'fsopen' : 'min'); renderTasks(); });
 function complete(id) {
   if (done.has(id)) return; done.add(id); renderTasks(); S.tone(660, 990, .12, .1, 'triangle'); S.vib([20, 40, 20]);
   if (done.size === TASKS.length) { S.big('เสร็จงานครบแล้ว เลิกงานได้!', 3, '#5a78e6'); S.jingle(); } else S.toast('เยี่ยม! ทำเสร็จไปอีกข้อ', 1.6);
@@ -124,7 +125,7 @@ FILES.push({ id: 'cv', name: 'เรซูเม่_ฉัน.design', type: 'ds
 const APPS = [{ id: 'app-design', n: 'แคนวาน้อย', e: '🎨', c: '#00c4cc' }, { id: 'app-jobs', n: 'จ๊อบน้อย หางาน', e: '💼', c: '#3b5bdb' }, { id: 'app-game', n: 'เกมน้อย', e: '🎮', c: '#ff8fab' }, { id: 'app-food', n: 'หิวแล้ว', e: '🍱', c: '#ff8a3d' }, { id: 'app-cal', n: 'ปฏิทินน้อย', e: '📅', c: '#e8669a' }, { id: 'app-bank', n: 'ธนาคารน้อย', e: '🏦', c: '#1f9d6b' }, { id: 'app-ai', n: 'น้องเอไอ', e: '🤖', c: '#7c5cff' }, { id: 'app-work', n: 'บัญชีน้อย', e: '📒', c: '#5a78e6' }, { id: 'app-mail', n: 'เมลน้อย', e: '📧', c: '#ff5a36' }, { id: 'app-word', n: 'เวิร์ดน้อย', e: '<b class="tx">Wo</b>', c: '#1f5fd6' }, { id: 'app-files', n: 'ไฟล์', e: '📁', c: '#f3b73a' }, { id: 'app-search', n: 'เสิร์ชน้อย', e: '🔎', c: '#7c9cff' }, { id: 'app-excel', n: 'ตารางน้อย', e: '<b class="tx">Ex</b>', c: '#0b5d34' }];
 APPS.sort((a, b) => (DAYPLAN.apps[a.id] || 1) - (DAYPLAN.apps[b.id] || 1)); // first-unlocked apps take the top slots
 deskPos.down = [3, 0];
-const CELLW = 100, CELLH = 104;
+let CELLW = 100, CELLH = 104;
 const folderOnDesk = fo => !fo.loc || fo.loc === 'desk';
 const foldPath = fo => { const p = []; for (let c = fo, n = 0; c && n < 20; c = FOLDERS.find(x => x.id === c.loc), n++) p.unshift(c.name); return p.join(' › '); };
 const folderInside = (fo, anc) => { for (let c = fo, n = 0; c && n < 20; c = FOLDERS.find(x => x.id === c.loc), n++) if (c.id === anc) return true; return false; };
@@ -151,7 +152,7 @@ function renderDesktop() {
   for (const w of wins.values()) if (w.folder) renderFolder(w);
   checkFiles();
 }
-function place(el, id) { if (!deskPos[id]) deskPos[id] = id.startsWith('app-') ? (() => { const i = APPS.findIndex(a => a.id === id), cols = Math.max(6, Math.floor((icons.clientWidth - 20) / CELLW)); return [cols - 1 - Math.floor(i / 5), i % 5]; })() : firstFree(); const [c, r] = deskPos[id]; el.style.left = (14 + c * CELLW) + 'px'; el.style.top = (12 + r * CELLH) + 'px'; }
+function place(el, id) { if (!deskPos[id]) deskPos[id] = id.startsWith('app-') ? (() => { const i = APPS.findIndex(a => a.id === id), cols = Math.max(6, Math.floor((icons.clientWidth - 20) / CELLW)), rw = Math.max(1, Math.min(5, Math.floor((icons.clientHeight - 10) / CELLH))); return [cols - 1 - Math.floor(i / rw), i % rw]; })() : firstFree(); const [c, r] = deskPos[id]; el.style.left = (14 + c * CELLW) + 'px'; el.style.top = (12 + r * CELLH) + 'px'; }
 function checkFiles() {
   if (FILES.filter(f => f.kind === 'rec').every(f => f.loc === 'acc')) complete('rec');
   if (FILES.filter(f => f.kind === 'pic').every(f => f.loc === 'pics')) complete('pic');

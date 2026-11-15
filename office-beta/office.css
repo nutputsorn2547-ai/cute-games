@@ -689,3 +689,44 @@ body:not([data-career="acct"]) .item[data-id="doc:inv"],body:not([data-career="a
 .csc .cb .trk b{font-size:17px;letter-spacing:.5px;color:#12408f}
 .csc .cb .trk .cpy,.csc .cfacts .cpy{font-size:14px;font-weight:600;padding:5px 12px;border:0;background:#3b82f6;color:#fff;border-radius:8px}
 .csc .cb .trk .cpy:hover,.csc .cfacts .cpy:hover{background:#2563eb}
+
+/* ---------- full-screen button + full-screen mode (phones/tablets) ---------- */
+.fsb{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:62px;height:26px;border:0;border-radius:0 0 14px 14px;background:#4a4958;display:grid;place-items:center;padding:0;cursor:pointer;z-index:6;box-shadow:0 4px 8px -4px #0006}
+.fsb:hover{background:#5d5c70}.fsb:active{transform:translateX(-50%) scale(.94)}
+.fsx{display:none;border:0;border-radius:12px;background:#4a4958;width:38px;height:32px;place-items:center;padding:0;cursor:pointer}
+body.fs .fsb{display:none}
+body.fs .fsx{display:grid}
+body.fs .view{height:100vh;height:100dvh}
+body.fs .views{height:100vh;height:100dvh}
+body.fs .monitor{left:0;top:38px;transform:none;width:100vw;height:calc(100vh - 38px);height:calc(100dvh - 38px);max-height:none;aspect-ratio:auto;padding:0;border-radius:0;box-shadow:none}
+body.fs .monitor::after{display:none}
+body.fs .screen{border-radius:0}
+body.fs .tasks{left:0;top:0;right:0;width:auto;height:38px;padding:5px 12px;transform:none;border-radius:0;max-height:none;overflow:hidden;z-index:40;box-shadow:0 4px 10px -6px #5a341c}
+body.fs .tasks h3{margin:0;height:28px;align-items:center;justify-content:flex-start;gap:14px;font-size:16px;white-space:nowrap}
+body.fs .tasks #taskList,body.fs .tasks .tfoot{display:none}
+body.fs .tasks.fsopen{height:auto;max-height:calc(100vh - 6px);max-height:calc(100dvh - 6px);overflow:auto;box-shadow:0 18px 28px -12px #000a}
+body.fs .tasks.fsopen #taskList{display:block;padding-bottom:4px;font-size:13px}
+body.fs .tasks.fsopen .tfoot{display:flex}
+body.fs .tasks.fsopen h3{position:sticky;top:0;background:#fff59a;z-index:1}
+body.fs .brbtns{top:3px;bottom:auto;right:8px;z-index:41;gap:6px}
+body.fs .brbtns button{padding:0 12px;height:32px;font-size:14px;border-radius:12px}
+body.fs .brbtns .fsx{padding:0}
+body.fs .chip{display:none!important}
+body.fs .hint{bottom:56px;font-size:13px;padding:6px 14px;max-width:92vw;opacity:.92}
+body.fs .desk{padding-top:38px;box-sizing:border-box}
+@media (max-width:640px){body.fs .bl{display:none}body.fs .brbtns button{padding:0 10px}}
+
+body.fs .home-btn{display:none!important}
+body.fs .tasks>:not(h3):not(#taskList):not(.tfoot){display:none}
+body.fs .tasks.fsopen>#careerChip{display:block}
+body.fs.fs-sm .icon{width:72px;font-size:11px;padding:3px 1px;gap:2px}
+body.fs.fs-sm .icon span{max-width:70px;line-height:1.15}
+body.fs.fs-sm .ap{width:40px;height:40px;font-size:22px;border-radius:12px;margin-top:2px}
+body.fs.fs-sm .ap .tx{font-size:19px}
+body.fs.fs-sm .fi{width:34px;height:42px;padding-bottom:4px;font-size:9px}
+body.fs.fs-sm .fo{width:44px;height:34px;margin-top:6px}
+body.fs.fs-sm .icon .th{width:50px;height:40px}
+body.fs.fs-sm .icon .th img{max-width:100%;max-height:100%}
+#pwrApp{touch-action:manipulation}
+body.fs.fs-sm #pwrApp{width:56px;bottom:46px;right:4px;font-size:10px}
+body.fs.fs-sm #pwrApp i{width:38px;height:38px;border-radius:11px}
