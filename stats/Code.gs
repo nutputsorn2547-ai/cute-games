@@ -4,6 +4,7 @@ const SHEET = 'log';
 const KEY = 'ตั้งรหัสของคุณตรงนี้'; // รหัสสำหรับเปิดดูหน้า stats — เปลี่ยนเป็นรหัสที่คุณตั้งเอง
 const INBOX = 'inbox'; // ข้อความ/ข้อเสนอแนะจากผู้เล่น + ที่ผู้สร้างตอบกลับ
 const CHATBOX = 'gamechat'; // แชทตรงจากในเกม (แยกจากกล่องข้อเสนอแนะหน้าแรก)
+const IMGBOX = 'gameimg'; // รูปที่ผู้เล่นส่งมาในแชท (เก็บเป็นก้อนข้อความ base64 ก้อนละ 45,000 ตัวอักษร)
 const HEAD2 = ['time', 'mid', 'vid', 'name', 'from', 'games', 'text'];
 const HEAD = ['time', 'kind', 'vid', 'sid', 'game', 'role', 'plat', 'phones', 'rtt_med', 'rtt_max', 'rtt_n', 'ver'];
 
@@ -39,6 +40,21 @@ function chatRows_(vid) {
   const rows = n ? s.getRange(last - n + 1, 1, n, HEAD2.length).getValues() : [];
   return vid ? rows.filter(r => r[2] === vid) : rows;
 }
+function img_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let s = ss.getSheetByName(IMGBOX);
+  if (!s) { s = ss.insertSheet(IMGBOX); s.appendRow(['mid', 'idx', 'chunk']); s.setFrozenRows(1); }
+  return s;
+}
+function saveImg_(mid, data) { // แบ่งรูปเป็นก้อนแล้วต่อท้ายชีต
+  const parts = []; for (let i = 0; i < data.length; i += 45000) parts.push([mid, parts.length, data.slice(i, i + 45000)]);
+  const s = img_(); s.getRange(s.getLastRow() + 1, 1, parts.length, 3).setValues(parts);
+}
+function loadImg_(mid) {
+  const s = img_(), last = s.getLastRow(), n = Math.min(Math.max(last - 1, 0), 1500);
+  const rows = n ? s.getRange(last - n + 1, 1, n, 3).getValues() : [];
+  return rows.filter(r => String(r[0]) === mid).sort((a, b) => a[1] - b[1]).map(r => r[2]).join('');
+}
 const json_ = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 
 function doPost(e) {
@@ -62,10 +78,13 @@ function doPost(e) {
     }
     if (row && row.chat) { // ผู้เล่นพิมพ์ในแชท "ผู้สร้างเกม" ในเกม
       const m = row.chat, vid = String(m.vid || '').slice(0, 40), name = String(m.name || '').trim().slice(0, 30), text = String(m.text || '').slice(0, 600);
-      if (vid.length < 8 || !name || !text) return ContentService.createTextOutput('bad');
+      const img = typeof m.img === 'string' && /^data:image\/jpeg;base64,/.test(m.img) ? m.img : '', mid = String(m.id || '').slice(0, 20);
+      if (vid.length < 8 || !name || (!text && !img) || (img && (!mid || img.length > 270000))) return ContentService.createTextOutput('bad');
       const c = CacheService.getScriptCache(), k = 'c_' + vid, cnt = +(c.get(k) || 0);
       if (cnt >= 40) return ContentService.createTextOutput('limit');
-      c.put(k, String(cnt + 1), 3600); addChat_('user', String(m.id || '').slice(0, 20), vid, name, text);
+      c.put(k, String(cnt + 1), 3600);
+      if (img) { saveImg_(mid, img); chat_().appendRow([Date.now(), mid, vid, name, 'user', JSON.stringify([{ g: 'img', n: mid, r: 0 }]), text]); }
+      else addChat_('user', mid, vid, name, text);
       return ContentService.createTextOutput('ok');
     }
     if (row && row.chatreply) {
@@ -93,6 +112,7 @@ function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.inbox !== undefined) return json_(p.inbox === KEY ? { rows: inboxRows_() } : { error: 'key' }); // ผู้สร้างอ่านกล่องข้อความทั้งหมด
   if (p.chatbox !== undefined) return json_(p.chatbox === KEY ? { rows: chatRows_() } : { error: 'key' });
+  if (p.chatimg !== undefined) return json_(p.chatimg === KEY ? { data: loadImg_(String(p.id || '').slice(0, 20)) } : { error: 'key' }); // ผู้สร้างเปิดดูรูปจากแชท
   if (p.chatmine !== undefined) { const v = String(p.chatmine).slice(0, 40); return json_({ rows: v.length >= 8 ? chatRows_(v) : [] }); }
   if (p.mine !== undefined) { const v = String(p.mine).slice(0, 40); return json_({ rows: v.length >= 8 ? inboxRows_(v) : [] }); } // ผู้เล่นอ่านข้อความของเครื่องตัวเอง (รหัสเครื่องเป็นความลับพอสมควร)
   if (e && e.parameter && e.parameter.bump !== undefined) { // ปุ่ม "บังคับรีเฟรช" ในหน้า stats (ส่งเป็น GET เพื่อให้เห็นผลลัพธ์ชัดเจน)

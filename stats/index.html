@@ -36,7 +36,7 @@ th{color:#7a6890;font-weight:600;position:sticky;top:0;background:#fff}
 .ib{display:grid;grid-template-columns:270px 1fr;gap:12px}@media(max-width:700px){.ib{grid-template-columns:1fr}}
 .ibl{max-height:480px;overflow:auto;display:flex;flex-direction:column;gap:6px}
 .ith{all:unset;display:block;cursor:pointer;background:#fff7f0;border:2px solid #3b2a4d14;border-radius:14px;padding:8px 10px;font-size:14px;line-height:1.35}
-.ith.on{border-color:var(--pink);background:#fff;color:var(--ink)}.ith b{font-weight:600}.ith small{display:block;color:#7a6890;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imgv{max-width:100%;max-height:420px;border-radius:10px;margin-top:6px;display:block;cursor:zoom-in}.imgb{all:unset;cursor:pointer;color:var(--pink);font-size:13px;text-decoration:underline;margin-top:4px;display:inline-block}.ith.on{border-color:var(--pink);background:#fff;color:var(--ink)}.ith b{font-weight:600}.ith small{display:block;color:#7a6890;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ith i{font-style:normal;background:#ff6b8b;color:#fff;border-radius:99px;font-size:12px;padding:0 8px;margin-left:6px}.ith i.ok{background:#1a9b6c}
 .ibc{background:#fff7f0;border-radius:16px;padding:12px;min-height:200px;display:flex;flex-direction:column;gap:8px}
 .ibt{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
@@ -305,7 +305,7 @@ const gbSeen = v => { try { return +localStorage.getItem('cg-gbseen-' + v) || 0;
 function gbThreads() {
   const m = new Map();
   for (const x of gb.rows) { const t = m.get(x.vid) || { vid: x.vid, name: '', msgs: [], last: 0 }; t.msgs.push(x); t.last = Math.max(t.last, x.t); if (x.from === 'user') t.name = x.name; m.set(x.vid, t); }
-  return [...m.values()].map(t => { t.msgs.sort((a, b) => a.t - b.t); const l = t.msgs[t.msgs.length - 1]; t.wait = l.from === 'user'; t.unread = t.msgs.some(x => x.from === 'user' && x.t > gbSeen(t.vid)); t.snip = l.text || ''; return t; })
+  return [...m.values()].map(t => { t.msgs.sort((a, b) => a.t - b.t); const l = t.msgs[t.msgs.length - 1]; t.wait = l.from === 'user'; t.unread = t.msgs.some(x => x.from === 'user' && x.t > gbSeen(t.vid)); t.snip = l.text || (l.games.some(g => g.g === 'img') ? '🖼️ (ส่งรูป)' : ''); return t; })
     .sort((a, b) => (b.wait - a.wait) || (b.last - a.last));
 }
 function gbRender() {
@@ -321,7 +321,7 @@ function gbRender() {
   const t = th.find(x => x.vid === gb.sel);
   if (!t) { if (!$('gbConv').querySelector('.ibr')) $('gbConv').innerHTML = '<span class="note">เลือกบทสนทนาทางซ้ายเพื่ออ่านและตอบกลับ</span>'; return; }
   const draft = $('gbText') ? $('gbText').value : '', keep = $('gbThr') ? $('gbThr').scrollTop : 1e9;
-  $('gbConv').innerHTML = `<b>${esc(t.name || 'ไม่ระบุชื่อ')} <span class="note">· เครื่อง ${esc(t.vid.slice(0, 4))}…</span></b><div class="ibt" id="gbThr">${t.msgs.map(x => `<div class="bb ${x.from === 'admin' ? 'a' : 'u'}">${x.games.length && x.from === 'user' ? `<div class="ch">${x.games.map(g => `<i>${esc(g.n)}${g.r ? ' ' + '★'.repeat(g.r) : ''}</i>`).join('')}</div>` : ''}${esc(x.text || (x.from === 'user' ? '' : ''))}<small>${x.from === 'admin' ? 'คุณตอบ' : esc(x.name)} · ${fmt(x.t)}</small></div>`).join('')}</div>
+  $('gbConv').innerHTML = `<b>${esc(t.name || 'ไม่ระบุชื่อ')} <span class="note">· เครื่อง ${esc(t.vid.slice(0, 4))}…</span></b><div class="ibt" id="gbThr">${t.msgs.map(x => `<div class="bb ${x.from === 'admin' ? 'a' : 'u'}">${x.games.some(g => g.g !== 'img') && x.from === 'user' ? `<div class="ch">${x.games.filter(g => g.g !== 'img').map(g => `<i>${esc(g.n)}${g.r ? ' ' + '★'.repeat(g.r) : ''}</i>`).join('')}</div>` : ''}${esc(x.text || '')}${(x.games.find(g => g.g === 'img')) ? `<div><button type="button" class="imgb" data-img="${esc(x.games.find(g => g.g === 'img').n)}">🖼️ ดูรูปที่ส่งมา</button><img class="imgv" hidden alt=""></div>` : ''}<small>${x.from === 'admin' ? 'คุณตอบ' : esc(x.name)} · ${fmt(x.t)}</small></div>`).join('')}</div>
     <div class="ibr"><textarea id="gbText" maxlength="800" placeholder="พิมพ์ตอบกลับ… (ผู้เล่นเห็นในแชท “ผู้สร้างเกม” ในเกมออฟฟิศ)">${esc(draft)}</textarea><div class="rr"><button id="gbSend">ส่งตอบ 📤</button><button data-q="ขอบคุณที่แจ้งนะคะ 🙏 จะรีบดูให้ค่ะ">ขอบคุณ</button><button data-q="รับทราบค่ะ จะนำไปปรับปรุงในเวอร์ชันถัดไปนะคะ ✨">จะปรับปรุง</button><button data-q="ขอบคุณที่ชอบเกมนะคะ 💕 ดีใจมากๆ ค่ะ">ดีใจที่ชอบ</button></div><span class="note" id="gbRes"></span></div>`;
   $('gbThr').scrollTop = keep;
 }
@@ -331,6 +331,11 @@ async function loadChatbox() {
 }
 $('chatPanel').addEventListener('click', async e => {
   const bt = e.target.closest('button'); if (!bt) return;
+  if (bt.dataset.img) {
+    const im = bt.parentElement.querySelector('.imgv'), key = ibKey(); if (!im.hidden) { im.hidden = true; return; } bt.textContent = 'กำลังโหลดรูป…';
+    try { const j = await (await fetch(ENDPOINT + '?chatimg=' + encodeURIComponent(key) + '&id=' + encodeURIComponent(bt.dataset.img) + '&_=' + Date.now())).json(); if (j.data) { im.src = j.data; im.hidden = false; bt.textContent = '🖼️ ซ่อนรูป'; } else bt.textContent = '⚠️ ไม่พบรูป (Deploy Code.gs ล่าสุดหรือยัง?)'; } catch (x) { bt.textContent = '⚠️ โหลดรูปไม่ได้: ' + x.message; }
+    return;
+  }
   if (bt.id === 'gbAll') { gb.filter = 'all'; return gbRender(); }
   if (bt.id === 'gbWait') { gb.filter = 'wait'; return gbRender(); }
   if (bt.dataset.v) { gb.sel = bt.dataset.v; try { localStorage.setItem('cg-gbseen-' + gb.sel, String(Date.now())); } catch (x) {} $('gbConv').innerHTML = ''; return gbRender(); }
