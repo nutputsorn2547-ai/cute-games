@@ -106,12 +106,12 @@ hmRoomHtml = function (st, jl) {
   const conf = hm.ask === 'sleep' ? `<div class="hmask in"><div class="hmbig">😴</div><h3>นอนพักเลยไหม?</h3><p>ข้ามไปเช้า 07:00 ของวันถัดไป · ความเครียดลด 80% (จาก ${st} เหลือ ~${Math.round(st * .2)})</p><p class="soft">ระหว่างข้ามวัน ค่าข้าว/บิลรายวันจะคิดตามปกติ · สัตว์เลี้ยงที่ยังไม่ได้กินจะเครียดนะ</p><div class="hmrow"><button class="btn2" data-hm="sleepok">💤 ยืนยันนอน</button><button class="btn2 ghost" data-hm="x2">ยังไม่นอน</button></div></div>` : '';
   return `<button class="hmx" data-hm="close">✕</button>
   <div class="hmhead"><div><h3>🏠 ${esc(home.name)}</h3><small>ค่าเช่า ${baht(home.rent)} บาท/เดือน · ห่างออฟฟิศ ${home.km} กม.</small></div><div class="hmst" data-lv="${st >= 80 ? 'bad' : st >= 50 ? 'mid' : 'ok'}">${st >= 80 ? '🤯' : st >= 50 ? '😣' : '🙂'} เครียด ${st}</div></div>
-  <div class="hmstage dec" id="hmStage" style="aspect-ratio:${R.w}/${R.h}">${hmSceneHtml()}${conf}</div>${hmBarHtml()}${hm.deco ? hmDecoHtml() : ''}
+  <div class="hmstage dec" id="hmStage">${hmSceneHtml()}${conf}</div>${hmBarHtml()}${hm.deco ? hmDecoHtml() : ''}
   <div class="hmrow"><button class="btn2${hm.deco ? '' : ' ghost'}" data-hm="deco">🛋️ ตกแต่ง${hm.deco ? ' (ปิด)' : ''}</button><button class="btn2" data-hm="chores">🧹 ทำงานบ้าน${hm.dirtyD >= 6 || hm.dirtyL >= 2 ? ' ⚠️' : ''}</button>${jl ? '' : `<button class="btn2 ghost" data-hm="toWork">🚌 ไปออฟฟิศ (${baht(hmFare())}฿)</button>`}</div>`;
 };
 const _hmRenderDeco = hmRender;
-hmRender = function () { _hmRenderDeco(); try { hmFit(); } catch (e) { console.error(e); } };
-function hmFit() { const st = $('hmStage'), sc = $('hmScene'); if (!st || !sc) return; hm.sc = st.clientWidth / hmRoom().w; sc.style.transform = `scale(${hm.sc})`; }
+hmRender = function () { _hmRenderDeco(); try { if (hmEl) { hmEl.classList.add('full'); const p = hmEl.firstElementChild; if (p) p.classList.toggle('room', hm.view === 'room' && hm.ask !== 'go'); } hmFit(); } catch (e) { console.error(e); } };
+function hmFit() { const st = $('hmStage'), sc = $('hmScene'); if (!st || !sc) return; const R = hmRoom(), w = st.clientWidth, h = st.clientHeight; hm.sc = Math.max(.05, Math.min(w / R.w, h / R.h)); sc.style.transform = `translate(${(w - R.w * hm.sc) / 2}px,${(h - R.h * hm.sc) / 2}px) scale(${hm.sc})`; }
 window.addEventListener('resize', () => { if (hm.on) hmFit(); });
 
 /* ---------- use ---------- */

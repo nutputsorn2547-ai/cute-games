@@ -890,3 +890,11 @@ body[data-career="jl"] [data-sl="boss"]{display:none}
 .hmcat img{height:54px;width:auto;max-width:76px;object-fit:contain}.hmcat small{font-size:11px;text-align:center;color:#5b4630}.hmcat.off{opacity:.45;cursor:default}
 
 .hmcol{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;font-size:13px}.hmcol span{min-width:62px}.hmdot{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px #d8c9b2;cursor:pointer;padding:0}.hmdot.on{box-shadow:0 0 0 3px #8a6df0}
+
+/* home room = full-page view (like going to the desk) */
+#hmRoom.full{background:radial-gradient(circle at 50% 30%,#fff8ef,#e9dcff 75%);padding:0;animation:hmin .35s ease-out}@keyframes hmin{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
+#hmRoom.full .hmp{box-shadow:none}
+#hmRoom.full .hmp.room{box-sizing:border-box;width:100%;height:100%;max-height:none;background:transparent;border-radius:0;padding:10px 14px 72px;display:flex;flex-direction:column;overflow:hidden}
+.hmp.room>*{flex:none}.hmp.room .hmstage.dec{flex:1 1 auto;min-height:0;aspect-ratio:auto;border:0;background:transparent;width:100%;border-radius:0}
+.hmp.room .hmhead{margin:0 44px 4px 0}.hmp.room .hmdeco{max-height:34vh;overflow:auto}
+@media(min-width:900px){#hmRoom.full .hmp.room{padding-left:24px;padding-right:24px}}
