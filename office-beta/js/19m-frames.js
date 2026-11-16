@@ -1,26 +1,30 @@
 'use strict';
 /* Office game (beta): photo frames on the work desk. A frame can show a real photo from the player's
    device/phone (file picker or camera), or any picture already in the game (รูปภาพ, search results, screenshots). */
-const dfr = { list: [{ id: 1, x: 54, y: 76, r: -4, file: null, cap: '' }], seq: 1, sel: null, els: {} };
+const dfr = { list: [{ id: 1, x: 54, y: 76, r: -4, file: null, cap: '', place: 'desk', pg: 0 }], seq: 1, sel: null, els: {} };
 const DFR_MAX = 4, DFR_SPOT = [[54, 76, -4], [36, 2, 3], [88, 74, 6], [30, 58, -2]];
 const dfrSrc = f => { const x = f && f.file ? FILES.find(i => i.id === f.file && i.loc !== 'trash') : null; return x ? x.src : ''; };
+const dfrHost = f => f.place === 'screen' ? $('screen') : f.place === 'nb' ? (typeof ov !== 'undefined' && ov && ov.state && ov.state.isNb && f.pg === nbPage ? ov.state.sheet : null) : desk;
+function dfrHtml(f) { const s = dfrSrc(f); return `<div class="dfr${s ? '' : ' empty'}"><i class="tape"></i>${s ? `<img src="${esc(s)}" alt="" draggable="false">` : '<span>➕<br>ใส่รูป</span>'}${f.cap ? `<b>${esc(f.cap)}</b>` : ''}</div>`; }
 function dfrBuild() {
   const keep = new Set(dfr.list.map(f => f.id));
   for (const k in dfr.els) if (!keep.has(+k)) { dfr.els[k].remove(); delete dfr.els[k]; }
   for (const f of dfr.list) {
-    let el = dfr.els[f.id];
+    f.place = f.place || 'desk'; const host = dfrHost(f); let el = dfr.els[f.id];
+    if (el && (!host || el.parentElement !== host)) { el.remove(); delete dfr.els[f.id]; el = null; }
+    if (!host) continue;
     if (!el) {
-      el = dfr.els[f.id] = deskItem('', f.x, f.y, f.r, '', 'deco'); el.classList.add('dfrit'); el.style.zIndex = 3;
-      el.addEventListener('pointerdown', e => dfrDown(e, f, el)); el.addEventListener('click', e => { if (el._moved) { el._moved = false; return; } dfrOpen(f.id); });
+      el = dfr.els[f.id] = h('div', { class: 'item dfrit ' + f.place, 'data-id': 'deco' }); host.append(el);
+      el.addEventListener('pointerdown', e => dfrDown(e, f, el)); el.addEventListener('click', e => { e.stopPropagation(); if (el._moved) { el._moved = false; return; } dfrOpen(f.id); });
+      el.addEventListener('dblclick', e => e.stopPropagation());
     }
-    const s = dfrSrc(f); el.style.left = f.x + '%'; el.style.top = f.y + '%'; el.style.transform = `rotate(${f.r}deg)`;
-    const h2 = `<div class="dfr${s ? '' : ' empty'}"><i class="tape"></i>${s ? `<img src="${esc(s)}" alt="" draggable="false">` : '<span>➕<br>ใส่รูป</span>'}${f.cap ? `<b>${esc(f.cap)}</b>` : ''}</div>`;
-    if (el._h !== h2) { el._h = h2; el.innerHTML = h2; }
+    el.style.left = f.x + '%'; el.style.top = f.y + '%'; el.style.transform = `rotate(${f.r}deg)`;
+    const h2 = dfrHtml(f); if (el._h !== h2) { el._h = h2; el.innerHTML = h2; }
   }
 }
 function dfrDown(e, f, el) {
-  const r = desk.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY, l = f.x, t = f.y; el._moved = false; el.setPointerCapture?.(e.pointerId);
-  const mv = ev => { const dx = ev.clientX - x0, dy = ev.clientY - y0; if (!el._moved && Math.hypot(dx, dy) < 8) return; el._moved = true; f.x = Math.max(0, Math.min(92, l + dx / r.width * 100)); f.y = Math.max(0, Math.min(84, t + dy / r.height * 100)); el.style.left = f.x + '%'; el.style.top = f.y + '%'; };
+  e.stopPropagation(); const r = el.parentElement.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY, l = f.x, t = f.y; el._moved = false; el.setPointerCapture?.(e.pointerId);
+  const mv = ev => { const dx = ev.clientX - x0, dy = ev.clientY - y0; if (!el._moved && Math.hypot(dx, dy) < 8) return; el._moved = true; f.x = Math.max(0, Math.min(f.place === 'desk' ? 92 : 86, l + dx / r.width * 100)); f.y = Math.max(0, Math.min(f.place === 'desk' ? 84 : 78, t + dy / r.height * 100)); el.style.left = f.x + '%'; el.style.top = f.y + '%'; };
   const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); if (el._moved) setTimeout(() => { el._moved = false; }, 60); };
   el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up);
 }
@@ -35,6 +39,7 @@ function dfrRender() {
   if (!dfrEl) return; const f = dfr.list.find(x => x.id === dfr.sel); if (!f) return dfrClose();
   const pics = dfrPics(), cur = dfrSrc(f);
   dfrEl.innerHTML = `<div class="dfp"><button class="dfx" data-d="x">✕</button><h3>🖼️ รูปบนโต๊ะ <small>(กรอบ ${dfr.list.indexOf(f) + 1}/${dfr.list.length})</small></h3>
+  <div class="dfrow dfpl"><span class="soft">ติดที่:</span>${[['desk', '🪑 โต๊ะ'], ['screen', '🖥️ หน้าจอคอม'], ['nb', `📓 สมุดโน้ต หน้า ${f.place === 'nb' ? f.pg + 1 : nbPage + 1}`]].map(([k, t]) => `<button class="btn2${f.place === k ? ' on' : ''}" data-d="place" data-p="${k}">${t}</button>`).join('')}</div>
   <div class="dfrow"><label class="btn2 pri dfup">📱 เลือกรูปจากเครื่อง / ถ่ายด้วยโทรศัพท์<input type="file" accept="image/*" hidden id="dfFile"></label><button class="btn2" data-d="search">🔎 หารูปในเสิร์ชน้อย</button></div>
   <p class="soft">หรือเลือกจากรูปที่มีในเกม (รูปภาพ · ดาวน์โหลดจากเสิร์ชน้อย · รูปแคป/ถ่ายด้วยแคปน้อย)</p>
   <div class="dfg">${pics.map(p => `<button class="${p.id === f.file ? 'on' : ''}" data-d="pick" data-id="${esc(p.id)}" title="${esc(p.name)}"><img src="${esc(p.src)}" alt="" loading="lazy"></button>`).join('') || '<span class="soft">ยังไม่มีรูปในเกม</span>'}</div>
@@ -47,10 +52,18 @@ function dfrClick(e) {
   const b = e.target.closest('[data-d]'); if (!b) return; const a = b.dataset.d, f = dfr.list.find(x => x.id === dfr.sel);
   if (a === 'x') dfrClose();
   else if (a === 'search') { dfrClose(); try { openSearch('img'); } catch (x) { openSearch(); } S.toast('🔎 ค้นรูป แล้วกดดาวน์โหลด จากนั้นกลับมาเลือกที่กรอบรูปบนโต๊ะนะ', 3.4); }
+  else if (a === 'place' && f) { dfrPlace(f, b.dataset.p); }
   else if (a === 'pick' && f) dfrSet(f, b.dataset.id);
   else if (a === 'clear' && f) { f.file = null; dfrBuild(); dfrRender(); }
-  else if (a === 'add') { const n = { id: ++dfr.seq, x: 40, y: 40, r: 0, file: null, cap: '' }, s = DFR_SPOT[dfr.list.length % DFR_SPOT.length]; [n.x, n.y, n.r] = s; dfr.list.push(n); dfr.sel = n.id; dfrBuild(); dfrRender(); }
+  else if (a === 'add') { const n = { id: ++dfr.seq, x: 40, y: 40, r: 0, file: null, cap: '', place: 'desk', pg: 0 }, s = DFR_SPOT[dfr.list.length % DFR_SPOT.length]; [n.x, n.y, n.r] = s; dfr.list.push(n); dfr.sel = n.id; dfrBuild(); dfrRender(); }
   else if (a === 'del' && f) { dfr.list.splice(dfr.list.indexOf(f), 1); dfr.sel = dfr.list[0].id; dfrBuild(); dfrRender(); }
+}
+function dfrPlace(f, p) {
+  f.place = p; f.r = p === 'desk' ? -4 : p === 'screen' ? 3 : -5;
+  if (p === 'desk') { f.x = 54; f.y = 76; } else if (p === 'screen') { f.x = 70; f.y = 10; } else { f.pg = nbPage; f.x = 55; f.y = 8; }
+  dfrBuild(); dfrRender(); S.tone(700, 1000, .08, .06, 'triangle');
+  S.toast(p === 'desk' ? '🪑 วางบนโต๊ะแล้ว' : p === 'screen' ? '🖥️ ติดที่หน้าจอคอมแล้ว (ลากย้ายได้ · คลิกเพื่อเปลี่ยนรูป)' : `📓 ติดที่สมุดโน้ต หน้า ${f.pg + 1} แล้ว (เปิดสมุด เลือก “พิมพ์/ย้ายรูป” เพื่อลากย้าย)`, 3);
+  if (p !== 'desk') { try { complete('n12stick'); } catch (e) {} }
 }
 function dfrChange(e) {
   if (e.target.id !== 'dfFile') return; const file = e.target.files && e.target.files[0], f = dfr.list.find(x => x.id === dfr.sel); if (!file || !f) return;
@@ -64,6 +77,8 @@ function dfrChange(e) {
   }; im.onerror = () => S.toast('เปิดรูปนี้ไม่ได้ ลองรูปอื่นนะ', 2); im.src = rd.result; };
   rd.readAsDataURL(file);
 }
+const _onb = openNotebook;
+openNotebook = function () { _onb(); try { dfrBuild(); const t = ov.querySelector('[data-tool="type"] small'); if (t) t.textContent = 'คีย์บอร์ด/ย้ายรูป'; } catch (e) { console.error(e); } };
 dfrBuild();
 const _snap9 = snapshot; snapshot = () => ({ ..._snap9(), dfr: { list: dfr.list, seq: dfr.seq } });
 const _load9 = loadGame;

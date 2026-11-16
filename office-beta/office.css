@@ -862,3 +862,6 @@ body[data-career="jl"] [data-sl="boss"]{display:none}
 .dfx{position:absolute;right:10px;top:8px;border:0;background:#0001;border-radius:99px;width:30px;height:30px;cursor:pointer}.dfrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.dfup{cursor:pointer}
 .dfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;max-height:200px;overflow:auto}.dfg button{border:3px solid transparent;border-radius:10px;padding:0;background:#fff;cursor:pointer;overflow:hidden;height:62px}.dfg button.on{border-color:#8a6df0}.dfg img{width:100%;height:100%;object-fit:cover;display:block}
 .dfp input#dfCap{font:inherit;border:2px solid #eadfcf;border-radius:10px;padding:5px 8px;margin-left:6px;width:200px;max-width:70%}
+.dfrit.screen{position:absolute;z-index:2;cursor:grab}.dfrit.screen .dfr{width:104px}.dfrit.nb{position:absolute;z-index:2;cursor:grab}.dfrit.nb .dfr{width:92px}.dfrit.nb .dfr img,.dfrit.screen .dfr img{height:78px}
+.dfpl .btn2.on{background:#8a6df0;color:#fff}#dfPanel{z-index:130}
+.dfrit.desk{z-index:3}
