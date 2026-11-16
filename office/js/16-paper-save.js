@@ -85,9 +85,9 @@ function livingCosts(d) {
   const dt = new Date(d);
   if (dt.getDate() === 15) addBill('📱', `ค่าโทรศัพท์ + เน็ต (${thDate(d, { month: 'short' })})`, 599, d + 5 * DAY);
   if (dt.getDay() === 0 && d > bank.start) {
-    const food = 7 * rint(150, 210), travel = Math.round(5 * bank.home.km * 12), amt = food + travel;
-    if (bank.bal >= amt) { bankTx(`🍜 ค่ากิน ${baht(food)} + ค่าเดินทาง ${baht(travel)} (สัปดาห์นี้)`, -amt); bank.notes.push(`🍜 ค่ากินค่าเดินทางสัปดาห์นี้ −${baht(amt)}`); }
-    else addBill('🍜', 'ค่ากินค่าเดินทางสัปดาห์นี้ (ติดร้านไว้)', amt, d + 3 * DAY);
+    const travel = Math.round(5 * bank.home.km * 12), amt = travel; // ค่ากินคิดรายวันแล้ว (50 บาท/วัน) เหลือเฉพาะค่าเดินทาง
+    if (bank.bal >= amt) { bankTx(`🚌 ค่าเดินทาง ${baht(travel)} (สัปดาห์นี้)`, -amt); bank.notes.push(`🚌 ค่าเดินทางสัปดาห์นี้ −${baht(amt)}`); }
+    else addBill('🚌', 'ค่าเดินทางสัปดาห์นี้ (ติดไว้)', amt, d + 3 * DAY);
   }
 }
 

@@ -1,0 +1,14 @@
+'use strict';
+/* Office game 1.2.0 : "try the new things" missions, added to every career. */
+const NEW_TASKS = [
+  { id: 'n12color', t: '✨ [ใหม่] คลิกขวาโฟลเดอร์บนจอ แล้วเลือก “🎨 เปลี่ยนสีโฟลเดอร์”' },
+  { id: 'n12food', t: '✨ [ใหม่] สั่งอาหาร แล้วคลิกกล่องอาหารบนโต๊ะ กด “แช่ตู้เย็น”' },
+  { id: 'n12par', t: '✨ [ใหม่] ตอบแชทพ่อหรือแม่ตอนที่ท่านทักมา (ไม่ตอบนานท่านจะน้อยใจ)' },
+  { id: 'n12maker', t: '✨ [ใหม่] ส่งข้อความหาผู้สร้างเกมในแชท “ผู้สร้างเกม” (ติชมหรือทักทายก็ได้)' },
+  { id: 'n12cam', t: '✨ [ใหม่] เปิดแอป 📸 “แคปน้อย” แคปหน้าจอหรือโต๊ะ ครอบ + วาด/เขียนบนรูป แล้วบันทึก' },
+  { id: 'n12frame', t: '✨ [ใหม่] กดปุ่ม 🖼️ “โพลารอยด์” (มุมขวาล่าง) ใส่รูปจริงจากเครื่อง หรือรูปจากเสิร์ชน้อย' },
+  { id: 'n12stick', t: '✨ [ใหม่] ติดรูปโพลารอยด์ไว้ที่หน้าจอคอม หรือในสมุดโน้ต (คลิกโพลารอยด์ → เลือก “ติดที่”)' },
+];
+const _ac12 = applyCareer;
+applyCareer = function (id) { _ac12(id); NEW_TASKS.forEach(t => { if (!TASKS.some(x => x.id === t.id)) TASKS.push(t); }); try { renderTasks(); } catch (e) {} };
+if (!TASKS.some(x => x.id === 'n12cam')) { NEW_TASKS.forEach(t => TASKS.push(t)); try { renderTasks(); } catch (e) {} }
