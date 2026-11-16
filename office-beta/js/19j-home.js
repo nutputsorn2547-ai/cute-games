@@ -48,7 +48,7 @@ function hmOpen(view) {
     hmEl.addEventListener('click', hmClick);
     hmEl.addEventListener('pointerdown', hmDown);
   }
-  hm.on = true; hmRender();
+  hm.on = true; hmRender(); if (hm.view === 'room' && hmAtHome() && hm.ask !== 'go') { try { complete('n12home'); } catch (x) {} }
 }
 function hmClose() { hm.on = false; hm.ask = null; if (hmEl) { hmEl.remove(); hmEl = null; } hmChip(); }
 function hmChip() {
@@ -125,11 +125,11 @@ function hmClick(e) {
   if (a === 'toWork') { if (!bankPay(hmFare(), '🚌 ค่ารถไปออฟฟิศ')) return; timeOff += hmMins() * 60000; lastMin = ''; enforceDate(); hm.at = false; hmClose(); S.toast('🚌 ถึงออฟฟิศแล้ว', 2); return; }
   if (a === 'sleepok') { hmSleep(); return; }
   if (a === 'cl') { const g = hm.g; if (g && g.ph === 'load' && i === g.n) { g.n++; S.tone(700 + g.n * 60, 900, .04, .05); if (g.n >= g.N) { g.ph = 'wash'; hmRender(); setTimeout(() => { if (hm.g === g) { g.ph = 'hang'; g.n = 0; S.tone(900, 1300, .1, .06); hmRender(); } }, 2600); return; } hmRender(); } return; }
-  if (a === 'hang') { const g = hm.g; if (g && g.ph === 'hang' && i === g.n) { g.n++; S.tone(800 + g.n * 70, 1000, .04, .05); if (g.n >= g.N) { hm.dirtyL = Math.max(0, hm.dirtyL - 1); hm.g = null; hmStress(-3); S.toast('🧺 ซักผ้าเสร็จ เครียด −3', 2); hm.msg = 'ซักผ้าเสร็จแล้ว ✨'; } hmRender(); } return; }
-  if (a === 'dish') { const g = hm.g; if (!g || g.k !== 'dishes' || g.d[i] >= 3) return; g.d[i]++; S.noise(.05, 3000, .04, 'highpass'); if (g.d.every(v => v >= 3)) { hm.dirtyD = Math.max(0, hm.dirtyD - g.d.length); hm.g = null; hmStress(-2); S.toast('🍽️ ล้างจานเสร็จ เครียด −2', 2); hm.msg = 'จานสะอาดเอี่ยม ✨'; } hmRender(); return; }
+  if (a === 'hang') { const g = hm.g; if (g && g.ph === 'hang' && i === g.n) { g.n++; S.tone(800 + g.n * 70, 1000, .04, .05); if (g.n >= g.N) { hm.dirtyL = Math.max(0, hm.dirtyL - 1); hm.g = null; hmStress(-3); S.toast('🧺 ซักผ้าเสร็จ เครียด −3', 2); hm.msg = 'ซักผ้าเสร็จแล้ว ✨'; try { complete('n12chore'); } catch (x) {} } hmRender(); } return; }
+  if (a === 'dish') { const g = hm.g; if (!g || g.k !== 'dishes' || g.d[i] >= 3) return; g.d[i]++; S.noise(.05, 3000, .04, 'highpass'); if (g.d.every(v => v >= 3)) { hm.dirtyD = Math.max(0, hm.dirtyD - g.d.length); hm.g = null; hmStress(-2); S.toast('🍽️ ล้างจานเสร็จ เครียด −2', 2); hm.msg = 'จานสะอาดเอี่ยม ✨'; try { complete('n12chore'); } catch (x) {} } hmRender(); return; }
   if (a === 'adopt') { const p = HM_PETS[k]; if (!bankPay(p.adopt, `${p.e} รับเลี้ยง${p.n}`)) return; hm.pets[k] = { have: true, food: 5, fed: hmToday() }; hm.msg = `ยินดีต้อนรับ ${p.n} ${p.e} (แถมอาหาร 5 มื้อ)`; S.jingle?.(); hmRender(); return; }
   if (a === 'buy') { const p = HM_PETS[k]; if (!bankPay(p.food, `🛒 อาหาร${p.n} 10 มื้อ`)) return; hm.pets[k].food += 10; hm.msg = `สั่งอาหาร${p.n}แล้ว +10 มื้อ`; hmRender(); return; }
-  if (a === 'feed') { const s = hm.pets[k]; if (!s || s.food <= 0 || s.fed >= hmToday()) return; s.food--; s.fed = hmToday(); hmStress(-1); S.tone(600, 900, .08, .06); hm.msg = `${HM_PETS[k].n}กินอาหารแล้ว ${HM_PETS[k].e}${s.food === 0 ? ' · อาหารหมดแล้ว ต้องสั่งซื้อ!' : ''}`; hmRender(); return; }
+  if (a === 'feed') { const s = hm.pets[k]; if (!s || s.food <= 0 || s.fed >= hmToday()) return; s.food--; s.fed = hmToday(); hmStress(-1); S.tone(600, 900, .08, .06); try { complete('n12chore'); } catch (x) {} hm.msg = `${HM_PETS[k].n}กินอาหารแล้ว ${HM_PETS[k].e}${s.food === 0 ? ' · อาหารหมดแล้ว ต้องสั่งซื้อ!' : ''}`; hmRender(); return; }
 }
 function hmFurn(id) {
   if (id === 'bed') { hm.ask = 'sleep'; hmRender(); return; }
@@ -155,6 +155,7 @@ function hmDown(e) {
 
 /* ---------- sleep ---------- */
 function hmSleep() {
+  try { complete('n12sleep'); } catch (x) {}
   hm.ask = null; const v = h('div', { id: 'hmSleep' }, '<div>😴<br>กำลังนอนหลับ...<br><small>Zzz</small></div>'); document.body.append(v);
   setTimeout(() => {
     const g = gnow(), t = new Date(g); t.setHours(7, 0, 0, 0); if (g.getHours() >= 5) t.setDate(t.getDate() + 1);

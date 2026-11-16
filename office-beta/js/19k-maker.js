@@ -23,6 +23,7 @@ PERSONAL.maker = (c, m) => {
   mkSend(m.text, name, c);
 };
 async function mkSend(text, name, c) {
+  try { complete('n12maker'); } catch (x) {}
   const L = await mkLoad(); if (!L) return; const now = Date.now();
   const id = 'o' + now.toString(36) + Math.random().toString(36).slice(2, 5);
   try { await fetch(L.ENDPOINT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ chat: { id, vid: L.VID, name, text: String(text).slice(0, 600) } }) }); }

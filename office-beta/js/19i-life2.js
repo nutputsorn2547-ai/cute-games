@@ -24,7 +24,7 @@ iconMenu = function (id, x, y) { fcId = id; try { _iconMenu(id, x, y); } finally
 function fcPick(fo, x, y) {
   _showCtx(x, y, [{ t: 'x', f() {} }]); if (!ctx) return;
   ctx.innerHTML = `<div class="fcp"><b>🎨 สีโฟลเดอร์ “${esc(fo.name)}”</b><div class="fcg">${FCOL.map(([c, c2], i) => `<button data-fc="${i}" title="สี ${i + 1}" style="--c:${c};--c2:${c2}" class="${fo.c === c ? 'on' : ''}"></button>`).join('')}</div></div>`;
-  ctx.addEventListener('click', e => { const b = e.target.closest('[data-fc]'); if (!b) return; const [c, c2] = FCOL[+b.dataset.fc]; fo.c = c; fo.c2 = c2; hideCtx(); renderDesktop(); refreshOpenFolders(); S.tone(700, 1000, .07, .06, 'triangle'); });
+  ctx.addEventListener('click', e => { const b = e.target.closest('[data-fc]'); if (!b) return; const [c, c2] = FCOL[+b.dataset.fc]; fo.c = c; fo.c2 = c2; try { complete('n12color'); } catch (x) {} hideCtx(); renderDesktop(); refreshOpenFolders(); S.tone(700, 1000, .07, .06, 'triangle'); });
 }
 function refreshOpenFolders() { try { for (const [id, W] of wins) if (W.folder) renderFolder?.(W); } catch (e) {} }
 
@@ -87,7 +87,7 @@ function fdEat(it) { lx.items.splice(lx.items.indexOf(it), 1); _eat(foodGain(it.
 function fdBin(it) { lx.items.splice(lx.items.indexOf(it), 1); S.noise(.15, 900, .05); fdSync(); }
 function fdStore(it) {
   if (fdFr().length >= FRIDGE_MAX) { S.toast('ตู้เย็นเต็มแล้ว (9 ช่อง) กินหรือทิ้งก่อนนะ', 2); return; }
-  it.loc = 'fridge'; it.exp = it.buy + it.life * DAY; S.tone(700, 500, .12, .06); S.toast(`❄️ แช่ ${it.n} ในตู้เย็นแล้ว อยู่ได้ถึง ${thDate(it.exp, { day: 'numeric', month: 'short' })} เวลา ${p2(new Date(it.exp).getHours())}:${p2(new Date(it.exp).getMinutes())}`, 2.6); fdSync();
+  it.loc = 'fridge'; it.exp = it.buy + it.life * DAY; try { complete('n12food'); } catch (x) {} S.tone(700, 500, .12, .06); S.toast(`❄️ แช่ ${it.n} ในตู้เย็นแล้ว อยู่ได้ถึง ${thDate(it.exp, { day: 'numeric', month: 'short' })} เวลา ${p2(new Date(it.exp).getHours())}:${p2(new Date(it.exp).getMinutes())}`, 2.6); fdSync();
 }
 function fdSync() { fdBuildDesk(); fdRender(); }
 function fdReceive(list) {
@@ -170,6 +170,7 @@ function parTick() {
   }
 }
 function parAnswer(c, m, st) {
+  try { complete('n12par'); } catch (x) {}
   const p = st.pend, t = m.text || '', id = c.id, mom = id === 'mom';
   if (!t) { say(c, id, mom ? 'ลูกพิมพ์ตอบแม่หน่อยนะ 😊' : 'พิมพ์ตอบพ่อหน่อยครับลูก', 1500); return; }
   if (p.kind === 'link') {
