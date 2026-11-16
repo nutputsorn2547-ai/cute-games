@@ -3,6 +3,7 @@
 const SHEET = 'log';
 const KEY = 'ตั้งรหัสของคุณตรงนี้'; // รหัสสำหรับเปิดดูหน้า stats — เปลี่ยนเป็นรหัสที่คุณตั้งเอง
 const INBOX = 'inbox'; // ข้อความ/ข้อเสนอแนะจากผู้เล่น + ที่ผู้สร้างตอบกลับ
+const CHATBOX = 'gamechat'; // แชทตรงจากในเกม (แยกจากกล่องข้อเสนอแนะหน้าแรก)
 const HEAD2 = ['time', 'mid', 'vid', 'name', 'from', 'games', 'text'];
 const HEAD = ['time', 'kind', 'vid', 'sid', 'game', 'role', 'plat', 'phones', 'rtt_med', 'rtt_max', 'rtt_n', 'ver'];
 
@@ -23,6 +24,18 @@ function inbox_() {
 function addMsg_(from, mid, vid, name, games, text) { inbox_().appendRow([Date.now(), mid, vid, name, from, JSON.stringify(games || []), text]); }
 function inboxRows_(vid) { // ทุกแถวล่าสุด (หรือเฉพาะเครื่องที่ระบุ)
   const s = inbox_(), last = s.getLastRow(), n = Math.min(Math.max(last - 1, 0), 3000);
+  const rows = n ? s.getRange(last - n + 1, 1, n, HEAD2.length).getValues() : [];
+  return vid ? rows.filter(r => r[2] === vid) : rows;
+}
+function chat_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let s = ss.getSheetByName(CHATBOX);
+  if (!s) { s = ss.insertSheet(CHATBOX); s.appendRow(HEAD2); s.setFrozenRows(1); }
+  return s;
+}
+function addChat_(from, mid, vid, name, text) { chat_().appendRow([Date.now(), mid, vid, name, from, '[]', text]); }
+function chatRows_(vid) {
+  const s = chat_(), last = s.getLastRow(), n = Math.min(Math.max(last - 1, 0), 3000);
   const rows = n ? s.getRange(last - n + 1, 1, n, HEAD2.length).getValues() : [];
   return vid ? rows.filter(r => r[2] === vid) : rows;
 }
@@ -47,6 +60,21 @@ function doPost(e) {
       c.put(k, String(cnt + 1), 3600); addMsg_('user', String(m.id || '').slice(0, 20), vid, name, games, text);
       return ContentService.createTextOutput('ok');
     }
+    if (row && row.chat) { // ผู้เล่นพิมพ์ในแชท "ผู้สร้างเกม" ในเกม
+      const m = row.chat, vid = String(m.vid || '').slice(0, 40), name = String(m.name || '').trim().slice(0, 30), text = String(m.text || '').slice(0, 600);
+      if (vid.length < 8 || !name || !text) return ContentService.createTextOutput('bad');
+      const c = CacheService.getScriptCache(), k = 'c_' + vid, cnt = +(c.get(k) || 0);
+      if (cnt >= 40) return ContentService.createTextOutput('limit');
+      c.put(k, String(cnt + 1), 3600); addChat_('user', String(m.id || '').slice(0, 20), vid, name, text);
+      return ContentService.createTextOutput('ok');
+    }
+    if (row && row.chatreply) {
+      const r = row.chatreply; if (r.key !== KEY) return ContentService.createTextOutput('forbidden');
+      const vid = String(r.vid || '').slice(0, 40), text = String(r.text || '').slice(0, 800);
+      if (vid.length < 8 || !text) return ContentService.createTextOutput('bad');
+      addChat_('admin', String(r.id || '').slice(0, 20), vid, 'ผู้สร้าง', text);
+      return ContentService.createTextOutput('ok');
+    }
     if (row && row.reply) { // ผู้สร้างตอบกลับจากหน้า /stats/
       const r = row.reply; if (r.key !== KEY) return ContentService.createTextOutput('forbidden');
       const vid = String(r.vid || '').slice(0, 40), text = String(r.text || '').slice(0, 800);
@@ -64,6 +92,8 @@ function doPost(e) {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.inbox !== undefined) return json_(p.inbox === KEY ? { rows: inboxRows_() } : { error: 'key' }); // ผู้สร้างอ่านกล่องข้อความทั้งหมด
+  if (p.chatbox !== undefined) return json_(p.chatbox === KEY ? { rows: chatRows_() } : { error: 'key' });
+  if (p.chatmine !== undefined) { const v = String(p.chatmine).slice(0, 40); return json_({ rows: v.length >= 8 ? chatRows_(v) : [] }); }
   if (p.mine !== undefined) { const v = String(p.mine).slice(0, 40); return json_({ rows: v.length >= 8 ? inboxRows_(v) : [] }); } // ผู้เล่นอ่านข้อความของเครื่องตัวเอง (รหัสเครื่องเป็นความลับพอสมควร)
   if (e && e.parameter && e.parameter.bump !== undefined) { // ปุ่ม "บังคับรีเฟรช" ในหน้า stats (ส่งเป็น GET เพื่อให้เห็นผลลัพธ์ชัดเจน)
     if (e.parameter.bump !== KEY) return ContentService.createTextOutput(JSON.stringify({ error: 'key' })).setMimeType(ContentService.MimeType.JSON);

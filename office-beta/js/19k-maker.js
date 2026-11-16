@@ -1,8 +1,8 @@
 'use strict';
 /* Office game (beta): direct chat with the game maker. Messages go to the Apps Script inbox
-   (same one as the landing-page feedback box); replies written on /stats/ come back here. */
+   (its own sheet 'gamechat', separate from the landing-page feedback box); replies written on /stats/ come back here. */
 PEOPLE.maker = { n: 'ผู้สร้างเกม', c: '#cdb8ff', e: '🧑‍💻' };
-const MK_KEY = 'cg-mk-seen', MK_GAME = { g: 'office', n: 'เกมออฟฟิศจำลอง', r: 0 };
+const MK_KEY = 'cg-mk-seen', MK_GAME = 0;
 let mkLib = null, mkLast = 0, mkAskName = false;
 const mkStore = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
 const mkLoad = () => mkLib || (mkLib = import('../../lib/stats.js').catch(() => null));
@@ -25,13 +25,13 @@ PERSONAL.maker = (c, m) => {
 async function mkSend(text, name, c) {
   const L = await mkLoad(); if (!L) return; const now = Date.now();
   const id = 'o' + now.toString(36) + Math.random().toString(36).slice(2, 5);
-  try { await fetch(L.ENDPOINT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ msg: { id, vid: L.VID, name, games: [MK_GAME], text: String(text).slice(0, 600) } }) }); }
+  try { await fetch(L.ENDPOINT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ chat: { id, vid: L.VID, name, text: String(text).slice(0, 600) } }) }); }
   catch (e) { if (c) { c.msgs.push({ from: 'maker', text: '⚠️ ส่งไม่สำเร็จ เช็กอินเทอร์เน็ตแล้วลองใหม่นะ', likes: [] }); renderChat(); } }
 }
 async function mkPoll() {
   const L = await mkLoad(); if (!L || !mkStore.get('cg-name')) return;
   try {
-    const j = await (await fetch(L.ENDPOINT + '?mine=' + encodeURIComponent(L.VID) + '&_=' + Date.now())).json(); if (!j.rows) return;
+    const j = await (await fetch(L.ENDPOINT + '?chatmine=' + encodeURIComponent(L.VID) + '&_=' + Date.now())).json(); if (!j.rows) return;
     let seen; try { seen = new Set(JSON.parse(mkStore.get(MK_KEY) || '[]')); } catch (e) { seen = new Set(); }
     const fresh = j.rows.filter(r => r[4] === 'admin' && r[2] === L.VID && !seen.has(r[0] + '|' + r[1]));
     if (!fresh.length) return; mkEnsure(); const c = chatById('maker');
