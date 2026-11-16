@@ -43,7 +43,7 @@ function doPost(e) {
       const games = (Array.isArray(m.games) ? m.games : []).slice(0, 20).map(g => ({ g: String(g.g || '').slice(0, 30), n: String(g.n || g.g || '').slice(0, 40), r: Math.max(0, Math.min(5, +g.r || 0)) }));
       if (vid.length < 8 || !name || !games.length || (!text && !games.some(g => g.r))) return ContentService.createTextOutput('bad');
       const c = CacheService.getScriptCache(), k = 'm_' + vid, cnt = +(c.get(k) || 0);
-      if (cnt >= 6) return ContentService.createTextOutput('limit'); // กันสแปม: เครื่องละ 6 ข้อความ/ชั่วโมง
+      if (cnt >= 30) return ContentService.createTextOutput('limit'); // กันสแปม: เครื่องละ 30 ข้อความ/ชั่วโมง
       c.put(k, String(cnt + 1), 3600); addMsg_('user', String(m.id || '').slice(0, 20), vid, name, games, text);
       return ContentService.createTextOutput('ok');
     }
