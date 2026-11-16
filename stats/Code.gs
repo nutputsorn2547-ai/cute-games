@@ -87,6 +87,12 @@ function doPost(e) {
       else addChat_('user', mid, vid, name, text);
       return ContentService.createTextOutput('ok');
     }
+    if (row && row.chatread) { // ผู้สร้างเปิดอ่านเธรดนี้แล้ว (ให้ผู้เล่นเห็น "อ่านแล้ว")
+      const r = row.chatread; if (r.key !== KEY) return ContentService.createTextOutput('forbidden');
+      const vid = String(r.vid || '').slice(0, 40); if (vid.length < 8) return ContentService.createTextOutput('bad');
+      PropertiesService.getScriptProperties().setProperty('cr_' + vid, String(Date.now()));
+      return ContentService.createTextOutput('ok');
+    }
     if (row && row.chatreply) {
       const r = row.chatreply; if (r.key !== KEY) return ContentService.createTextOutput('forbidden');
       const vid = String(r.vid || '').slice(0, 40), text = String(r.text || '').slice(0, 800);
@@ -113,7 +119,7 @@ function doGet(e) {
   if (p.inbox !== undefined) return json_(p.inbox === KEY ? { rows: inboxRows_() } : { error: 'key' }); // ผู้สร้างอ่านกล่องข้อความทั้งหมด
   if (p.chatbox !== undefined) return json_(p.chatbox === KEY ? { rows: chatRows_() } : { error: 'key' });
   if (p.chatimg !== undefined) return json_(p.chatimg === KEY ? { data: loadImg_(String(p.id || '').slice(0, 20)) } : { error: 'key' }); // ผู้สร้างเปิดดูรูปจากแชท
-  if (p.chatmine !== undefined) { const v = String(p.chatmine).slice(0, 40); return json_({ rows: v.length >= 8 ? chatRows_(v) : [] }); }
+  if (p.chatmine !== undefined) { const v = String(p.chatmine).slice(0, 40); return json_(v.length >= 8 ? { rows: chatRows_(v), read: +(PropertiesService.getScriptProperties().getProperty('cr_' + v) || 0) } : { rows: [], read: 0 }); }
   if (p.mine !== undefined) { const v = String(p.mine).slice(0, 40); return json_({ rows: v.length >= 8 ? inboxRows_(v) : [] }); } // ผู้เล่นอ่านข้อความของเครื่องตัวเอง (รหัสเครื่องเป็นความลับพอสมควร)
   if (e && e.parameter && e.parameter.bump !== undefined) { // ปุ่ม "บังคับรีเฟรช" ในหน้า stats (ส่งเป็น GET เพื่อให้เห็นผลลัพธ์ชัดเจน)
     if (e.parameter.bump !== KEY) return ContentService.createTextOutput(JSON.stringify({ error: 'key' })).setMimeType(ContentService.MimeType.JSON);

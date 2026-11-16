@@ -872,3 +872,4 @@ body[data-career="jl"] [data-sl="boss"]{display:none}
 .dfside button:not(.dfx){border:0;border-radius:12px;padding:8px 10px;background:#0000000d;font:inherit;font-size:13px;cursor:pointer;text-align:left}.dfside button.on{background:#8a6df0;color:#fff}.dfside button.pri{background:#ff6b8b;color:#fff;text-align:center}.dfside button.rm{color:#c0392b}
 .dfside input{font:inherit;border:2px solid #eadfcf;border-radius:10px;padding:5px 8px;width:100%;box-sizing:border-box}.dfside .soft{margin:4px 0 0;font-size:11px;color:var(--soft)}
 @media(max-width:720px){.dfv{flex-direction:column;overflow:auto}.dfside{width:min(320px,90vw)}.dfr.big{width:min(300px,80vw)}}
+.mks{display:block;font-size:10.5px;color:#8b7f99;margin:2px 4px 0;text-align:right;font-family:var(--font)}.mks.rd{color:#2f9d5a}.mks.bad{color:#d33;cursor:pointer;text-decoration:underline}

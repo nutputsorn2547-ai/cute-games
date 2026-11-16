@@ -308,6 +308,11 @@ function gbThreads() {
   return [...m.values()].map(t => { t.msgs.sort((a, b) => a.t - b.t); const l = t.msgs[t.msgs.length - 1]; t.wait = l.from === 'user'; t.unread = t.msgs.some(x => x.from === 'user' && x.t > gbSeen(t.vid)); t.snip = l.text || (l.games.some(g => g.g === 'img') ? '🖼️ (ส่งรูป)' : ''); return t; })
     .sort((a, b) => (b.wait - a.wait) || (b.last - a.last));
 }
+function gbMarkRead(t) { // บอกผู้เล่นว่า "อ่านแล้ว" เมื่อเปิดเธรดที่มีข้อความใหม่จากผู้เล่น
+  const lastU = Math.max(0, ...t.msgs.filter(x => x.from === 'user').map(x => x.t)); if (!lastU) return; let done = 0; try { done = +localStorage.getItem('cg-gbrd-' + t.vid) || 0; } catch (e) {}
+  if (lastU <= done || !ibKey()) return; try { localStorage.setItem('cg-gbrd-' + t.vid, String(lastU)); } catch (e) {}
+  fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ chatread: { key: ibKey(), vid: t.vid } }) }).catch(() => {});
+}
 function gbRender() {
   const th = gbThreads(), waiting = th.filter(t => t.wait).length, unread = th.filter(t => t.unread && t.wait).length;
   $('gbBadge').textContent = th.length ? `· ${th.length} เครื่อง · รอตอบ ${waiting}${unread ? ' · ใหม่ ' + unread : ''}` : '· ยังไม่มีข้อความ';
@@ -320,6 +325,7 @@ function gbRender() {
   $('gbList').innerHTML = list.map(t => `<button class="ith ${t.vid === gb.sel ? 'on' : ''}" data-v="${esc(t.vid)}"><b>${esc(t.name || 'ไม่ระบุชื่อ')}</b> <span class="note">· เครื่อง ${esc(t.vid.slice(0, 4))}</span>${t.wait ? `<i>${t.unread ? 'ใหม่' : 'รอตอบ'}</i>` : '<i class="ok">ตอบแล้ว</i>'}<small>${esc(t.snip)}</small><small>${fmt(t.last)}</small></button>`).join('') || '<span class="note">ไม่มีรายการ</span>';
   const t = th.find(x => x.vid === gb.sel);
   if (!t) { if (!$('gbConv').querySelector('.ibr')) $('gbConv').innerHTML = '<span class="note">เลือกบทสนทนาทางซ้ายเพื่ออ่านและตอบกลับ</span>'; return; }
+  gbMarkRead(t);
   const draft = $('gbText') ? $('gbText').value : '', keep = $('gbThr') ? $('gbThr').scrollTop : 1e9;
   $('gbConv').innerHTML = `<b>${esc(t.name || 'ไม่ระบุชื่อ')} <span class="note">· เครื่อง ${esc(t.vid.slice(0, 4))}…</span></b><div class="ibt" id="gbThr">${t.msgs.map(x => `<div class="bb ${x.from === 'admin' ? 'a' : 'u'}">${x.games.some(g => g.g !== 'img') && x.from === 'user' ? `<div class="ch">${x.games.filter(g => g.g !== 'img').map(g => `<i>${esc(g.n)}${g.r ? ' ' + '★'.repeat(g.r) : ''}</i>`).join('')}</div>` : ''}${esc(x.text || '')}${(x.games.find(g => g.g === 'img')) ? `<div><button type="button" class="imgb" data-img="${esc(x.games.find(g => g.g === 'img').n)}">🖼️ ดูรูปที่ส่งมา</button><img class="imgv" hidden alt=""></div>` : ''}<small>${x.from === 'admin' ? 'คุณตอบ' : esc(x.name)} · ${fmt(x.t)}</small></div>`).join('')}</div>
     <div class="ibr"><textarea id="gbText" maxlength="800" placeholder="พิมพ์ตอบกลับ… (ผู้เล่นเห็นในแชท “ผู้สร้างเกม” ในเกมออฟฟิศ)">${esc(draft)}</textarea><div class="rr"><button id="gbSend">ส่งตอบ 📤</button><button data-q="ขอบคุณที่แจ้งนะคะ 🙏 จะรีบดูให้ค่ะ">ขอบคุณ</button><button data-q="รับทราบค่ะ จะนำไปปรับปรุงในเวอร์ชันถัดไปนะคะ ✨">จะปรับปรุง</button><button data-q="ขอบคุณที่ชอบเกมนะคะ 💕 ดีใจมากๆ ค่ะ">ดีใจที่ชอบ</button></div><span class="note" id="gbRes"></span></div>`;
