@@ -37,7 +37,7 @@ async function camShoot(kind, appEl) {
   try {
     const h2c = await camScript(); await new Promise(r => setTimeout(r, 60)); camFlash();
     const r = el.getBoundingClientRect(), sc = Math.min(1.5, 1100 / r.width);
-    const cv = await h2c(el, { scale: sc, backgroundColor: null, logging: false, useCORS: true, ignoreElements: n => n.id === 'camFlash' || n.id === 'camApp' || n.id === 'hmChip' || n.id === 'monEdge' });
+    const cv = await h2c(el, { scale: sc, backgroundColor: null, logging: false, useCORS: true, onclone: d => { const st = d.createElement('style'); st.textContent = '*{filter:none!important;backdrop-filter:none!important;box-shadow:none!important;text-shadow:none!important;transition:none!important;animation:none!important}'; d.head.append(st); }, ignoreElements: n => n.id === 'camFlash' || n.id === 'camApp' || n.id === 'hmChip' || n.id === 'monEdge' });
     appEl?.remove(); camEditor(cv, kind);
   } catch (e) { console.error(e); appEl && (appEl.style.visibility = ''); S.toast('⚠️ ถ่ายไม่สำเร็จ ลองใหม่อีกครั้งนะ', 2.4); }
   finally { camBusy = false; }
