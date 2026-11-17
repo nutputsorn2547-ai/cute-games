@@ -42,7 +42,7 @@ function handbookFile() {
 }
 function switchCareer(id, quiet) {
   const C = CAREERS[id]; if (!C) return;
-  applyCareer(id); career.day = unlockedDay;
+  applyCareer(id); career.day = unlockedDay; career.cur = null;
   hr.base = C.salary; hr.pending = 0; hr.done = false; hr.cap = 10;
   C.start?.(); try { careerChip(); renderCareerWin(); } catch (e) {}
   if (!quiet) { S.big(`${C.e} เริ่มงานใหม่: ${C.pos || C.label}`, 3, C.color || '#5a78e6'); S.jingle(); }
@@ -52,9 +52,9 @@ function switchCareer(id, quiet) {
 
 /* ---- pieces of UI: header chip, taskbar buttons, "my job" window ---- */
 function careerChip() {
-  let el = $('careerChip'); const C = careerOf();
+  let el = $('careerChip'); const C = careerOf(), cj = career.cur && JOBS.find(x => x.id === career.cur);
   if (!el) { el = h('div', { id: 'careerChip' }); $('tasks').prepend(el); el.addEventListener('click', () => openCareerWin()); }
-  el.innerHTML = `<b>${C.e} ${esc(C.pos || C.label)}</b><small>${esc(C.co)} · เงินเดือน ${baht(hr.base)}</small>`;
+  el.innerHTML = `<b>${cj ? cj.e + ' ' + esc(cj.pos) : C.e + ' ' + esc(C.pos || C.label)}</b><small>${esc(cj ? cj.co : C.co)} · เงินเดือน ${baht(hr.base)}</small>`;
 }
 const CAREER_APPS = {}, APPS0 = APPS.slice(), GENERAL_APPS = [];
 function tbButton(app, emoji, name, color, forCareer, fn) {
@@ -112,13 +112,16 @@ renderJobs = function () {
   _renderJobs();
   if (!jobs.W || !jobs.view) return; const j = JOBS.find(x => x.id === jobs.view); if (!j || !j.career) return;
   const jd = jobs.W.body.querySelector('.jd'); if (!jd || jd.querySelector('[data-career-go]')) return;
-  const offered = career.offers.includes(j.id), here = career.id === j.career;
-  jd.insertAdjacentHTML('afterbegin', here ? '<b style="color:#2f9d5a">✓ คุณทำงานที่นี่อยู่</b>' : offered ? `<button class="btn2 pri" data-career-go="${j.id}" style="align-self:flex-start">✅ ตอบรับข้อเสนอ ย้ายไปทำงานที่นี่</button>` : '');
+  const offered = career.offers.includes(j.id), here = career.cur === j.id, same = career.id === j.career;
+  jd.insertAdjacentHTML('afterbegin', here ? '<b style="color:#2f9d5a">✓ คุณทำงานที่นี่อยู่</b>' : offered ? `<button class="btn2 pri" data-career-go="${j.id}" style="align-self:flex-start">✅ ตอบรับข้อเสนอ ${same ? `ย้ายบริษัท (เงินเดือน ฿${baht(j.min)})` : 'ย้ายไปทำงานที่นี่'}</button>` : '');
 };
 const _jobsClick = jobsClick;
 jobsClick = function (e) {
   const g = e.target.closest('[data-career-go]');
-  if (g) { const j = JOBS.find(x => x.id === g.dataset.careerGo); dialog(jobs.W, `ตอบรับตำแหน่ง <b>${esc(j.pos)}</b> ที่ ${esc(j.co)} และลาออกจากงานเดิม?`, [['คิดดูก่อน', null], ['ตอบรับ', 'ok', 'pri']]).then(({ v }) => { if (v === 'ok') { switchCareer(j.career); renderJobs(); } }); return; }
+  if (g) { const j = JOBS.find(x => x.id === g.dataset.careerGo); dialog(jobs.W, `ตอบรับตำแหน่ง <b>${esc(j.pos)}</b> ที่ ${esc(j.co)} และลาออกจากงานเดิม?`, [['คิดดูก่อน', null], ['ตอบรับ', 'ok', 'pri']]).then(({ v }) => { if (v !== 'ok') return;
+    if (career.id === j.career) { career.cur = j.id; hr.base = j.min; hr.pending = 0; try { careerChip(); renderCareerWin(); saveGame(); } catch (e) {} S.big(`${j.e} เริ่มงานใหม่: ${j.pos}`, 3, '#5a78e6'); S.jingle(); }
+    else { switchCareer(j.career); career.cur = null; career.offers = career.offers.filter(x => x !== j.id); }
+    renderJobs(); }); return; }
   _jobsClick(e);
 };
 
