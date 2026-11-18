@@ -1,7 +1,7 @@
 "use strict";
 // Office game (beta) — screen lock (pause the game with a PIN), calculator, stress meter and the "slack off" corner.
 const life = { stress: 18, boss: null, music: null, play: null, lastCnt: 0, caughtAt: 0, tab: 'home', swipes: 0, matches: 0 };
-const pinStore = { get() { try { return localStorage.getItem('cute-office-beta-pin') || window.__pin || ''; } catch (e) { return window.__pin || ''; } }, set(v) { window.__pin = v; try { localStorage.setItem('cute-office-beta-pin', v); } catch (e) {} } };
+const pinStore = { get() { try { return localStorage.getItem('cute-office' + (/office-beta/.test(location.pathname) ? '-beta' : '') + '-pin') || window.__pin || ''; } catch (e) { return window.__pin || ''; } }, set(v) { window.__pin = v; try { localStorage.setItem('cute-office' + (/office-beta/.test(location.pathname) ? '-beta' : '') + '-pin', v); } catch (e) {} } };
 
 /* ================= pause the game with a PIN ================= */
 const lk = { on: false, el: null, t: 0, game: 0, iv: null, since: 0 };

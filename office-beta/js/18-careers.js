@@ -88,7 +88,7 @@ function renderCareerWin() {
   const team = ['boss', 'bear', 'bun', 'duck', 'cust'].filter(k => !(C.hide || []).includes(k)).map(k => `<span class="tm" style="--c:${PEOPLE[k].c}">${PEOPLE[k].e} ${esc(PEOPLE[k].n)}</span>`).join('');
   box.innerHTML = `<div class="crh" style="--c:${C.color || '#dde5ff'}"><div class="big">${C.e}</div><div><b>${esc(C.pos || C.label)}</b><br>${esc(C.co)}<br><small>เงินเดือน ${baht(hr.base)} บาท · เริ่มงานวันที่ ${career.day}</small></div></div>
     <h4>ทีมของคุณ</h4><div class="tms">${team}</div><h4>กฎและวิธีทำงาน</h4><div class="bk">${C.book}</div>
-    <h4>🧪 โหมดทดสอบ: ลองสายงานอื่น</h4><div class="go">${CAREER_ORDER.filter(k => CAREERS[k]).map(k => `<button class="btn2 ${k === career.id ? 'pri' : ''}" data-go="${k}">${CAREERS[k].e} ${esc(CAREERS[k].label)}</button>`).join('')}</div>`;
+    ${/office-beta/.test(location.pathname) ? `<h4>🧪 โหมดทดสอบ: ลองสายงานอื่น</h4><div class="go">${CAREER_ORDER.filter(k => CAREERS[k]).map(k => `<button class="btn2 ${k === career.id ? 'pri' : ''}" data-go="${k}">${CAREERS[k].e} ${esc(CAREERS[k].label)}</button>`).join('')}</div>` : ''}`;
 }
 
 /* ---- job site: new jobs, offer after applying, "accept" button ---- */

@@ -92,10 +92,11 @@ function livingCosts(d) {
 }
 
 /* ================= save / load (autosave in this browser) ================= */
-const keyOf = n => 'cute-office-beta-save-v1-' + n;
-let slot = 1; try { slot = Math.min(3, Math.max(1, +localStorage.getItem('cute-office-beta-active-slot') || 1)); } catch (e) {}
+const BETA = /office-beta/.test(location.pathname) ? '-beta' : '';
+const keyOf = n => 'cute-office' + BETA + '-save-v1-' + n;
+let slot = 1; try { slot = Math.min(3, Math.max(1, +localStorage.getItem('cute-office' + BETA + '-active-slot') || 1)); } catch (e) {}
 // the first version had one save without a slot number: move it into slot 1
-try { const old = localStorage.getItem('cute-office-beta-save-v1'); if (old) { if (!localStorage.getItem(keyOf(1))) localStorage.setItem(keyOf(1), old); localStorage.removeItem('cute-office-beta-save-v1'); } } catch (e) {}
+try { const old = localStorage.getItem('cute-office' + BETA + '-save-v1'); if (old) { if (!localStorage.getItem(keyOf(1))) localStorage.setItem(keyOf(1), old); localStorage.removeItem('cute-office' + BETA + '-save-v1'); } } catch (e) {}
 const SAVE_KEY = keyOf(slot);
 let saveName = '';
 let noSave = false;
@@ -162,7 +163,7 @@ setInterval(saveGame, 5000);
 addEventListener('pagehide', saveGame);
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
 /* ---- save slots: 3 separate games, switch / copy / export / import ---- */
-const SLOTS = 3, ACTIVE_KEY = 'cute-office-beta-active-slot';
+const SLOTS = 3, ACTIVE_KEY = 'cute-office' + BETA + '-active-slot';
 function slotSummary(n) {
   let s = null; try { s = JSON.parse(localStorage.getItem(keyOf(n)) || 'null'); } catch (e) { s = null; }
   if (!s || s.v !== 1) return null;

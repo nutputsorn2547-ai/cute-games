@@ -4,6 +4,8 @@
 // Later stages register their viewers with CG.Dev.add(title, render) (e.g. trophies in S2).
 (() => {
   const CG = window.CG; if (!CG) return;
+  /* live /office/: no developer panel; keep a silent stub so other modules (stamps, review...) can still register */
+  if (!/office-beta/.test(location.pathname)) { CG.Dev = { secs: [], on: false, add() {}, rerender() {} }; return; }
   const CODE = '++8424--++', KEY = 'cg-beta-dev';
   const Dev = CG.Dev = { secs: [], on: false, add: (title, render) => { Dev.secs.push({ title, render }); } };
   try { Dev.on = localStorage.getItem(KEY) === '1'; } catch (e) {}
