@@ -17,7 +17,7 @@
     { id: 'sj', t: 'dir', n: 'อาชีพเสริม', e: '📂', loc: 'desk', sys: 1 },
     { id: 'novel', t: 'app', n: 'นักตรวจนิยาย', e: '📖', loc: 'sj' }, { id: 'code', t: 'app', n: 'นักแก้โค้ด', e: '💻', loc: 'sj' }, { id: 'rev', t: 'app', n: 'นักรีวิว', e: '⭐', loc: 'sj' }, { id: 'det', t: 'app', n: 'นักสืบ', e: '🔍', loc: 'sj' }, { id: 'tut', t: 'app', n: 'ครูสอนพิเศษ', e: '🎓', loc: 'sj' }, { id: 'song', t: 'app', n: 'นักแต่งเพลง', e: '🎵', loc: 'sj' }, { id: 'dtools', t: 'dir', n: 'เครื่องมือนักสืบ', e: '🧰', loc: 'sj', sys: 1 }, { id: 'rcpt', t: 'app', n: 'ค้นหาใบเสร็จ', e: '🧾', loc: 'dtools' }, { id: 'trk', t: 'app', n: 'ติดตามพัสดุ', e: '🚚', loc: 'dtools' }, { id: 'pic', t: 'app', n: 'รูปพัสดุ', e: '📷', loc: 'dtools' },
     { id: 'fin', t: 'app', n: 'การเงินและรายได้เสริม', e: '💰', loc: 'desk' }, { id: 'msg', t: 'app', n: 'ข้อความลูกค้า', e: '💬', loc: 'desk' },
-    { id: 'hist', t: 'app', n: 'ประวัติงานเสริม', e: '🗂️', loc: 'desk' }, { id: 'pet', t: 'app', n: 'มุมสัตว์เลี้ยงและบรรยากาศ', e: '🐾', loc: 'desk' }, { id: 'clock', t: 'app', n: 'นาฬิกา', e: '🕐', loc: 'desk' },
+    { id: 'hist', t: 'app', n: 'ประวัติงานเสริม', e: '🗂️', loc: 'desk' }, { id: 'pet', t: 'app', n: 'มุมสัตว์เลี้ยงและบรรยากาศ', e: '🐾', loc: 'desk' }, { id: 'clock', t: 'app', n: 'นาฬิกา', e: '🕐', loc: 'desk' }, { id: 'music', t: 'app', n: 'เครื่องเล่นเพลง', e: '🎧', loc: 'desk' },
   ];
   const H = { on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0, tut: 0, song: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0, nextPet: 0, petAt: 0 };
   const fixItems = () => {
@@ -150,6 +150,7 @@
     if (r === 'det') return detHtml();
     if (r === 'tut') return tutHtml();
     if (r === 'song') return songHtml();
+    if (r === 'music') return window.CG && CG.music ? CG.music.html() : '';
     if (r === 'rcpt' || r === 'trk' || r === 'pic') return toolHtml(r);
     if (r === 'fin') { const mk = monthKey(gd()), mo = H.hist.filter(x => x.amt > 0 && monthKey(x.d) === mk).reduce((a, x) => a + x.amt, 0), sal = Math.round(hr.base || 0); return `${row('🏦 เงินในบัญชี (เงินเดือน + รายได้เสริม)', '฿' + baht(bank.bal))}${row('💼 เงินเดือนประจำ', sal ? '฿' + baht(sal) + ' / เดือน' : 'ไม่มี')}<hr>${row('✨ รายได้เสริมเดือนนี้', '฿' + baht(mo))}${row('📈 รายได้เสริมสะสมทั้งหมด', '฿' + baht(H.side))}<p class="hps">เงินจากงานเสริมเข้าบัญชีเดียวกับเงินเดือน รวมกันในยอดเงินด้านบน ดูรายการแยกได้ที่ประวัติงานเสริม หรือรายการเดินบัญชีของธนาคาร</p>`; }
     if (r === 'msg') return H.msgs.length ? H.msgs.map(m => `<div class="hpm1"><b>${esc2(m.from)}</b> <small>${esc2(m.at)}</small><p>${esc2(m.text)}</p></div>`).join('') : empty('📭', 'ยังไม่มีข้อความจากลูกค้า', 'เมื่อส่งงานเสริมสำเร็จ ลูกค้าจะตอบกลับที่นี่');
@@ -593,15 +594,18 @@
     sStop(); const sc = sScore(j.notes, j.bars, j.bpm, j.brief), pass = sc.total >= S_PASS, acc = pass ? .3 + .7 * clamp((sc.total - S_PASS) / 50, 0, 1) : 0, l0 = level('song');
     const pay = pass ? Math.round(S_BASE * mult(l0) * acc * dayF()) : 0, exp = Math.round(S_EXP * (pass ? .4 + .6 * acc : .15));
     const lv = finishJob('song', 'แต่งเพลง', j.brief.t, pay, exp, pass ? acc : .2, { name: 'นักแต่งเพลง', from: [j.brief.cl], good: 'เพลงนี้ใช่เลยครับ/ค่ะ! ฟังแล้วได้อารมณ์ตามที่อยากได้เลย โอนค่าจ้างให้แล้ว 🎶', ok: 'ใช้ได้เลยค่ะ แต่ยังมีบางท่อนที่ไม่ค่อยเข้าที่ ขอบคุณที่ส่งมานะคะ', bad: 'ขอโทษด้วยนะครับ เพลงนี้ยังไม่ตรงกับที่อยากได้ ลองแต่งใหม่อีกครั้งได้ไหมครับ 🙏', up: 'ฝีมือแต่งเพลงดีขึ้นมาก ตอนนี้เลเวล {L} แล้ว ค่าจ้างขึ้นให้ด้วยนะครับ 🎹' });
+    if (pass) { try { CG.music && CG.music.add(j.brief.t, sCode(j), 'งานแต่งเพลง · ' + sc.total + ' คะแนน'); } catch (e) {} }
     res = { k: 'song', score: sc.total, pass, items: sc.items, cap: sc.cap, pay, exp, lv }; H.job = null; refreshJobs();
   }
 
   /* ================= build / render ================= */
+  let musicSub = false;
   function build() {
     if (hp) return; hp = h('div', { id: 'homePC' }, `<div class="hpl"></div><div class="hpm"><div class="hpd" data-drop="desk"></div><div class="hpwl"></div><div class="hpbarT"><span class="hptask"></span><button class="hpfs" data-hp="pause" title="พักเกม (หยุดเวลา)">⏸ พักเกม</button><button class="hpfs" data-hp="full" title="เต็มจอ">⛶</button><b id="hpClk">${hm(gnow())}</b></div><div class="hpbedw"></div></div><div class="hpdesk"></div>`);
     document.body.append(hp); mon = hp.querySelector('.hpm'); dsk = hp.querySelector('.hpd'); wl = hp.querySelector('.hpwl'); W = []; sel = null; res = null;
     try { closePhone(); } catch (e) {} hp.classList.toggle('full', isFull()); applyLamp(); renderDesk(); renderWins(); renderBed();
     hp.addEventListener('input', e => { const ti = e.target.closest && e.target.closest('[data-ta]'); const j = tutJob(); if (ti && j) j.typed[ti.dataset.ta] = ti.value; });
+    try { if (window.CG && CG.music) { CG.music.bind(hp); if (!musicSub) { musicSub = true; CG.music.onChange(() => { if (hp) refreshApp('music'); }); } } } catch (e) {}
     hp.addEventListener('input', e => { const j = songJob(); if (!j) return; const x = e.target.closest && e.target.closest('[data-sx]'); if (x) { j.code = x.value; return; } const g = e.target.closest && e.target.closest('[data-sg="bpm"]'); if (g) { sSetSong(j, +g.value, j.bars); const a = hp.querySelector('#hpsbpm'), c = hp.querySelector('#hpssec'); if (a) a.textContent = j.bpm; if (c) c.textContent = Math.round(sSecs(j.bars, j.bpm)) + ' วินาที'; } });
     hp.addEventListener('change', e => { const j = songJob(), g = e.target.closest && e.target.closest('[data-sg]'); if (j && g) { if (g.dataset.sg === 'bpm') sSetSong(j, +g.value, j.bars); else if (g.dataset.sg === 'bars') sSetSong(j, j.bpm, +g.value); else if (g.dataset.sg === 'len') j.len = +g.value; refreshApp('song'); } });
     hp.addEventListener('change', e => { const sl = e.target.closest && e.target.closest('[data-cf]'); const j = codeJob(); if (sl && j) { j.fix[sl.dataset.cf] = sl.value; j.out = ''; const rn = hp.querySelector('.hprun'); if (rn) rn.innerHTML = ''; } }); hp.addEventListener('input', e => { const nt = e.target.closest && e.target.closest('[data-note]'); if (nt && H.job && H.job.k === 'det') H.job.note = nt.value;  const t = e.target.closest && e.target.closest('[data-fx]'); if (t && H.job) { (H.job.fix = H.job.fix || {})[t.dataset.fx] = t.value; } }); hp.addEventListener('keydown', e => { const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') { e.stopPropagation(); if (e.key === 'Enter' && e.target.dataset && e.target.dataset.tq) toolSearch(e.target.dataset.tq, e.target.value); } }); hp.addEventListener('click', onClick); hp.addEventListener('dblclick', onDbl); hp.addEventListener('contextmenu', onCtx); hp.addEventListener('pointerdown', onDown);
@@ -724,7 +728,7 @@
     setTimeout(() => { build(); light(); if (min() >= 23 * 60 + 59) { pin(); bedtime(); } fade.classList.add('out'); }, 1300);
     setTimeout(() => { fade.remove(); busy = false; tick(); }, 3000);
   }
-  function exit() { H.on = false; H.bed = false; destroy(); CG.Bus.emit('home.exit'); }
+  function exit() { try { CG.music && CG.music.stop(); } catch (e) {} H.on = false; H.bed = false; destroy(); CG.Bus.emit('home.exit'); }
   CG.Bus.on('sleep.done', () => { if (H.on) exit(); });
   CG.home = {
     enter, exit, on: () => H.on, bed: () => H.bed, open: openItem, newDir, setFull, state: () => ({ on: H.on, bed: H.bed, bal: bank.bal, cred: H.cred, side: H.side, hist: H.hist.slice(), job: H.job, skill: { ...H.skill }, items: H.items.map(x => ({ ...x })), wins: W.map(w => ({ id: w.id, min: w.min, max: w.max })), full: isFull() }),
