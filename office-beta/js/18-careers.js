@@ -115,13 +115,17 @@ renderJobs = function () {
   const offered = career.offers.includes(j.id), here = career.cur === j.id, same = career.id === j.career;
   jd.insertAdjacentHTML('afterbegin', here ? '<b style="color:#2f9d5a">✓ คุณทำงานที่นี่อยู่</b>' : offered ? `<button class="btn2 pri" data-career-go="${j.id}" style="align-self:flex-start">✅ ตอบรับข้อเสนอ ${same ? `ย้ายบริษัท (เงินเดือน ฿${baht(j.min)})` : 'ย้ายไปทำงานที่นี่'}</button>` : '');
 };
+/* accepting a job offer (one place, so 1.3.0 events/certificates can hook it) */
+function acceptJob(j) {
+  if (career.id === j.career) { career.cur = j.id; hr.base = j.min; hr.pending = 0; try { careerChip(); renderCareerWin(); saveGame(); } catch (e) {} S.big(`${j.e} เริ่มงานใหม่: ${j.pos}`, 3, '#5a78e6'); S.jingle(); }
+  else { switchCareer(j.career); career.cur = null; career.offers = career.offers.filter(x => x !== j.id); }
+  renderJobs();
+}
 const _jobsClick = jobsClick;
 jobsClick = function (e) {
   const g = e.target.closest('[data-career-go]');
   if (g) { const j = JOBS.find(x => x.id === g.dataset.careerGo); dialog(jobs.W, `ตอบรับตำแหน่ง <b>${esc(j.pos)}</b> ที่ ${esc(j.co)} และลาออกจากงานเดิม?`, [['คิดดูก่อน', null], ['ตอบรับ', 'ok', 'pri']]).then(({ v }) => { if (v !== 'ok') return;
-    if (career.id === j.career) { career.cur = j.id; hr.base = j.min; hr.pending = 0; try { careerChip(); renderCareerWin(); saveGame(); } catch (e) {} S.big(`${j.e} เริ่มงานใหม่: ${j.pos}`, 3, '#5a78e6'); S.jingle(); }
-    else { switchCareer(j.career); career.cur = null; career.offers = career.offers.filter(x => x !== j.id); }
-    renderJobs(); }); return; }
+    acceptJob(j); }); return; }
   _jobsClick(e);
 };
 
