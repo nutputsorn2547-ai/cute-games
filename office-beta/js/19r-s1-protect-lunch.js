@@ -5,8 +5,8 @@
   const CG = window.CG; if (!CG || !CG.Save) return;
   const PROT_DAYS = 31, JOIN_DAYS = 7;
   const gd = () => Math.round((dayStart(gnow()) - dayStart(T0)) / DAY);
-  const P = { base: null, join: null, co: null }, L = { bonusDay: -1 };
-  CG.Save.register('prot', { def: () => ({ base: null, join: null, co: null }), get: () => ({ ...P }), set: d => Object.assign(P, { base: null, join: null, co: null }, d || {}) });
+  const P = { base: null, join: null, co: null, jl: false }, L = { bonusDay: -1 };
+  CG.Save.register('prot', { def: () => ({ base: null, join: null, co: null, jl: false }), get: () => ({ ...P }), set: d => Object.assign(P, { base: null, join: null, co: null, jl: false }, d || {}) });
   CG.Save.register('lunch', { def: () => ({ bonusDay: -1 }), get: () => ({ ...L }), set: d => Object.assign(L, { bonusDay: -1 }, d || {}) });
 
   const base = () => { if (P.base == null) { const b = (typeof bank !== 'undefined' && Number.isFinite(bank.start)) ? Math.round((bank.start - dayStart(T0)) / DAY) : gd(); P.base = b; } return P.base; };
@@ -20,13 +20,14 @@
   const badge = () => { try { careerChip(); } catch (e) {} };
   let chk = 0;
   const check = () => { clearTimeout(chk); chk = setTimeout(() => {
-    if (career.id === 'jl') return; // being jobless is not joining a company
-    const co = curCo(); if (P.co == null) { P.co = co; return; } if (co === P.co) return;
-    P.co = co; P.join = gd(); S.big('🌱 ช่วงปรับตัว 7 วัน — หัวหน้าจะช่วยสอนงานนะ', 3, '#4caf7d'); badge(); try { saveGame(); } catch (e) {}
+    if (career.id === 'jl') { P.jl = true; return; } // being jobless is not joining a company ...
+    const co = curCo(); if (P.co == null) { P.co = co; return; } if (co === P.co && !P.jl) return;   // ... but starting a job after it is, even at the same company name
+    P.jl = false;
+    P.co = co; P.join = gd(); CG.Bus.emit('company.join', { co, day: P.join }); S.big('🌱 ช่วงปรับตัว 7 วัน — หัวหน้าจะช่วยสอนงานนะ', 3, '#4caf7d'); badge(); try { saveGame(); } catch (e) {}
   }, 0); };
   CG.Bus.on('career.switch', check); CG.Bus.on('job.accepted', check);
   CG.Bus.on('day.new', badge);
-  setTimeout(() => { if (P.co == null && career.id !== 'jl') P.co = curCo(); base(); }, 1500);
+  setTimeout(() => { if (career.id === 'jl') P.jl = true; else if (P.co == null) P.co = curCo(); base(); }, 1500);
 
   /* the boss coaches while protected: swap scolding lines (they all contain 😾) for gentle ones */
   const coach = t => {
