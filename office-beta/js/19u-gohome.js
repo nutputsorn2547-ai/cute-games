@@ -51,7 +51,7 @@
   }
   function ask(left) {
     ov = h('div', { id: 'goHome', class: 'ask' }, `<div class="ghw"><div class="ghc"><h2>🏠 กลับบ้านเลย?</h2><p style="text-align:center;margin:6px 0">ค่ารถ <b>${baht(fare())}</b> บาท · ใช้เวลา ~${mins()} นาที${left ? `<br><small>ยังมีงานที่ยังไม่เสร็จ ${left} รายการ</small>` : ''}</p></div><div class="ghb"><button class="go" data-g="gook">🚕 กลับบ้าน</button><button data-g="no">ยังก่อน</button></div></div>`); document.body.append(ov);
-    ov.addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; if (b.dataset.g === 'no') close(); else if (b.dataset.g === 'gook') { if (!bankPay(fare(), '🚕 ค่ารถกลับบ้าน')) return; timeOff += mins() * 60000; lastMin = ''; enforceDate(); close(); begin(); } });
+    ov.addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; if (b.dataset.g === 'no') close(); else if (b.dataset.g === 'gook') { if (!bankPay(fare(), '🚕 ค่ารถกลับบ้าน')) return; timeOff += mins() * 60000; lastMin = ''; enforceDate(); close(); if (CG.home) CG.home.enter(); else begin(); } });
   }
   function begin(opts = {}) {
     if (ov) return; ov = h('div', { id: 'goHome' }, `<div class="ghi">🌙<br>${opts.msg || 'กลับถึงบ้านแล้ว…'}</div>`); document.body.append(ov);
@@ -69,7 +69,7 @@
       const g = gnow(), t = new Date(g); t.setHours(7, 0, 0, 0); if (g.getHours() >= 5) t.setDate(t.getDate() + 1);
       timeOff += t.getTime() - g.getTime(); lastMin = ''; nightMsgSent = false; enforceDate();
       life.stress = Math.round(life.stress * .2); try { renderTime(); updateDeskCal(); } catch (e) {}
-      S.big?.('☀️ ตื่นนอนแล้ว ความเครียดลด 80%', 2.4, '#f0a020'); S.jingle?.();
+      S.big?.('☀️ ตื่นนอนแล้ว ความเครียดลด 80%', 2.4, '#f0a020'); S.jingle?.(); try { CG.Bus.emit('sleep.done'); } catch (e) {}
       if (ov) { ov.classList.add('out'); setTimeout(close, 700); }
     }, 1800);
   }
