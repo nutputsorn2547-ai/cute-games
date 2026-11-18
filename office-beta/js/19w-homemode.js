@@ -15,22 +15,22 @@
   /* ================= data ================= */
   const DEF_ITEMS = () => [
     { id: 'sj', t: 'dir', n: 'อาชีพเสริม', e: '📂', loc: 'desk', sys: 1 },
-    { id: 'novel', t: 'app', n: 'นักตรวจนิยาย', e: '📖', loc: 'sj' }, { id: 'code', t: 'app', n: 'นักแก้โค้ด', e: '💻', loc: 'sj' }, { id: 'rev', t: 'app', n: 'นักรีวิว', e: '⭐', loc: 'sj' }, { id: 'det', t: 'app', n: 'นักสืบ', e: '🔍', loc: 'sj' }, { id: 'dtools', t: 'dir', n: 'เครื่องมือนักสืบ', e: '🧰', loc: 'sj', sys: 1 }, { id: 'rcpt', t: 'app', n: 'ค้นหาใบเสร็จ', e: '🧾', loc: 'dtools' }, { id: 'trk', t: 'app', n: 'ติดตามพัสดุ', e: '🚚', loc: 'dtools' }, { id: 'pic', t: 'app', n: 'รูปพัสดุ', e: '📷', loc: 'dtools' },
+    { id: 'novel', t: 'app', n: 'นักตรวจนิยาย', e: '📖', loc: 'sj' }, { id: 'code', t: 'app', n: 'นักแก้โค้ด', e: '💻', loc: 'sj' }, { id: 'rev', t: 'app', n: 'นักรีวิว', e: '⭐', loc: 'sj' }, { id: 'det', t: 'app', n: 'นักสืบ', e: '🔍', loc: 'sj' }, { id: 'tut', t: 'app', n: 'ครูสอนพิเศษ', e: '🎓', loc: 'sj' }, { id: 'dtools', t: 'dir', n: 'เครื่องมือนักสืบ', e: '🧰', loc: 'sj', sys: 1 }, { id: 'rcpt', t: 'app', n: 'ค้นหาใบเสร็จ', e: '🧾', loc: 'dtools' }, { id: 'trk', t: 'app', n: 'ติดตามพัสดุ', e: '🚚', loc: 'dtools' }, { id: 'pic', t: 'app', n: 'รูปพัสดุ', e: '📷', loc: 'dtools' },
     { id: 'fin', t: 'app', n: 'การเงินและรายได้เสริม', e: '💰', loc: 'desk' }, { id: 'msg', t: 'app', n: 'ข้อความลูกค้า', e: '💬', loc: 'desk' },
     { id: 'hist', t: 'app', n: 'ประวัติงานเสริม', e: '🗂️', loc: 'desk' }, { id: 'pet', t: 'app', n: 'มุมสัตว์เลี้ยงและบรรยากาศ', e: '🐾', loc: 'desk' }, { id: 'clock', t: 'app', n: 'นาฬิกา', e: '🕐', loc: 'desk' },
   ];
-  const H = { on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0, nextPet: 0, petAt: 0 };
+  const H = { on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0, tut: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0, nextPet: 0, petAt: 0 };
   const fixItems = () => {
     const def = DEF_ITEMS(), ids = new Set(H.items.map(x => x.id)); def.forEach(d => { if (!ids.has(d.id)) H.items.push(d); });
     H.items = H.items.filter((x, i, a) => x && x.id && a.findIndex(y => y.id === x.id) === i);
     const dirs = new Set(H.items.filter(x => x.t === 'dir').map(x => x.id)); H.items.forEach(x => { if (x.loc !== 'desk' && !dirs.has(x.loc)) { x.loc = 'desk'; delete x.p; } });
   };
   CG.Save.register('home', {
-    def: () => ({ on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0 }),
-    get: () => ({ dd: H.dd, dn: H.dn, on: H.on, bed: H.bed, warnDay: H.warnDay, side: H.side, hist: H.hist.slice(-120), msgs: H.msgs.slice(0, 40), skill: H.skill, merged: H.merged, cred: H.cred, revs: H.revs.slice(0, 15), job: H.job, items: H.items, full: H.full, uid: H.uid, last: H.last, pets: H.pets, amb: H.amb, lamp: H.lamp }),
+    def: () => ({ on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0, tut: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0 }),
+    get: () => ({ stu: H.stu, dd: H.dd, dn: H.dn, on: H.on, bed: H.bed, warnDay: H.warnDay, side: H.side, hist: H.hist.slice(-120), msgs: H.msgs.slice(0, 40), skill: H.skill, merged: H.merged, cred: H.cred, revs: H.revs.slice(0, 15), job: H.job, items: H.items, full: H.full, uid: H.uid, last: H.last, pets: H.pets, amb: H.amb, lamp: H.lamp }),
     set: d => {
       d = d || {}; H.dd = d.dd || ''; H.dn = +d.dn || 0; H.on = !!d.on; H.bed = !!d.bed; H.warnDay = Number.isFinite(d.warnDay) ? d.warnDay : -1; H.side = +d.side || 0; H.hist = Array.isArray(d.hist) ? d.hist : []; H.msgs = Array.isArray(d.msgs) ? d.msgs : [];
-      H.skill = { novel: +(d.skill && d.skill.novel) || 0, code: +(d.skill && d.skill.code) || 0, rev: +(d.skill && d.skill.rev) || 0, det: +(d.skill && d.skill.det) || 0 }; H.merged = d.merged === true; H.cred = Number.isFinite(d.cred) ? clamp(d.cred, 0, 100) : 50; H.revs = Array.isArray(d.revs) ? d.revs : []; H.job = d.job && typeof d.job.pid === 'number' ? d.job : null; H.items = Array.isArray(d.items) && d.items.length ? d.items : DEF_ITEMS(); H.full = !!d.full; H.uid = +d.uid || 0; H.last = Number.isFinite(d.last) ? d.last : -1; H.pets = { cat: !!(d.pets && d.pets.cat), dog: !!(d.pets && d.pets.dog) }; H.amb = d.amb === 'rain' || d.amb === 'night' ? d.amb : ''; H.lamp = [0, 1, 2].includes(d.lamp) ? d.lamp : 0;
+      H.skill = { novel: +(d.skill && d.skill.novel) || 0, code: +(d.skill && d.skill.code) || 0, rev: +(d.skill && d.skill.rev) || 0, det: +(d.skill && d.skill.det) || 0, tut: +(d.skill && d.skill.tut) || 0 }; H.stu = d.stu && typeof d.stu === 'object' ? d.stu : {}; H.merged = d.merged === true; H.cred = Number.isFinite(d.cred) ? clamp(d.cred, 0, 100) : 50; H.revs = Array.isArray(d.revs) ? d.revs : []; H.job = d.job && typeof d.job.pid === 'number' ? d.job : null; H.items = Array.isArray(d.items) && d.items.length ? d.items : DEF_ITEMS(); H.full = !!d.full; H.uid = +d.uid || 0; H.last = Number.isFinite(d.last) ? d.last : -1; H.pets = { cat: !!(d.pets && d.pets.cat), dog: !!(d.pets && d.pets.dog) }; H.amb = d.amb === 'rain' || d.amb === 'night' ? d.amb : ''; H.lamp = [0, 1, 2].includes(d.lamp) ? d.lamp : 0;
       fixItems(); setTimeout(sync, 700); setTimeout(() => { if (!H.merged) { H.merged = true; if (H.side > 0) { try { bankTx('💼 ย้ายรายได้เสริมเดิมเข้าบัญชีหลัก', H.side); } catch (e) {} } } }, 1500);
     },
   });
@@ -115,7 +115,7 @@
   function renderDesk() { if (!dsk) return; layoutDesk(); dsk.innerHTML = H.items.filter(x => x.loc === 'desk').map(a => iconHtml(a, true)).join(''); }
 
   const winTitle = w => w.k === 'dir' ? (item(w.ref) ? item(w.ref).e === '📂' ? '📂 ' + item(w.ref).n : '📁 ' + item(w.ref).n : '') : (item(w.ref) ? item(w.ref).e + ' ' + item(w.ref).n : '');
-  const JOBAPPS = ['novel', 'code', 'rev', 'det', 'rcpt', 'trk', 'pic'];
+  const JOBAPPS = ['novel', 'code', 'rev', 'det', 'tut', 'rcpt', 'trk', 'pic'];
   function openWin(k, ref) {
     const id = k + ':' + ref; let w = W.find(x => x.id === id);
     if (w) { w.min = false; focus(w); renderWins(); return; }
@@ -148,6 +148,7 @@
     if (r === 'pet') return petHtml();
     if (r === 'rev') return revHtml();
     if (r === 'det') return detHtml();
+    if (r === 'tut') return tutHtml();
     if (r === 'rcpt' || r === 'trk' || r === 'pic') return toolHtml(r);
     if (r === 'fin') { const mk = monthKey(gd()), mo = H.hist.filter(x => x.amt > 0 && monthKey(x.d) === mk).reduce((a, x) => a + x.amt, 0), sal = Math.round(hr.base || 0); return `${row('🏦 เงินในบัญชี (เงินเดือน + รายได้เสริม)', '฿' + baht(bank.bal))}${row('💼 เงินเดือนประจำ', sal ? '฿' + baht(sal) + ' / เดือน' : 'ไม่มี')}<hr>${row('✨ รายได้เสริมเดือนนี้', '฿' + baht(mo))}${row('📈 รายได้เสริมสะสมทั้งหมด', '฿' + baht(H.side))}<p class="hps">เงินจากงานเสริมเข้าบัญชีเดียวกับเงินเดือน รวมกันในยอดเงินด้านบน ดูรายการแยกได้ที่ประวัติงานเสริม หรือรายการเดินบัญชีของธนาคาร</p>`; }
     if (r === 'msg') return H.msgs.length ? H.msgs.map(m => `<div class="hpm1"><b>${esc2(m.from)}</b> <small>${esc2(m.at)}</small><p>${esc2(m.text)}</p></div>`).join('') : empty('📭', 'ยังไม่มีข้อความจากลูกค้า', 'เมื่อส่งงานเสริมสำเร็จ ลูกค้าจะตอบกลับที่นี่');
@@ -267,7 +268,7 @@
   ].map(([title, e, facts, avg, best, opts]) => ({ title, e, facts, avg, best, opts }));
   const FROM_R = ['คุณมิ้นท์ (บรรณาธิการเว็บรีวิว)', 'คุณบอส (เจ้าของร้าน)', 'คุณแป้ง (ทีมการตลาด)'];
   const lastJ = { rev: -1, det: -1 };
-  const refreshJobs = () => ['novel', 'code', 'rev', 'det'].forEach(refreshApp);
+  const refreshJobs = () => ['novel', 'code', 'rev', 'det', 'tut'].forEach(refreshApp);
   const head2 = k => { const l = level(k), x = H.skill[k], lo = TH[l - 1], hi = TH[l] || TH[9], pc = l >= 10 ? 100 : Math.round((x - lo) / (hi - lo) * 100); return `<div class="hpl2"><b>เลเวล ${l}${l >= 10 ? ' (สูงสุด)' : ''}</b> <small>EXP ${x}${l >= 10 ? '' : ' / ' + hi}</small> <span class="hpx">ค่าตอบแทน ×${mult(l).toFixed(2)}</span><div class="hpbar2"><i style="width:${pc}%"></i></div></div>`; };
   const credMul = () => .8 + .4 * H.cred / 100;
   const pickCase = (arr, k) => { let i; do { i = Math.floor(Math.random() * arr.length); } while (arr.length > 1 && i === lastJ[k]); lastJ[k] = i; return i; };
@@ -422,11 +423,83 @@
     res = { k: 'det', okAns, kf, nk: p.need.length, pay, exp, acc, lv, why: p.why }; H.job = null; refreshJobs();
   }
 
+  /* ================= side job 5: online tutor (ครูสอนพิเศษออนไลน์) ================= */
+  /* phases: prep (choose teaching points) -> rec (record video, 60 game-min) -> wait (student does homework, 20 game-min) -> grade (mark + type the right answers + advice) */
+  const T_BASE = 90, T_EXP = 55, T_MIN = 100, REC_MS = 60 * 60000, WAIT_MS = 20 * 60000;
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const ENG = [['She ___ to school every day. (go / goes)', 'goes', 'go'], ['They ___ playing football now. (is / are)', 'are', 'is'], ['He ___ a doctor. (am / is / are)', 'is', 'are'], ['I have ___ apple. (a / an)', 'an', 'a'], ['We ___ to the zoo yesterday. (go / went)', 'went', 'go'], ['There ___ two cats in the house. (is / are)', 'are', 'is'], ['My mother ___ cooking now. (is / are)', 'is', 'are'], ['I ___ a student. (am / is)', 'am', 'is'], ['He ___ football on Sundays. (play / plays)', 'plays', 'play'], ['She ___ a new bag last week. (buy / bought)', 'bought', 'buy']];
+  const SCI = [['น้ำบริสุทธิ์เดือดที่กี่องศาเซลเซียส', '100', '90'], ['พืชใช้แก๊สอะไรในการสังเคราะห์ด้วยแสง', 'คาร์บอนไดออกไซด์', 'ออกซิเจน'], ['ดวงจันทร์โคจรรอบอะไร', 'โลก', 'ดวงอาทิตย์'], ['น้ำแข็งเปลี่ยนเป็นน้ำเรียกว่าอะไร', 'การหลอมเหลว', 'การระเหย'], ['สัตว์ที่กินพืชเป็นอาหารเรียกว่าอะไร', 'สัตว์กินพืช', 'สัตว์กินเนื้อ'], ['หัวใจของคนมีกี่ห้อง', '4', '3'], ['ดาวเคราะห์ที่ใหญ่ที่สุดในระบบสุริยะคือดาวอะไร', 'ดาวพฤหัสบดี', 'ดาวเสาร์'], ['อวัยวะที่ใช้ในการหายใจคืออะไร', 'ปอด', 'ตับ'], ['แรงที่ดึงวัตถุลงสู่พื้นโลกคือแรงอะไร', 'แรงโน้มถ่วง', 'แรงเสียดทาน'], ['เสียงเดินทางผ่านที่ใดไม่ได้', 'สุญญากาศ', 'น้ำ']];
+  const GEN = {
+    add: n => Array.from({ length: n }, () => { const a = rnd(11, 59), b = rnd(8, 39), sub = Math.random() < .5; return sub ? { q: `${a + b} − ${b} = ?`, a: String(a), w: String(a + (Math.random() < .5 ? 10 : 1)) } : { q: `${a} + ${b} = ?`, a: String(a + b), w: String(a + b + (Math.random() < .5 ? 10 : -1)) }; }),
+    mul: n => Array.from({ length: n }, () => { const a = rnd(3, 12), b = rnd(3, 9), div = Math.random() < .4; return div ? { q: `${a * b} ÷ ${b} = ?`, a: String(a), w: String(a + 1) } : { q: `${a} × ${b} = ?`, a: String(a * b), w: String(a * b + (Math.random() < .5 ? b : -a)) }; }),
+    alg: n => Array.from({ length: n }, () => { const x = rnd(3, 15), k = rnd(2, 6); return Math.random() < .5 ? { q: `x + ${k} = ${x + k}  →  x = ?`, a: String(x), w: String(x + k) } : { q: `${k}x = ${k * x}  →  x = ?`, a: String(x), w: String(k * x) }; }),
+    eng: n => ENG.slice().sort(() => Math.random() - .5).slice(0, n).map(([q, a, w]) => ({ q, a, w })),
+    sci: n => SCI.slice().sort(() => Math.random() - .5).slice(0, n).map(([q, a, w]) => ({ q, a, w })),
+  };
+  const STU = [
+    { n: 'น้องต้นกล้า', e: '🌱', subj: 'คณิตศาสตร์', lvl: 'ป.2', topic: 'การบวกและการลบ', diff: 1, g: 'add', n3: 3, q: 'ครูคะ ถ้าตัวเลขเยอะกว่านี้ หนูยังใช้วิธีเดิมได้ไหมคะ?', pts: [['ตั้งหลักให้ตรงกัน แล้วบวก/ลบจากหลักหน่วยก่อน', 1], ['บวกกับลบใช้วิธีเดียวกัน ไม่ต้องดูเครื่องหมาย', 0], ['ตรวจคำตอบโดยบวกกลับหรือลบกลับได้', 1], ['ถ้าเลขไม่พอลบ ให้ลบเลขน้อยออกจากเลขมากแล้วใส่ลบ', 0]], adv: [['บวกกลับเพื่อตรวจ เช่น 42 − 17 = 25 ลอง 25 + 17 ดูนะ', 1], ['ลองใหม่ให้ถูกนะ', 0], ['ข้อพวกนี้ง่ายนิดเดียว ทำไมผิดล่ะ', 0]] },
+    { n: 'น้องฟ้าใส', e: '☁️', subj: 'ภาษาอังกฤษ', lvl: 'ป.4', topic: 'Verb to be และ Present Simple', diff: 1, g: 'eng', n3: 3, q: 'Teacher ครับ ถ้าประโยคเป็นอดีตต้องเปลี่ยนยังไงครับ?', pts: [['am/is/are เลือกตามประธานของประโยค', 1], ['He/She/It + กริยาช่องที่ 1 ต้องเติม s หรือ es', 1], ['I ใช้ is ได้ทุกครั้ง', 0], ['They ใช้ is เพราะมีหลายคนรวมกันเป็นกลุ่มเดียว', 0]], adv: [['ดูที่ประธานก่อน แล้วค่อยเลือกคำ เช่น They → are, He → is', 1], ['ท่องศัพท์ให้เยอะๆ แล้วจะผิดน้อยลง', 0], ['ภาษาอังกฤษมีกฎเยอะ ไม่ต้องสนใจก็ได้', 0]] },
+    { n: 'น้องมะลิ', e: '🌼', subj: 'วิทยาศาสตร์', lvl: 'ป.4', topic: 'ระบบสุริยะและสิ่งมีชีวิต', diff: 1, g: 'sci', n3: 3, q: 'ครูคะ ดาวเคราะห์ทุกดวงมีดวงจันทร์เหมือนโลกไหมคะ?', pts: [['ดวงจันทร์โคจรรอบโลก โลกโคจรรอบดวงอาทิตย์', 1], ['ดวงอาทิตย์โคจรรอบโลก', 0], ['พืชสร้างอาหารเองโดยใช้แสง น้ำ และคาร์บอนไดออกไซด์', 1], ['สัตว์ทุกชนิดกินทั้งพืชและเนื้อ', 0]], adv: [['ลองวาดภาพวงโคจรแล้วเขียนชื่อกำกับ จะจำได้ง่ายขึ้นนะ', 1], ['อ่านหนังสือซ้ำอีกรอบก็พอ', 0], ['ข้อพวกนี้ต้องจำเอาเอง', 0]] },
+    { n: 'น้องบอส', e: '🧢', subj: 'คณิตศาสตร์', lvl: 'ป.5', topic: 'การคูณและการหาร', diff: 2, g: 'mul', n3: 4, q: 'ครูครับ ถ้าหารไม่ลงตัวต้องทำยังไงครับ?', pts: [['การคูณคือการบวกซ้ำๆ เช่น 6 × 4 = 6+6+6+6', 1], ['การหารคือการย้อนกลับของการคูณ ใช้ตรวจคำตอบได้', 1], ['คูณแล้วผลลัพธ์มักน้อยกว่าตัวตั้งเสมอ', 0], ['หารด้วยตัวเลขใดก็ได้ ผลลัพธ์เท่าเดิม', 0]], adv: [['ท่องสูตรคูณแล้วลองคูณกลับเพื่อตรวจคำตอบข้อหาร', 1], ['ใช้เครื่องคิดเลขช่วยก็ได้', 0], ['ข้ามข้อยากไปก่อนก็พอ', 0]] },
+    { n: 'น้องใบเตย', e: '🍃', subj: 'ภาษาอังกฤษ', lvl: 'ม.2', topic: 'Tense พื้นฐาน', diff: 2, g: 'eng', n3: 4, q: 'Teacher คะ yesterday กับ last week ใช้ tense เดียวกันไหมคะ?', pts: [['Past Simple ใช้กับเหตุการณ์ที่จบไปแล้ว เช่น yesterday, last week', 1], ['Present Continuous ใช้ am/is/are + V-ing กับสิ่งที่กำลังทำ', 1], ['Past Simple ใช้ was/were เท่านั้น', 0], ['Present Simple ใช้กับสิ่งที่เกิดขึ้นเมื่อวาน', 0]], adv: [['หาคำบอกเวลาในประโยคก่อน เช่น now, yesterday แล้วเลือก tense ตาม', 1], ['ท่องกริยาช่องที่ 2 ทั้งหมดก่อนค่อยทำ', 0], ['ลองเดาไปก่อนแล้วดูเฉลย', 0]] },
+    { n: 'น้องนนท์', e: '📐', subj: 'คณิตศาสตร์', lvl: 'ม.1', topic: 'สมการเบื้องต้น', diff: 2, g: 'alg', n3: 4, q: 'ครูครับ ถ้า x อยู่ทั้งสองข้างของเครื่องหมายเท่ากับล่ะครับ?', pts: [['ทำสิ่งเดียวกันทั้งสองข้างของสมการเพื่อให้สมดุล', 1], ['ย้ายข้างแล้วเปลี่ยนเครื่องหมายเป็นตรงข้าม', 1], ['ย้ายข้างแล้วไม่ต้องเปลี่ยนเครื่องหมาย', 0], ['ตัวเลขข้างหน้า x ต้องบวกเข้าไปด้วย', 0]], adv: [['ตรวจคำตอบโดยแทนค่า x กลับเข้าสมการดูว่าเท่ากันไหม', 1], ['ลองแก้สมการอีกรอบด้วยวิธีเดิม', 0], ['ข้ามไปทำข้ออื่นก่อน', 0]] },
+    { n: 'พี่ภูมิ', e: '🔬', subj: 'วิทยาศาสตร์', lvl: 'ม.3', topic: 'แรง พลังงาน และร่างกาย', diff: 3, g: 'sci', n3: 5, q: 'ครูครับ ทำไมในอวกาศถึงไม่มีเสียงครับ?', pts: [['เสียงต้องอาศัยตัวกลาง เช่น อากาศ น้ำ จึงเดินทางผ่านสุญญากาศไม่ได้', 1], ['แรงโน้มถ่วงดึงวัตถุเข้าหาจุดศูนย์กลางของโลก', 1], ['วัตถุที่หนักกว่าจะไม่ถูกแรงโน้มถ่วงดึง', 0], ['เสียงเดินทางเร็วกว่าแสงในสุญญากาศ', 0]], adv: [['เชื่อมเรื่องที่เรียนกับสิ่งรอบตัว เช่น ทำไมของตกลงพื้น แล้วลองอธิบายด้วยคำของตัวเอง', 1], ['ท่องคำตอบจากหนังสือให้ขึ้นใจ', 0], ['อ่านเร็วๆ หลายรอบ', 0]] },
+    { n: 'น้องพลอย', e: '💎', subj: 'คณิตศาสตร์', lvl: 'ม.2', topic: 'สมการและโจทย์ปัญหา', diff: 3, g: 'alg', n3: 5, q: 'ครูคะ โจทย์ปัญหาที่เป็นข้อความ หนูตั้งสมการไม่ถูกเลยค่ะ', pts: [['อ่านโจทย์แล้วกำหนดตัวแปรแทนสิ่งที่ไม่รู้ก่อน', 1], ['ตั้งสมการจากความสัมพันธ์ในโจทย์ แล้วแก้สมการ', 1], ['ไม่ต้องตรวจคำตอบ เพราะสมการถูกอยู่แล้ว', 0], ['ตัวเลขทุกตัวในโจทย์ต้องใช้ในสมการ', 0]], adv: [['ลองขีดเส้นใต้คำสำคัญในโจทย์ แล้วเขียนเป็นสมการทีละประโยค', 1], ['ทำโจทย์ให้เยอะๆ ก็พอ', 0], ['ถามเพื่อนแล้วลอกวิธีมา', 0]] },
+  ];
+  const tutJob = () => (H.job && H.job.k === 'tut' && H.job.probs) ? H.job : null;
+  const bondOf = id => ((H.stu || {})[id] || { n: 0, b: 0 }), bonusOf = id => Math.min(.25, bondOf(id).b * .05);
+  let tOffer = null;
+  const tutOffer = () => { const mx = level('tut') >= 7 ? 3 : level('tut') >= 4 ? 2 : 1, pool = STU.map((s, i) => i).filter(i => STU[i].diff <= mx).sort(() => Math.random() - .5); return pool.slice(0, 3); };
+  const tutNorm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, '');
+  const tutElapsed = j => Math.max(0, gnow().getTime() - (j.t0 || 0));
+  function tutHtml() {
+    const head = head2('tut');
+    if (res && res.k === 'tut') { const s = STU[res.sid]; return head + `<div class="hpres"><h3>${res.acc >= .85 ? '🌟 นักเรียนเข้าใจดีมาก' : res.acc >= .55 ? '👍 สอนได้ แต่ยังมีจุดพลาด' : '🙂 ส่งงานแล้ว ครั้งหน้าทำได้ดีกว่านี้'}</h3>${row('นักเรียน', esc2(s.n) + ' ' + s.e)}${row('เตรียมบทเรียน', Math.round(res.lesson * 100) + '%')}${row('ตรวจการบ้าน', Math.round(res.grade * 100) + '%')}${row('คำแนะนำ', res.adv ? 'ตรงจุด' : 'ยังไม่ตรงจุด')}${row('ความสัมพันธ์', '❤️ ' + res.bond + (res.bonus ? ' (โบนัส +' + Math.round(res.bonus * 100) + '%)' : ''))}${row('ได้เงิน', '+฿' + baht(res.pay))}${row('ได้ EXP', '+' + res.exp)}${res.lv ? `<p class="hpup">🎉 เลื่อนเป็นเลเวล ${res.lv} แล้ว!</p>` : ''}<div class="hps">เฉลยข้อที่นักเรียนทำผิด:${res.wrong.map(p => `<div class="hpfx">${esc2(p.q)} → <b>${esc2(p.a)}</b> (นักเรียนตอบ ${esc2(p.s)})</div>`).join('') || '<div class="hpfx">ไม่มี</div>'}</div><div class="hpq"><button class="go" data-hp="jnext">งานต่อไป</button></div></div>`; }
+    const j = tutJob();
+    if (H.job && H.job.k === 'tut' && !j) { H.job = null; return tutHtml(); }
+    if (j) {
+      const s = STU[j.pid]; if (!s) { H.job = null; return tutHtml(); }
+      const top = `<h3 class="hpjt">${s.e} ${esc2(s.n)} · ${esc2(s.subj)} ${esc2(s.lvl)} <small>${'★'.repeat(s.diff)}${'☆'.repeat(3 - s.diff)}</small></h3><p class="hps">หัวข้อ: ${esc2(s.topic)} · ความสัมพันธ์ ❤️ ${bondOf(s.n).b}${bonusOf(s.n) ? ' (โบนัส +' + Math.round(bonusOf(s.n) * 100) + '%)' : ''}</p>`;
+      if (j.ph === 'prep') return head + top + `<p class="hps">📝 เตรียมบทเรียน: เลือกเนื้อหาที่ถูกต้องเพื่อใช้สอน (เลือก 2 ข้อ)</p>${s.pts.map((p, i) => `<button class="hpck${j.picks.includes(i) ? ' on' : ''}" data-hp="tpick" data-i="${i}">${j.picks.includes(i) ? '☑' : '☐'} ${esc2(p[0])}</button>`).join('')}<div class="hpq"><span class="hps">เลือกแล้ว ${j.picks.length}/2</span><br><button class="go" data-hp="trec">🎬 เริ่มอัดวิดีโอ (ใช้เวลาเกม 1 ชม.)</button><button data-hp="jcancel">ยกเลิกงาน (ไม่เสียอะไร)</button></div>`;
+      if (j.ph === 'rec') { const el = tutElapsed(j), pc = Math.min(100, Math.round(el / REC_MS * 100)), done = el >= REC_MS; return head + top + `<p class="hps">🎬 กำลังอัดและตัดต่อวิดีโอสอน… ใช้เวลาเกม 1 ชม. (ประมาณ 5 นาทีจริง) ระหว่างรอทำอย่างอื่นในบ้านได้</p><div class="hpbar2"><i style="width:${pc}%"></i></div><p class="hps">${done ? '✅ วิดีโอเสร็จแล้ว' : 'เหลืออีกประมาณ ' + Math.max(1, Math.ceil((REC_MS - el) / 60000)) + ' นาทีเกม'}</p><div class="hpq">${done ? '<button class="go" data-hp="tsend">📧 ส่งวิดีโอให้นักเรียนทางอีเมล</button>' : ''}</div>`; }
+      if (j.ph === 'wait') { const el = tutElapsed(j), pc = Math.min(100, Math.round(el / WAIT_MS * 100)); return head + top + `<p class="hps">📧 ส่งวิดีโอแล้ว รอ ${esc2(s.n)} ทำการบ้าน…</p><div class="hpbar2"><i style="width:${pc}%"></i></div>`; }
+      if (j.ph === 'grade') return head + top + `<p class="hps">📬 การบ้านมาแล้ว! กดว่าคำตอบถูก (✓) หรือผิด (✗) ถ้าผิดต้องพิมพ์คำตอบที่ถูกต้องด้วย</p>${j.probs.map((p, i) => `<div class="hpcard"><b>${i + 1}. ${esc2(p.q)}</b><br>นักเรียนตอบ: <b>${esc2(p.s)}</b><div class="hpq"><button class="${j.marks[i] === 'y' ? 'go' : ''}" data-hp="tmark" data-i="${i}" data-v="y">✓ ถูก</button><button class="${j.marks[i] === 'n' ? 'go' : ''}" data-hp="tmark" data-i="${i}" data-v="n">✗ ผิด</button></div>${j.marks[i] === 'n' ? `<label class="hpfr">คำตอบที่ถูก: <input data-ta="${i}" value="${esc2(j.typed[i] || '')}" autocomplete="off" spellcheck="false"></label>` : ''}</div>`).join('')}<p class="hps">💬 เลือกคำแนะนำที่จะส่งให้นักเรียน</p>${s.adv.map((a, i) => `<button class="hpck${j.adv === i ? ' on' : ''}" data-hp="tadv" data-i="${i}">${j.adv === i ? '◉' : '○'} ${esc2(a[0])}</button>`).join('')}<div class="hpq"><button class="go" data-hp="tsubmit">📨 ส่งผลการตรวจ</button></div>`;
+    }
+    if (H.job) return head + '<p class="hps">ตอนนี้มีงานอื่นที่ยังทำค้างอยู่ ทำให้เสร็จหรือยกเลิกก่อนนะ</p>';
+    const can = leftMin() >= T_MIN; if (!tOffer) tOffer = tutOffer();
+    return head + `<div class="hpjob"><h3>🎓 สอนพิเศษออนไลน์</h3><p>เลือกนักเรียน เตรียมบทเรียน อัดวิดีโอ (ใช้เวลาเกม 1 ชม.) ส่งทางอีเมล แล้วรอตรวจการบ้าน<br><small>ใช้เวลาเกมรวมราว ${T_MIN} นาที · ค่าสอนสูงสุดตอนนี้ ฿${baht(Math.round(T_BASE * mult(level('tut')) * dayF()))} ต่อนักเรียน · สอนคนเดิมต่อเนื่องจะได้โบนัสความสัมพันธ์</small></p>${can ? tOffer.map(i => { const s = STU[i], b = bondOf(s.n); return `<button class="hpck" data-hp="taccept" data-i="${i}">${s.e} <b>${esc2(s.n)}</b> · ${esc2(s.subj)} ${esc2(s.lvl)} · ${esc2(s.topic)} ${'★'.repeat(s.diff)}${b.n ? ` · ❤️ ${b.b} (สอนมาแล้ว ${b.n} ครั้ง)` : ''}</button>`; }).join('') : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}</div>`;
+  }
+  function tutAccept(i) {
+    if (H.job || leftMin() < T_MIN) return; const s = STU[i]; if (!s) return; const mx = level('tut') >= 7 ? 3 : level('tut') >= 4 ? 2 : 1; if (s.diff > mx) return;
+    let probs = GEN[s.g](s.n3).map(p => ({ q: p.q, a: p.a, w: p.w, s: p.a })); const nw = probs.length >= 4 ? rnd(1, 2) : 1, idx = probs.map((p, k) => k).sort(() => Math.random() - .5).slice(0, nw); idx.forEach(k => { probs[k].s = probs[k].w; });
+    probs = probs.map(p => ({ q: p.q, a: p.a, s: p.s, ok: p.s === p.a }));
+    H.job = { k: 'tut', pid: i, ph: 'prep', picks: [], t0: 0, probs, marks: {}, typed: {}, adv: -1 }; res = null; tOffer = null; refreshJobs();
+  }
+  function tutPick(i) { const j = tutJob(); if (!j || j.ph !== 'prep') return; const k = j.picks.indexOf(i); if (k >= 0) j.picks.splice(k, 1); else if (j.picks.length < 2) j.picks.push(i); else { toast('เลือกได้แค่ 2 ข้อ', 1.4); return; } refreshApp('tut'); }
+  function tutRec() { const j = tutJob(); if (!j || j.ph !== 'prep') return; if (j.picks.length < 2) { toast('เลือกเนื้อหาที่จะสอนให้ครบ 2 ข้อก่อน', 1.8); return; } j.ph = 'rec'; j.t0 = gnow().getTime(); refreshApp('tut'); }
+  function tutSend() { const j = tutJob(); if (!j || j.ph !== 'rec' || tutElapsed(j) < REC_MS) return; j.ph = 'wait'; j.t0 = gnow().getTime(); try { S.tone(600, 900, .12, .07); } catch (e) {} refreshApp('tut'); }
+  function tutTick() {
+    const j = tutJob(); if (!j || (j.ph !== 'rec' && j.ph !== 'wait')) return;
+    if (j.ph === 'wait' && tutElapsed(j) >= WAIT_MS) { j.ph = 'grade'; try { S.tone(700, 1000, .15, .07); toast('📬 ' + STU[j.pid].n + ' ส่งการบ้านมาแล้ว', 2.2); } catch (e) {} refreshApp('tut'); return; }
+    const pc = Math.floor(tutElapsed(j) / (j.ph === 'rec' ? REC_MS : WAIT_MS) * 50), key = j.ph + pc; if (key !== j._k) { j._k = key; refreshApp('tut'); }
+  }
+  function tutSubmit() {
+    const j = tutJob(); if (!j || j.ph !== 'grade') return; if (j.probs.some((p, i) => !j.marks[i])) { toast('ตรวจให้ครบทุกข้อก่อน', 1.6); return; } if (j.adv < 0) { toast('เลือกคำแนะนำที่จะส่งให้นักเรียนก่อน', 1.6); return; }
+    const s = STU[j.pid], lesson = clamp((j.picks.filter(i => s.pts[i][1]).length - j.picks.filter(i => !s.pts[i][1]).length * .5) / 2, 0, 1);
+    const grade = j.probs.reduce((a, p, i) => { const m = j.marks[i]; if (p.ok) return a + (m === 'y' ? 1 : 0); if (m === 'y') return a; return a + (tutNorm(j.typed[i]) === tutNorm(p.a) ? 1 : .4); }, 0) / j.probs.length, advOk = s.adv[j.adv][1];
+    const acc = clamp(.2 * lesson + .55 * grade + .25 * advOk, 0, 1), l0 = level('tut'), bonus = bonusOf(s.n);
+    const pay = Math.round(T_BASE * mult(l0) * acc * dayF() * (1 + bonus)), exp = Math.round(T_EXP * (.4 + .6 * acc));
+    H.stu = H.stu || {}; const b = H.stu[s.n] || { n: 0, b: 0 }; b.n++; if (acc >= .6) b.b = Math.min(5, b.b + 1); else if (acc < .35) b.b = Math.max(0, b.b - 1); H.stu[s.n] = b;
+    const lv = finishJob('tut', 'สอนพิเศษ', s.n + ' · ' + s.topic, pay, exp, acc, { name: 'ครูสอนพิเศษ', from: [s.n + ' (นักเรียน)'], good: 'ขอบคุณครูมากเลยค่ะ ตอนนี้เข้าใจแล้ว! ' + s.q + ' 🙏', ok: 'ขอบคุณค่ะครู ยังมีบางข้อที่งงอยู่นิดหน่อย ' + s.q, bad: 'หนูยังไม่ค่อยเข้าใจเลยค่ะ ครูช่วยอธิบายใหม่ได้ไหมคะ 😢', up: 'ครูสอนเก่งขึ้นเยอะเลย ตอนนี้เลเวล {L} แล้ว ค่าสอนขึ้นให้ด้วยนะคะ 🎓' });
+    res = { k: 'tut', sid: j.pid, lesson, grade, adv: advOk, bond: b.b, bonus: bonusOf(s.n), pay, exp, acc, lv, wrong: j.probs.filter(p => !p.ok) }; H.job = null; tOffer = null; refreshJobs();
+  }
+
   /* ================= build / render ================= */
   function build() {
     if (hp) return; hp = h('div', { id: 'homePC' }, `<div class="hpl"></div><div class="hpm"><div class="hpd" data-drop="desk"></div><div class="hpwl"></div><div class="hpbarT"><span class="hptask"></span><button class="hpfs" data-hp="pause" title="พักเกม (หยุดเวลา)">⏸ พักเกม</button><button class="hpfs" data-hp="full" title="เต็มจอ">⛶</button><b id="hpClk">${hm(gnow())}</b></div><div class="hpbedw"></div></div><div class="hpdesk"></div>`);
     document.body.append(hp); mon = hp.querySelector('.hpm'); dsk = hp.querySelector('.hpd'); wl = hp.querySelector('.hpwl'); W = []; sel = null; res = null;
     try { closePhone(); } catch (e) {} hp.classList.toggle('full', isFull()); applyLamp(); renderDesk(); renderWins(); renderBed();
+    hp.addEventListener('input', e => { const ti = e.target.closest && e.target.closest('[data-ta]'); const j = tutJob(); if (ti && j) j.typed[ti.dataset.ta] = ti.value; });
     hp.addEventListener('change', e => { const sl = e.target.closest && e.target.closest('[data-cf]'); const j = codeJob(); if (sl && j) { j.fix[sl.dataset.cf] = sl.value; j.out = ''; const rn = hp.querySelector('.hprun'); if (rn) rn.innerHTML = ''; } }); hp.addEventListener('input', e => { const nt = e.target.closest && e.target.closest('[data-note]'); if (nt && H.job && H.job.k === 'det') H.job.note = nt.value;  const t = e.target.closest && e.target.closest('[data-fx]'); if (t && H.job) { (H.job.fix = H.job.fix || {})[t.dataset.fx] = t.value; } }); hp.addEventListener('keydown', e => { const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') { e.stopPropagation(); if (e.key === 'Enter' && e.target.dataset && e.target.dataset.tq) toolSearch(e.target.dataset.tq, e.target.value); } }); hp.addEventListener('click', onClick); hp.addEventListener('dblclick', onDbl); hp.addEventListener('contextmenu', onCtx); hp.addEventListener('pointerdown', onDown);
     new ResizeObserver(() => { if (!mon) return; renderDesk(); fitWins(); }).observe(mon);
   }
@@ -511,6 +584,7 @@
     else if (a === 'caccept') codeAccept(); else if (a === 'ccancel') { H.job = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'cnext') { res = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'csubmit') codeSubmit();
     else if (a === 'raccept') revAccept(); else if (a === 'rstar') { if (H.job && H.job.k === 'rev') { H.job.stars = +b.dataset.v; refreshApp('rev'); } } else if (a === 'rpick') revPick(+b.dataset.i); else if (a === 'rsubmit') revSubmit();
     else if (a === 'daccept') detAccept(); else if (a === 'dans') { if (H.job && H.job.k === 'det') { H.job.ans = +b.dataset.i; refreshApp('det'); } } else if (a === 'dsubmit') detSubmit();
+    else if (a === 'taccept') tutAccept(+b.dataset.i); else if (a === 'tpick') tutPick(+b.dataset.i); else if (a === 'trec') tutRec(); else if (a === 'tsend') tutSend(); else if (a === 'tsubmit') tutSubmit(); else if (a === 'tadv') { const j = tutJob(); if (j && j.ph === 'grade') { j.adv = +b.dataset.i; refreshApp('tut'); } } else if (a === 'tmark') { const j = tutJob(); if (j && j.ph === 'grade') { j.marks[+b.dataset.i] = b.dataset.v; refreshApp('tut'); } }
     else if (a === 'dtool') openWin('app', b.dataset.t); else if (a === 'tsearch') { const inp = hp.querySelector(`[data-tq="${b.dataset.t}"]`); toolSearch(b.dataset.t, inp ? inp.value : ''); }
     else if (a === 'jcancel') { H.job = null; refreshJobs(); } else if (a === 'jnext') { res = null; refreshJobs(); }
     else if (a === 'crun') codeRun(); else if (a === 'cmark') { if (codeJob()) { const i = +b.dataset.i; codeMark(i); } }
@@ -524,7 +598,7 @@
   function light() { if (!hp) return; const m = min(), k = m < 19 * 60 ? .4 : Math.max(.1, .4 - (m - 19 * 60) / 300 * .3); hp.style.setProperty('--lamp', k.toFixed(2)); }
   let lastClock = '';
   function tick() {
-    if (!H.on) return; const g = gnow();
+    if (!H.on) return; try { tutTick(); } catch (e) {} const g = gnow();
     if (!H.bed) { if (sleepWin()) { pin(); bedtime(); } else if (g.getHours() < 5) bedtime(); } else if (sleepWin()) pin();
     if (!H.bed && min() >= 23 * 60 + 30 && H.warnDay !== gd()) { H.warnDay = gd(); try { S.big('🌙 อีก 30 นาทีจะถึงเวลานอน', 3, '#7d6dff'); } catch (e) {} }
     light(); const c = hp && hp.querySelector('#hpClk'); if (c) c.textContent = hm(gnow());
@@ -545,7 +619,7 @@
   CG.home = {
     enter, exit, on: () => H.on, bed: () => H.bed, open: openItem, newDir, setFull, state: () => ({ on: H.on, bed: H.bed, bal: bank.bal, cred: H.cred, side: H.side, hist: H.hist.slice(), job: H.job, skill: { ...H.skill }, items: H.items.map(x => ({ ...x })), wins: W.map(w => ({ id: w.id, min: w.min, max: w.max })), full: isFull() }),
     petSound, pets: () => ({ ...H.pets }), buyPet: k => { H.pets[k] = true; }, petCost: PET_COST, addSide: (job, amt, exp) => { earn(amt, job); H.hist.push({ d: gd(), job, amt, exp: exp || 0 }); refreshApp('fin'); refreshApp('hist'); },
-    addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, detCase: i => DETS[i], detCount: () => DETS.length, toolSearch, revCase: i => REVS[i], codeCase: i => CODES[i], codeCount: () => CODES.length, passages: () => PASS.length, pass: i => PASS[i],
+    addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, detCase: i => DETS[i], detCount: () => DETS.length, stuCase: i => STU[i], stuCount: () => STU.length, tutOfferNow: () => tOffer, toolSearch, revCase: i => REVS[i], codeCase: i => CODES[i], codeCount: () => CODES.length, passages: () => PASS.length, pass: i => PASS[i],
   };
   if (CG.Dev) CG.Dev.add('🏠 Home Mode', box => {
     box.innerHTML = '<button data-h="in">เข้าบ้านทันที (ไม่เสียค่ารถ)</button> <button data-h="t2325">23:25</button> <button data-h="t2355">23:55</button> <button data-h="t2000">20:00</button> <button data-h="exp">+500 EXP นิยาย</button> <button data-h="out">ออกจาก Home Mode</button>';
