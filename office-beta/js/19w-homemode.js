@@ -19,19 +19,19 @@
     { id: 'fin', t: 'app', n: 'การเงินและรายได้เสริม', e: '💰', loc: 'desk' }, { id: 'msg', t: 'app', n: 'ข้อความลูกค้า', e: '💬', loc: 'desk' },
     { id: 'hist', t: 'app', n: 'ประวัติงานเสริม', e: '🗂️', loc: 'desk' }, { id: 'pet', t: 'app', n: 'มุมสัตว์เลี้ยงและบรรยากาศ', e: '🐾', loc: 'desk' }, { id: 'clock', t: 'app', n: 'นาฬิกา', e: '🕐', loc: 'desk' },
   ];
-  const H = { on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0 }, cred: 50, revs: [], job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0, nextPet: 0, petAt: 0 };
+  const H = { on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0, nextPet: 0, petAt: 0 };
   const fixItems = () => {
     const def = DEF_ITEMS(), ids = new Set(H.items.map(x => x.id)); def.forEach(d => { if (!ids.has(d.id)) H.items.push(d); });
     H.items = H.items.filter((x, i, a) => x && x.id && a.findIndex(y => y.id === x.id) === i);
     const dirs = new Set(H.items.filter(x => x.t === 'dir').map(x => x.id)); H.items.forEach(x => { if (x.loc !== 'desk' && !dirs.has(x.loc)) { x.loc = 'desk'; delete x.p; } });
   };
   CG.Save.register('home', {
-    def: () => ({ on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0 }, cred: 50, revs: [], job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0 }),
-    get: () => ({ on: H.on, bed: H.bed, warnDay: H.warnDay, side: H.side, hist: H.hist.slice(-120), msgs: H.msgs.slice(0, 40), skill: H.skill, cred: H.cred, revs: H.revs.slice(0, 15), job: H.job, items: H.items, full: H.full, uid: H.uid, last: H.last, pets: H.pets, amb: H.amb, lamp: H.lamp }),
+    def: () => ({ on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0 }),
+    get: () => ({ on: H.on, bed: H.bed, warnDay: H.warnDay, side: H.side, hist: H.hist.slice(-120), msgs: H.msgs.slice(0, 40), skill: H.skill, merged: H.merged, cred: H.cred, revs: H.revs.slice(0, 15), job: H.job, items: H.items, full: H.full, uid: H.uid, last: H.last, pets: H.pets, amb: H.amb, lamp: H.lamp }),
     set: d => {
       d = d || {}; H.on = !!d.on; H.bed = !!d.bed; H.warnDay = Number.isFinite(d.warnDay) ? d.warnDay : -1; H.side = +d.side || 0; H.hist = Array.isArray(d.hist) ? d.hist : []; H.msgs = Array.isArray(d.msgs) ? d.msgs : [];
-      H.skill = { novel: +(d.skill && d.skill.novel) || 0, code: +(d.skill && d.skill.code) || 0, rev: +(d.skill && d.skill.rev) || 0, det: +(d.skill && d.skill.det) || 0 }; H.cred = Number.isFinite(d.cred) ? clamp(d.cred, 0, 100) : 50; H.revs = Array.isArray(d.revs) ? d.revs : []; H.job = d.job && typeof d.job.pid === 'number' ? d.job : null; H.items = Array.isArray(d.items) && d.items.length ? d.items : DEF_ITEMS(); H.full = !!d.full; H.uid = +d.uid || 0; H.last = Number.isFinite(d.last) ? d.last : -1; H.pets = { cat: !!(d.pets && d.pets.cat), dog: !!(d.pets && d.pets.dog) }; H.amb = d.amb === 'rain' || d.amb === 'night' ? d.amb : ''; H.lamp = [0, 1, 2].includes(d.lamp) ? d.lamp : 0;
-      fixItems(); setTimeout(sync, 700);
+      H.skill = { novel: +(d.skill && d.skill.novel) || 0, code: +(d.skill && d.skill.code) || 0, rev: +(d.skill && d.skill.rev) || 0, det: +(d.skill && d.skill.det) || 0 }; H.merged = d.merged === true; H.cred = Number.isFinite(d.cred) ? clamp(d.cred, 0, 100) : 50; H.revs = Array.isArray(d.revs) ? d.revs : []; H.job = d.job && typeof d.job.pid === 'number' ? d.job : null; H.items = Array.isArray(d.items) && d.items.length ? d.items : DEF_ITEMS(); H.full = !!d.full; H.uid = +d.uid || 0; H.last = Number.isFinite(d.last) ? d.last : -1; H.pets = { cat: !!(d.pets && d.pets.cat), dog: !!(d.pets && d.pets.dog) }; H.amb = d.amb === 'rain' || d.amb === 'night' ? d.amb : ''; H.lamp = [0, 1, 2].includes(d.lamp) ? d.lamp : 0;
+      fixItems(); setTimeout(sync, 700); setTimeout(() => { if (!H.merged) { H.merged = true; if (H.side > 0) { try { bankTx('💼 ย้ายรายได้เสริมเดิมเข้าบัญชีหลัก', H.side); } catch (e) {} } } }, 1500);
     },
   });
 
@@ -144,7 +144,7 @@
     if (r === 'pet') return petHtml();
     if (r === 'rev') return revHtml();
     if (r === 'det') return detHtml();
-    if (r === 'fin') { const mk = monthKey(gd()), mo = H.hist.filter(x => x.amt > 0 && monthKey(x.d) === mk).reduce((a, x) => a + x.amt, 0), sal = Math.round(hr.base || 0); return `${row('🏦 เงินในบัญชีหลัก', '฿' + baht(bank.bal))}${row('💼 เงินเดือนประจำ', sal ? '฿' + baht(sal) + ' / เดือน' : 'ไม่มี')}<hr>${row('✨ บัญชีรายได้เสริม', '฿' + baht(H.side))}${row('📅 รายได้เสริมเดือนนี้', '฿' + baht(mo))}<p class="hps">รายได้เสริมแยกจากเงินเดือนหลัก ดูได้ชัดว่าเงินเดือนเท่าไหร่ รายได้เสริมเท่าไหร่</p>`; }
+    if (r === 'fin') { const mk = monthKey(gd()), mo = H.hist.filter(x => x.amt > 0 && monthKey(x.d) === mk).reduce((a, x) => a + x.amt, 0), sal = Math.round(hr.base || 0); return `${row('🏦 เงินในบัญชี (เงินเดือน + รายได้เสริม)', '฿' + baht(bank.bal))}${row('💼 เงินเดือนประจำ', sal ? '฿' + baht(sal) + ' / เดือน' : 'ไม่มี')}<hr>${row('✨ รายได้เสริมเดือนนี้', '฿' + baht(mo))}${row('📈 รายได้เสริมสะสมทั้งหมด', '฿' + baht(H.side))}<p class="hps">เงินจากงานเสริมเข้าบัญชีเดียวกับเงินเดือน รวมกันในยอดเงินด้านบน ดูรายการแยกได้ที่ประวัติงานเสริม หรือรายการเดินบัญชีของธนาคาร</p>`; }
     if (r === 'msg') return H.msgs.length ? H.msgs.map(m => `<div class="hpm1"><b>${esc2(m.from)}</b> <small>${esc2(m.at)}</small><p>${esc2(m.text)}</p></div>`).join('') : empty('📭', 'ยังไม่มีข้อความจากลูกค้า', 'เมื่อส่งงานเสริมสำเร็จ ลูกค้าจะตอบกลับที่นี่');
     if (r === 'hist') return H.hist.length ? H.hist.slice(-30).reverse().map(x => row(esc2(x.job || 'งานเสริม') + ` <small>${esc2(thDate(T0 + x.d * DAY, { day: 'numeric', month: 'short' }))}${x.exp ? ' · +' + x.exp + ' EXP' : ''}</small>`, (x.amt < 0 ? '−฿' + baht(-x.amt) : '+฿' + baht(x.amt)))).join('') : empty('🗂️', 'ยังไม่มีประวัติงานเสริม', 'งานที่ส่งสำเร็จจะมาอยู่ที่นี่');
     if (r === 'clock') { const g = gnow(), L = leftMin(); return `<div class="hpc">${hm(g)}</div><div class="hps" style="text-align:center">${esc2(thDate(g, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}</div>${row('🌙 เวลานอน', '00:00')}${row('⏳ เหลือเวลาส่วนตัว', `${Math.floor(L / 60)} ชม. ${L % 60} นาที <small>(≈ ${Math.ceil(L / 12)} นาทีจริง)</small>`)}` + (confirmSleep ? `<div class="hpq"><p>จะข้ามเวลาที่เหลือของวันนี้ไปเข้านอนเลย<br><small>เวลาส่วนตัวที่เหลือจะไม่ได้ใช้ ไม่มีโทษและไม่มีโบนัสพิเศษ</small></p><button class="go" data-hp="sleepyes">ยืนยัน เข้านอน</button><button data-hp="sleepno">ยกเลิก</button></div>` : `<div class="hpq"><button class="go" data-hp="sleepask">🌙 เข้านอนเลย</button></div>`); }
@@ -168,7 +168,7 @@
   function novelSubmit() {
     if (!H.job) return; const p = PASS[H.job.pid], m = H.job.marks, found = m.filter(i => p.chunks[i].err).length, fp = m.length - found, acc = clamp((found - fp * .5) / p.n, 0, 1), l0 = level('novel');
     const pay = Math.round(N_BASE * mult(l0) * acc), exp = Math.round(N_EXP * (.4 + .6 * acc)); H.skill.novel = Math.min(TH[9], H.skill.novel + exp); const l1 = level('novel');
-    H.side += pay; H.hist.push({ d: gd(), job: 'ตรวจนิยาย: ' + p.title, amt: pay, exp }); const at = hm(gnow());
+    earn(pay, 'ตรวจนิยาย: ' + p.title); H.hist.push({ d: gd(), job: 'ตรวจนิยาย: ' + p.title, amt: pay, exp }); const at = hm(gnow());
     const txt = acc >= .9 ? 'ละเอียดมากเลยค่ะ ขอบคุณที่ช่วยตรวจนะคะ 🥰 โอนค่าตอบแทนให้แล้วนะคะ' : acc >= .6 ? 'ตรวจได้ดีเลยค่ะ มีหลุดไปนิดหน่อยแต่ไม่เป็นไร ไว้ฝากงานอีกนะคะ' : 'ขอบคุณที่ช่วยกันนะคะ ยังมีที่ตกหล่นอยู่บ้าง รอบหน้าลองดูอีกทีนะ 🙂';
     H.msgs.unshift({ from: pick(FROM), at, text: txt, unread: true }); if (l1 > l0) H.msgs.unshift({ from: 'คุณแพร (บรรณาธิการ)', at, text: `เห็นว่าฝีมือพัฒนาขึ้นมากเลย ตอนนี้เลเวล ${l1} แล้ว ค่าตอบแทนขึ้นให้นะคะ ฝากงานต่อไปด้วย 💪`, unread: true });
     res = { found, n: p.n, fp, pay, exp, acc, lv: l1 > l0 ? l1 : 0, rev: p.chunks.filter(c => c.err) }; H.job = null;
@@ -176,6 +176,8 @@
     CG.Bus.emit('sidejob.done', { job: 'novel', pay, exp }); renderDesk(); refreshApp('novel'); refreshApp('fin'); refreshApp('msg'); refreshApp('hist');
   }
 
+  /* side income goes straight into the main bank balance (one account); H.side only counts lifetime side income */
+  const earn = (amt, job) => { H.side += amt; if (amt > 0) { try { bankTx('💼 งานเสริม: ' + job, amt); } catch (e) {} } };
   /* ================= atmosphere: pet sounds (stress -10% of current), ambient sound, room lamp ================= */
   const PET_COST = 300, PET_CD = 30000;
   const meow = () => { try { S.tone(650, 1000, .16, .09, 'triangle'); setTimeout(() => S.tone(1000, 560, .3, .09, 'triangle'), 170); } catch (e) {} };
@@ -190,9 +192,9 @@
   }
   function petHtml() {
     const own = k => H.pets[k], cd = Math.max(0, Math.ceil((PET_CD - (Date.now() - H.petAt)) / 1000));
-    const pet = (k, e, n) => own(k) ? `<div class="hppet">${e} <b>${n}</b> <small>ร้องเองเป็นครั้งคราว</small><button class="go" data-hp="petcall" data-k="${k}">เรียกให้ร้อง</button></div>` : `<div class="hppet">${e} <b>${n}</b> <small>฿${baht(PET_COST)}${H.side < PET_COST ? ' · เงินรายได้เสริมยังไม่พอ (มี ฿' + baht(H.side) + ')' : ''}</small><button class="${H.side < PET_COST ? 'hpdis' : 'go'}" data-hp="petbuy" data-k="${k}">ซื้อ</button></div>`;
+    const pet = (k, e, n) => own(k) ? `<div class="hppet">${e} <b>${n}</b> <small>ร้องเองเป็นครั้งคราว</small><button class="go" data-hp="petcall" data-k="${k}">เรียกให้ร้อง</button></div>` : `<div class="hppet">${e} <b>${n}</b> <small>฿${baht(PET_COST)}${bank.bal < PET_COST ? ' · เงินในบัญชียังไม่พอ (มี ฿' + baht(bank.bal) + ')' : ''}</small><button class="${bank.bal < PET_COST ? 'hpdis' : 'go'}" data-hp="petbuy" data-k="${k}">ซื้อ</button></div>`;
     const opt = (a, v, cur, t) => `<button class="${cur === v ? 'go' : ''}" data-hp="${a}" data-v="${v}">${t}</button>`;
-    return `<h3 class="hpjt">🐾 สัตว์เลี้ยง</h3><p class="hps">ไม่มีตัวจริงให้ดูแล มีแค่เสียงน่ารักๆ ทุกครั้งที่ร้อง ความเครียดจะลด 10% ของค่าปัจจุบัน · ซื้อด้วยบัญชีรายได้เสริม (มี ฿${baht(H.side)})</p>${pet('cat', '🐱', 'เสียงแมว')}${pet('dog', '🐶', 'เสียงหมา')}<hr><h3 class="hpjt">🎧 เสียงบรรยากาศ</h3><div class="hpq" style="margin-top:6px">${opt('amb', '', H.amb, '🔇 ปิด')}${opt('amb', 'rain', H.amb, '🌧️ ฝนตก')}${opt('amb', 'night', H.amb, '🌙 จิ้งหรีดยามค่ำ')}</div><hr><h3 class="hpjt">💡 แสงในห้อง</h3><div class="hpq" style="margin-top:6px">${opt('lamp', '0', String(H.lamp), '☀️ สว่าง')}${opt('lamp', '1', String(H.lamp), '🕯️ อบอุ่น')}${opt('lamp', '2', String(H.lamp), '🌑 มืดสลัว')}</div>`;
+    return `<h3 class="hpjt">🐾 สัตว์เลี้ยง</h3><p class="hps">ไม่มีตัวจริงให้ดูแล มีแค่เสียงน่ารักๆ ทุกครั้งที่ร้อง ความเครียดจะลด 10% ของค่าปัจจุบัน · ซื้อด้วยเงินในบัญชี (มี ฿${baht(H.side)})</p>${pet('cat', '🐱', 'เสียงแมว')}${pet('dog', '🐶', 'เสียงหมา')}<hr><h3 class="hpjt">🎧 เสียงบรรยากาศ</h3><div class="hpq" style="margin-top:6px">${opt('amb', '', H.amb, '🔇 ปิด')}${opt('amb', 'rain', H.amb, '🌧️ ฝนตก')}${opt('amb', 'night', H.amb, '🌙 จิ้งหรีดยามค่ำ')}</div><hr><h3 class="hpjt">💡 แสงในห้อง</h3><div class="hpq" style="margin-top:6px">${opt('lamp', '0', String(H.lamp), '☀️ สว่าง')}${opt('lamp', '1', String(H.lamp), '🕯️ อบอุ่น')}${opt('lamp', '2', String(H.lamp), '🌑 มืดสลัว')}</div>`;
   }
   function applyLamp() { if (!hp) return; hp.classList.toggle('lamp1', H.lamp === 1); hp.classList.toggle('lamp2', H.lamp === 2); let o = hp.querySelector('.hplamp'); if (!o) { o = h('div', { class: 'hplamp' }); hp.append(o); } o.style.background = H.lamp === 1 ? 'radial-gradient(ellipse at 85% 10%,rgba(255,200,120,.42),rgba(255,150,70,.36) 70%)' : H.lamp === 2 ? 'rgba(6,6,28,.62)' : 'transparent'; o.style.mixBlendMode = H.lamp === 1 ? 'multiply' : 'normal'; }
   let ambN = 0;
@@ -228,7 +230,7 @@
     if (!H.job || H.job.k !== 'code') return; const p = CODES[H.job.pid], o = H.job.order, bad0 = p.start.map((v, i) => v !== i), l0 = level('code');
     const found = o.filter((v, i) => bad0[i] && v === i).length, fp = o.filter((v, i) => !bad0[i] && v !== i).length, acc = clamp((found - fp * .5) / p.n, 0, 1);
     const pay = Math.round(C_BASE * mult(l0) * acc), exp = Math.round(C_EXP * (.4 + .6 * acc)); H.skill.code = Math.min(TH[9], H.skill.code + exp); const l1 = level('code');
-    H.side += pay; H.hist.push({ d: gd(), job: 'จัดลำดับ: ' + p.title, amt: pay, exp }); const at = hm(gnow());
+    earn(pay, 'จัดลำดับ: ' + p.title); H.hist.push({ d: gd(), job: 'จัดลำดับ: ' + p.title, amt: pay, exp }); const at = hm(gnow());
     const txt = acc >= .9 ? 'เยี่ยมมากครับ ลำดับถูกหมดเลย หุ่นยนต์ทำงานได้ลื่นไหล 🎉 โอนค่าจ้างให้แล้วนะครับ' : acc >= .5 ? 'ใช้ได้ครับ ยังมีบางจุดที่ลำดับไม่ตรง เดี๋ยวผมแก้เอง ขอบคุณครับ' : 'ขอบคุณที่ช่วยครับ หุ่นยนต์ยังงงๆ อยู่ รอบหน้าลองใหม่นะครับ 🙂';
     H.msgs.unshift({ from: pick(FROM_C), at, text: txt, unread: true }); if (l1 > l0) H.msgs.unshift({ from: 'คุณนุ่น (หัวหน้าทีมเว็บ)', at, text: `ฝีมือจัดลำดับพัฒนาขึ้นเยอะเลย ตอนนี้เลเวล ${l1} แล้ว ค่าจ้างขึ้นให้นะครับ ฝากงานต่อด้วย 💪`, unread: true });
     res = { k: 'code', found, n: p.n, fp, pay, exp, acc, lv: l1 > l0 ? l1 : 0, rev: p.steps.slice() }; H.job = null;
@@ -256,7 +258,7 @@
   const pickCase = (arr, k) => { let i; do { i = Math.floor(Math.random() * arr.length); } while (arr.length > 1 && i === lastJ[k]); lastJ[k] = i; return i; };
   const finishJob = (k, label, title, pay, exp, acc, msgs) => {
     const l0 = level(k); H.skill[k] = Math.min(TH[9], H.skill[k] + exp); const l1 = level(k), at = hm(gnow());
-    H.side += pay; H.hist.push({ d: gd(), job: label + ': ' + title, amt: pay, exp });
+    earn(pay, label + ': ' + title); H.hist.push({ d: gd(), job: label + ': ' + title, amt: pay, exp });
     H.msgs.unshift({ from: pick(msgs.from), at, text: acc >= .8 ? msgs.good : acc >= .5 ? msgs.ok : msgs.bad, unread: true });
     if (l1 > l0) H.msgs.unshift({ from: msgs.from[0], at, text: msgs.up.replace('{L}', l1), unread: true });
     try { if (l1 > l0) { S.big('🎉 ' + msgs.name + ' เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else if (acc >= .5) S.tone(660, 880, .15, .08); else S.noise(.25, 500, .08); toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
@@ -404,7 +406,7 @@
     else if (a === 'naccept') novelAccept(); else if (a === 'ncancel') { H.job = null; refreshApp('novel'); refreshApp('code'); } else if (a === 'nnext') { res = null; refreshApp('novel'); refreshApp('code'); }
     else if (a === 'mark') { if (H.job) { const i = +b.dataset.i, k = H.job.marks.indexOf(i); if (k >= 0) H.job.marks.splice(k, 1); else H.job.marks.push(i); b.classList.toggle('hpmk'); const cnt = hp.querySelector('.hpq .hps'); if (cnt) cnt.textContent = `ทำเครื่องหมายแล้ว ${H.job.marks.length} จุด`; } }
     else if (a === 'nsubmit') novelSubmit();
-    else if (a === 'petbuy') { const k = b.dataset.k; if (H.pets[k]) return; if (H.side < PET_COST) { try { toast('บัญชีรายได้เสริมมีไม่พอ ไปทำงานเสริมก่อนนะ', 2); } catch (e) {} } else { H.side -= PET_COST; H.pets[k] = true; H.hist.push({ d: gd(), job: 'ซื้อ' + (k === 'cat' ? 'แมว' : 'หมา') + ' (เสียง)', amt: -PET_COST, exp: 0 }); try { S.tone(660, 990, .15, .09); } catch (e) {} refreshApp('pet'); refreshApp('fin'); refreshApp('hist'); petSound(k, false); } }
+    else if (a === 'petbuy') { const k = b.dataset.k; if (H.pets[k]) return; if (bank.bal < PET_COST) { try { toast('เงินในบัญชีไม่พอ ไปทำงานเสริมหรือรอเงินเดือนก่อนนะ', 2); } catch (e) {} } else { bankTx('🐾 ซื้อเสียง' + (k === 'cat' ? 'แมว' : 'หมา'), -PET_COST); H.pets[k] = true; H.hist.push({ d: gd(), job: 'ซื้อ' + (k === 'cat' ? 'แมว' : 'หมา') + ' (เสียง)', amt: -PET_COST, exp: 0 }); try { S.tone(660, 990, .15, .09); } catch (e) {} refreshApp('pet'); refreshApp('fin'); refreshApp('hist'); petSound(k, false); } }
     else if (a === 'petcall') { petSound(b.dataset.k, true); refreshApp('pet'); }
     else if (a === 'amb') { H.amb = b.dataset.v; refreshApp('pet'); } else if (a === 'lamp') { H.lamp = +b.dataset.v; applyLamp(); refreshApp('pet'); }
     else if (a === 'caccept') codeAccept(); else if (a === 'ccancel') { H.job = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'cnext') { res = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'csubmit') codeSubmit();
@@ -441,8 +443,8 @@
   function exit() { H.on = false; H.bed = false; destroy(); CG.Bus.emit('home.exit'); }
   CG.Bus.on('sleep.done', () => { if (H.on) exit(); });
   CG.home = {
-    enter, exit, on: () => H.on, bed: () => H.bed, open: openItem, newDir, setFull, state: () => ({ on: H.on, bed: H.bed, cred: H.cred, side: H.side, hist: H.hist.slice(), job: H.job, skill: { ...H.skill }, items: H.items.map(x => ({ ...x })), wins: W.map(w => ({ id: w.id, min: w.min, max: w.max })), full: isFull() }),
-    petSound, pets: () => ({ ...H.pets }), buyPet: k => { H.pets[k] = true; }, petCost: PET_COST, addSide: (job, amt, exp) => { H.side += amt; H.hist.push({ d: gd(), job, amt, exp: exp || 0 }); refreshApp('fin'); refreshApp('hist'); },
+    enter, exit, on: () => H.on, bed: () => H.bed, open: openItem, newDir, setFull, state: () => ({ on: H.on, bed: H.bed, bal: bank.bal, cred: H.cred, side: H.side, hist: H.hist.slice(), job: H.job, skill: { ...H.skill }, items: H.items.map(x => ({ ...x })), wins: W.map(w => ({ id: w.id, min: w.min, max: w.max })), full: isFull() }),
+    petSound, pets: () => ({ ...H.pets }), buyPet: k => { H.pets[k] = true; }, petCost: PET_COST, addSide: (job, amt, exp) => { earn(amt, job); H.hist.push({ d: gd(), job, amt, exp: exp || 0 }); refreshApp('fin'); refreshApp('hist'); },
     addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, revCase: i => REVS[i], detCase: i => DETS[i], codeSteps: i => CODES[i].steps.slice(), codeStart: i => CODES[i].start.slice(), passages: () => PASS.length, pass: i => PASS[i],
   };
   if (CG.Dev) CG.Dev.add('🏠 Home Mode', box => {
