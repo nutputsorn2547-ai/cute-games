@@ -14,10 +14,10 @@
   const measure = ym => {
     const m = t => CG.ctr.month(t, ym), ok = m('mail.ok') + m('call.ok'), miss = m('mail.miss') + m('call.miss'), tasks = m('task.done'), sick = m('sick.start');
     const reliab = ok + miss ? Math.round(ok / (ok + miss) * 100) : null, output = Math.min(100, 35 + tasks * 5);
-    let score = Math.round(reliab == null ? output : .6 * reliab + .4 * output), shielded = false;
+    let score = Math.round(reliab == null ? output : .6 * reliab + .4 * output), shielded = false; const raw = score;
     if (sick > 0 && score < 75) { score = 75; shielded = true; }          // valid sick leave must not hurt the score
     const g = GR.find(x => score >= x[0]);
-    return { ym, score, grade: g[1], gname: g[2], color: g[3], tasks, ok, miss, sick, bills: m('bill.paid'), meet: m('meeting.done'), reliab, output, shielded };
+    return { ym, score, grade: g[1], gname: g[2], color: g[3], tasks, ok, miss, sick, bills: m('bill.paid'), meet: m('meeting.done'), reliab, output, shielded, raw };
   };
   const advice = (r, prot) => {
     const a = [];
@@ -45,7 +45,7 @@
     const r = measure(ym), cj = career.cur && JOBS.find(j => j.id === career.cur), pos = cj ? cj.pos : (careerOf().pos || careerOf().label), prot = wasProt(ym);
     const company = cj ? cj.co : careerOf().co;
     mailPush(null, 'HR ' + company, `📊 ผลสรุปการทำงานประจำเดือน ${monthName(ym)}${test ? ' (ทดสอบ)' : ''}`, mailBody(r, company, pos, prot, test), 'news', gnow().getTime(), { review: 1 });
-    if (!test) { R.list.push({ ym, score: r.score, grade: r.grade, tasks: r.tasks, ok: r.ok, miss: r.miss, sick: r.sick, bills: r.bills, prot, co: company, pos, at: gd() }); while (R.list.length > 36) R.list.shift(); CG.Bus.emit('review.done', { ym, score: r.score }); }
+    if (!test) { R.list.push({ ym, score: r.score, raw: r.raw, shielded: r.shielded, grade: r.grade, tasks: r.tasks, ok: r.ok, miss: r.miss, sick: r.sick, bills: r.bills, prot, co: company, pos, at: gd() }); while (R.list.length > 36) R.list.shift(); CG.Bus.emit('review.done', { ym, score: r.score }); }
     S.toast(`📧 มีอีเมลจากฝ่ายบุคคล: ผลสรุปประจำเดือน ${monthName(ym)}`, 3.6); try { renderMail?.(); } catch (e) {} return r;
   };
   let busy = false;
