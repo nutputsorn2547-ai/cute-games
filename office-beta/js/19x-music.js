@@ -15,7 +15,7 @@
   function parse(code) {
     const p = String(code || '').trim().split('|'); if (p.length !== 5 || p[0] !== 'CGM1') return { err: 'รูปแบบโค้ดไม่ถูกต้อง (ต้องขึ้นต้นด้วย CGM1)' };
     const bpm = +p[1], bars = +p[2], sc = p[3];
-    if (!Number.isInteger(bpm) || bpm < 50 || bpm > 180) return { err: 'ค่าจังหวะ (BPM) ต้องอยู่ระหว่าง 50–180' };
+    if (!Number.isInteger(bpm) || bpm < 50 || bpm > 250) return { err: 'ค่าจังหวะ (BPM) ต้องอยู่ระหว่าง 50–250' };
     if (!Number.isInteger(bars) || bars < 1 || bars > 32) return { err: 'จำนวนห้องต้องอยู่ระหว่าง 1–32' };
     if (!SCALES[sc]) return { err: 'ไม่รู้จักสเกล "' + sc.slice(0, 8) + '"' };
     if (bars * 240 / bpm > MAXSEC) return { err: 'เพลงยาวเกิน 2 นาที' };

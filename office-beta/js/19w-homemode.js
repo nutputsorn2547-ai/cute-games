@@ -15,22 +15,22 @@
   /* ================= data ================= */
   const DEF_ITEMS = () => [
     { id: 'sj', t: 'dir', n: 'อาชีพเสริม', e: '📂', loc: 'desk', sys: 1 },
-    { id: 'novel', t: 'app', n: 'นักตรวจนิยาย', e: '📖', loc: 'sj' }, { id: 'code', t: 'app', n: 'นักแก้โค้ด', e: '💻', loc: 'sj' }, { id: 'rev', t: 'app', n: 'นักรีวิว', e: '⭐', loc: 'sj' }, { id: 'det', t: 'app', n: 'นักสืบ', e: '🔍', loc: 'sj' }, { id: 'tut', t: 'app', n: 'ครูสอนพิเศษ', e: '🎓', loc: 'sj' }, { id: 'song', t: 'app', n: 'นักแต่งเพลง', e: '🎵', loc: 'sj' }, { id: 'dtools', t: 'dir', n: 'เครื่องมือนักสืบ', e: '🧰', loc: 'sj', sys: 1 }, { id: 'rcpt', t: 'app', n: 'ค้นหาใบเสร็จ', e: '🧾', loc: 'dtools' }, { id: 'trk', t: 'app', n: 'ติดตามพัสดุ', e: '🚚', loc: 'dtools' }, { id: 'pic', t: 'app', n: 'รูปพัสดุ', e: '📷', loc: 'dtools' },
+    { id: 'novel', t: 'app', n: 'นักตรวจนิยาย', e: '📖', loc: 'sj' }, { id: 'code', t: 'app', n: 'นักแก้โค้ด', e: '💻', loc: 'sj' }, { id: 'rev', t: 'app', n: 'นักรีวิว', e: '⭐', loc: 'sj' }, { id: 'det', t: 'app', n: 'นักสืบ', e: '🔍', loc: 'sj' }, { id: 'tut', t: 'app', n: 'ครูสอนพิเศษ', e: '🎓', loc: 'sj' }, { id: 'dtools', t: 'dir', n: 'เครื่องมือนักสืบ', e: '🧰', loc: 'sj', sys: 1 }, { id: 'rcpt', t: 'app', n: 'ค้นหาใบเสร็จ', e: '🧾', loc: 'dtools' }, { id: 'trk', t: 'app', n: 'ติดตามพัสดุ', e: '🚚', loc: 'dtools' }, { id: 'pic', t: 'app', n: 'รูปพัสดุ', e: '📷', loc: 'dtools' },
     { id: 'fin', t: 'app', n: 'การเงินและรายได้เสริม', e: '💰', loc: 'desk' }, { id: 'msg', t: 'app', n: 'ข้อความลูกค้า', e: '💬', loc: 'desk' },
     { id: 'hist', t: 'app', n: 'ประวัติงานเสริม', e: '🗂️', loc: 'desk' }, { id: 'pet', t: 'app', n: 'มุมสัตว์เลี้ยงและบรรยากาศ', e: '🐾', loc: 'desk' }, { id: 'clock', t: 'app', n: 'นาฬิกา', e: '🕐', loc: 'desk' }, { id: 'music', t: 'app', n: 'เครื่องเล่นเพลง', e: '🎧', loc: 'desk' },
   ];
-  const H = { on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0, tut: 0, song: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0, nextPet: 0, petAt: 0 };
+  const H = { on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0, tut: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0, nextPet: 0, petAt: 0 };
   const fixItems = () => {
     const def = DEF_ITEMS(), ids = new Set(H.items.map(x => x.id)); def.forEach(d => { if (!ids.has(d.id)) H.items.push(d); });
     H.items = H.items.filter((x, i, a) => x && x.id && a.findIndex(y => y.id === x.id) === i);
     const dirs = new Set(H.items.filter(x => x.t === 'dir').map(x => x.id)); H.items.forEach(x => { if (x.loc !== 'desk' && !dirs.has(x.loc)) { x.loc = 'desk'; delete x.p; } });
   };
   CG.Save.register('home', {
-    def: () => ({ on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0, tut: 0, song: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0 }),
+    def: () => ({ on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0, tut: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0 }),
     get: () => ({ stu: H.stu, dd: H.dd, dn: H.dn, on: H.on, bed: H.bed, warnDay: H.warnDay, side: H.side, hist: H.hist.slice(-120), msgs: H.msgs.slice(0, 40), skill: H.skill, merged: H.merged, cred: H.cred, revs: H.revs.slice(0, 15), job: H.job, items: H.items, full: H.full, uid: H.uid, last: H.last, pets: H.pets, amb: H.amb, lamp: H.lamp }),
     set: d => {
       d = d || {}; H.dd = d.dd || ''; H.dn = +d.dn || 0; H.on = !!d.on; H.bed = !!d.bed; H.warnDay = Number.isFinite(d.warnDay) ? d.warnDay : -1; H.side = +d.side || 0; H.hist = Array.isArray(d.hist) ? d.hist : []; H.msgs = Array.isArray(d.msgs) ? d.msgs : [];
-      H.skill = { novel: +(d.skill && d.skill.novel) || 0, code: +(d.skill && d.skill.code) || 0, rev: +(d.skill && d.skill.rev) || 0, det: +(d.skill && d.skill.det) || 0, tut: +(d.skill && d.skill.tut) || 0, song: +(d.skill && d.skill.song) || 0 }; H.stu = d.stu && typeof d.stu === 'object' ? d.stu : {}; H.merged = d.merged === true; H.cred = Number.isFinite(d.cred) ? clamp(d.cred, 0, 100) : 50; H.revs = Array.isArray(d.revs) ? d.revs : []; H.job = d.job && typeof d.job.pid === 'number' ? d.job : null; H.items = Array.isArray(d.items) && d.items.length ? d.items : DEF_ITEMS(); H.full = !!d.full; H.uid = +d.uid || 0; H.last = Number.isFinite(d.last) ? d.last : -1; H.pets = { cat: !!(d.pets && d.pets.cat), dog: !!(d.pets && d.pets.dog) }; H.amb = d.amb === 'rain' || d.amb === 'night' ? d.amb : ''; H.lamp = [0, 1, 2].includes(d.lamp) ? d.lamp : 0;
+      H.skill = { novel: +(d.skill && d.skill.novel) || 0, code: +(d.skill && d.skill.code) || 0, rev: +(d.skill && d.skill.rev) || 0, det: +(d.skill && d.skill.det) || 0, tut: +(d.skill && d.skill.tut) || 0 }; H.stu = d.stu && typeof d.stu === 'object' ? d.stu : {}; H.merged = d.merged === true; H.cred = Number.isFinite(d.cred) ? clamp(d.cred, 0, 100) : 50; H.revs = Array.isArray(d.revs) ? d.revs : []; H.job = d.job && typeof d.job.pid === 'number' && d.job.k !== 'song' ? d.job : null; H.items = Array.isArray(d.items) && d.items.length ? d.items.filter(x => x.id !== 'song') : DEF_ITEMS(); H.full = !!d.full; H.uid = +d.uid || 0; H.last = Number.isFinite(d.last) ? d.last : -1; H.pets = { cat: !!(d.pets && d.pets.cat), dog: !!(d.pets && d.pets.dog) }; H.amb = d.amb === 'rain' || d.amb === 'night' ? d.amb : ''; H.lamp = [0, 1, 2].includes(d.lamp) ? d.lamp : 0;
       fixItems(); setTimeout(sync, 700); setTimeout(() => { if (!H.merged) { H.merged = true; if (H.side > 0) { try { bankTx('💼 ย้ายรายได้เสริมเดิมเข้าบัญชีหลัก', H.side); } catch (e) {} } } }, 1500);
     },
   });
@@ -115,7 +115,7 @@
   function renderDesk() { if (!dsk) return; layoutDesk(); dsk.innerHTML = H.items.filter(x => x.loc === 'desk').map(a => iconHtml(a, true)).join(''); }
 
   const winTitle = w => w.k === 'dir' ? (item(w.ref) ? item(w.ref).e === '📂' ? '📂 ' + item(w.ref).n : '📁 ' + item(w.ref).n : '') : (item(w.ref) ? item(w.ref).e + ' ' + item(w.ref).n : '');
-  const JOBAPPS = ['novel', 'code', 'rev', 'det', 'tut', 'song', 'rcpt', 'trk', 'pic'];
+  const JOBAPPS = ['novel', 'code', 'rev', 'det', 'tut', 'rcpt', 'trk', 'pic'];
   function openWin(k, ref) {
     const id = k + ':' + ref; let w = W.find(x => x.id === id);
     if (w) { w.min = false; focus(w); renderWins(); return; }
@@ -149,7 +149,6 @@
     if (r === 'rev') return revHtml();
     if (r === 'det') return detHtml();
     if (r === 'tut') return tutHtml();
-    if (r === 'song') return songHtml();
     if (r === 'music') return window.CG && CG.music ? CG.music.html() : '';
     if (r === 'rcpt' || r === 'trk' || r === 'pic') return toolHtml(r);
     if (r === 'fin') { const mk = monthKey(gd()), mo = H.hist.filter(x => x.amt > 0 && monthKey(x.d) === mk).reduce((a, x) => a + x.amt, 0), sal = Math.round(hr.base || 0); return `${row('🏦 เงินในบัญชี (เงินเดือน + รายได้เสริม)', '฿' + baht(bank.bal))}${row('💼 เงินเดือนประจำ', sal ? '฿' + baht(sal) + ' / เดือน' : 'ไม่มี')}<hr>${row('✨ รายได้เสริมเดือนนี้', '฿' + baht(mo))}${row('📈 รายได้เสริมสะสมทั้งหมด', '฿' + baht(H.side))}<p class="hps">เงินจากงานเสริมเข้าบัญชีเดียวกับเงินเดือน รวมกันในยอดเงินด้านบน ดูรายการแยกได้ที่ประวัติงานเสริม หรือรายการเดินบัญชีของธนาคาร</p>`; }
@@ -270,7 +269,7 @@
   ].map(([title, e, facts, avg, best, opts]) => ({ title, e, facts, avg, best, opts }));
   const FROM_R = ['คุณมิ้นท์ (บรรณาธิการเว็บรีวิว)', 'คุณบอส (เจ้าของร้าน)', 'คุณแป้ง (ทีมการตลาด)'];
   const lastJ = { rev: -1, det: -1 };
-  const refreshJobs = () => ['novel', 'code', 'rev', 'det', 'tut', 'song'].forEach(refreshApp);
+  const refreshJobs = () => ['novel', 'code', 'rev', 'det', 'tut'].forEach(refreshApp);
   const head2 = k => { const l = level(k), x = H.skill[k], lo = TH[l - 1], hi = TH[l] || TH[9], pc = l >= 10 ? 100 : Math.round((x - lo) / (hi - lo) * 100); return `<div class="hpl2"><b>เลเวล ${l}${l >= 10 ? ' (สูงสุด)' : ''}</b> <small>EXP ${x}${l >= 10 ? '' : ' / ' + hi}</small> <span class="hpx">ค่าตอบแทน ×${mult(l).toFixed(2)}</span><div class="hpbar2"><i style="width:${pc}%"></i></div></div>`; };
   const credMul = () => .8 + .4 * H.cred / 100;
   const pickCase = (arr, k) => { let i; do { i = Math.floor(Math.random() * arr.length); } while (arr.length > 1 && i === lastJ[k]); lastJ[k] = i; return i; };
@@ -496,108 +495,6 @@
     res = { k: 'tut', sid: j.pid, lesson, grade, adv: advOk, bond: b.b, bonus: bonusOf(s.n), pay, exp, acc, lv, wrong: j.probs.filter(p => !p.ok) }; H.job = null; tOffer = null; refreshJobs();
   }
 
-  /* ================= side job 6: short-song writer (นักแต่งเพลงสั้น) — piano roll, music code import/export only ================= */
-  const S_BASE = 160, S_EXP = 70, S_MIN = 90, S_WORK = 30, S_PASS = 50, S_MAXSEC = 120, SROWS = 10, SPB = 8;
-  const SCALES = { maj: { n: 'เมเจอร์', semi: [0, 2, 4, 5, 7, 9, 11, 12, 14, 16] }, min: { n: 'ไมเนอร์', semi: [0, 2, 3, 5, 7, 8, 10, 12, 14, 15] }, pen: { n: 'เพนทาโทนิก', semi: [0, 2, 4, 7, 9, 12, 14, 16, 19, 21] } };
-  const NOTEN = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  const MOODS = [
-    { m: 'สดใส', sc: 'maj', bpm: [100, 130], dn: [3, 8], t: ['เพลงประกอบโฆษณาขนมใหม่', 'เพลงเปิดรายการเช้าวันหยุด', 'เพลงเรียกลูกค้าหน้าร้านขายผลไม้'] },
-    { m: 'เศร้า', sc: 'min', bpm: [60, 85], dn: [2, 6], t: ['เพลงประกอบฉากอำลาในหนังสั้น', 'เพลงเปิดพอดแคสต์ความทรงจำ', 'เพลงประกอบวิดีโอรำลึกถึงเพื่อนเก่า'] },
-    { m: 'สงบ', sc: 'pen', bpm: [60, 90], dn: [2, 5], t: ['เพลงประกอบคลาสโยคะออนไลน์', 'เพลงเปิดในร้านชาตอนบ่าย', 'เพลงพื้นหลังแอปนั่งสมาธิ'] },
-    { m: 'ตื่นเต้น', sc: 'min', bpm: [130, 165], dn: [5, 12], t: ['เพลงประกอบฉากไล่ล่าในเกมมือถือ', 'เพลงเปิดตัวสินค้าใหม่สุดมันส์', 'เพลงคั่นรายการแข่งขัน'] },
-    { m: 'ผจญภัย', sc: 'maj', bpm: [110, 140], dn: [4, 10], t: ['เพลงเปิดเกมสำรวจเกาะ', 'เพลงประกอบสารคดีท่องเที่ยว', 'เพลงธีมของนักเดินทาง'] },
-    { m: 'ฝันเคลิ้ม', sc: 'pen', bpm: [70, 100], dn: [2, 6], t: ['เพลงกล่อมนอนในแอปเด็ก', 'เพลงประกอบวิดีโอท้องฟ้ายามค่ำ', 'เพลงฉากความฝันในนิยายเสียง'] },
-  ];
-  const FROM_S = ['คุณพลอย (ครีเอเตอร์วิดีโอ)', 'คุณเอก (สตูดิโอเกมอินดี้)', 'คุณแพร (ผู้จัดรายการ)'];
-  const sFreq = (sc, r) => 261.63 * Math.pow(2, SCALES[sc].semi[r] / 12);
-  const sRowName = (sc, r) => NOTEN[SCALES[sc].semi[r] % 12];
-  const songJob = () => (H.job && H.job.k === 'song' && Array.isArray(H.job.notes)) ? H.job : null;
-  const sSecs = (bars, bpm) => bars * 240 / bpm;
-  let sTimers = [], sPlay = null;
-  function sStop() { sTimers.forEach(clearTimeout); sTimers = []; if (sPlay) { clearInterval(sPlay.iv); sPlay = null; } const ph = hp && hp.querySelector('.hpph'); if (ph) ph.style.display = 'none'; }
-  function sNoteAt(j, s, r) { return j.notes.findIndex(n => n[1] === r && s >= n[0] && s < n[0] + n[2]); }
-  function sToggle(j, s, r) {
-    const k = sNoteAt(j, s, r); if (k >= 0) { j.notes.splice(k, 1); return; }
-    if (j.notes.length >= 600) { toast('โน้ตเยอะเกินไปแล้ว', 1.4); return; }
-    let l = j.len || 1; const lim = j.bars * SPB; l = Math.min(l, lim - s); j.notes.forEach(n => { if (n[1] === r && n[0] > s) l = Math.min(l, n[0] - s); }); if (l < 1) return; j.notes.push([s, r, l]);
-    try { S.tone(sFreq(j.sc, r), sFreq(j.sc, r), .25, .06, 'triangle'); } catch (e) {}
-  }
-  function sCode(j) { return ['CGM1', j.bpm, j.bars, j.sc, j.notes.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(n => n.join('.')).join(',')].join('|'); }
-  function sParse(code, sc) {
-    const p = String(code || '').trim().split('|'); if (p.length !== 5 || p[0] !== 'CGM1') return { err: 'รูปแบบโค้ดไม่ถูกต้อง (ต้องขึ้นต้นด้วย CGM1)' };
-    const bpm = +p[1], bars = +p[2]; if (!(bpm >= 50 && bpm <= 180) || !Number.isInteger(bpm)) return { err: 'ค่าจังหวะ (BPM) ต้องอยู่ระหว่าง 50–180' }; if (!Number.isInteger(bars) || bars < 1 || bars > 32) return { err: 'จำนวนห้องต้องอยู่ระหว่าง 1–32' };
-    if (p[3] !== sc) return { err: 'โค้ดนี้ใช้สเกล ' + (SCALES[p[3]] ? SCALES[p[3]].n : '?') + ' ไม่ตรงกับงานนี้ (' + SCALES[sc].n + ')' }; if (sSecs(bars, bpm) > S_MAXSEC) return { err: 'เพลงยาวเกิน 2 นาที' };
-    const notes = []; const raw = p[4] ? p[4].split(',') : []; if (raw.length > 600) return { err: 'โน้ตเยอะเกินไป' };
-    for (const t of raw) { const m = t.match(/^(\d+)\.(\d+)\.(\d+)$/); if (!m) return { err: 'พบโน้ตที่อ่านไม่ได้: ' + t.slice(0, 12) }; const s = +m[1], r = +m[2], l = +m[3]; if (r >= SROWS || l < 1 || l > SPB || s < 0 || s + l > bars * SPB) return { err: 'โน้ตอยู่นอกขอบเขต: ' + t }; if (notes.some(n => n[1] === r && s < n[0] + n[2] && n[0] < s + l)) return { err: 'พบโน้ตซ้อนกัน: ' + t }; notes.push([s, r, l]); }
-    return { bpm, bars, notes };
-  }
-  /* quality score 0-100: pure, so it can be tested. mash / one-bar loops stay under the pass mark */
-  function sScore(notes, bars, bpm, brief) {
-    const out = { items: [], total: 0, cap: '' }, add = (k, got, max, tip) => { out.items.push({ k, got: Math.round(got * 10) / 10, max, tip }); };
-    const sec = sSecs(bars, bpm), lo = brief.lo, hi = brief.hi, d = sec < lo ? lo - sec : sec > hi ? sec - hi : 0; add('ความยาวตรงโจทย์', Math.max(0, 10 - d * .4), 10, `ลูกค้าต้องการ ${lo}–${hi} วินาที (เพลงนี้ ${Math.round(sec)} วินาที)`);
-    const on = new Map(); notes.forEach(n => { if (!on.has(n[0])) on.set(n[0], []); on.get(n[0]).push(n); }); const onsets = [...on.keys()].sort((a, b) => a - b);
-    const bn = Array.from({ length: bars }, () => []); onsets.forEach(s => { const b = Math.floor(s / SPB); if (bn[b]) bn[b].push(s); });
-    const full = bn.filter(x => x.length >= 2).length / bars, fill = notes.reduce((a, n) => a + n[2], 0) / (bars * SPB * SROWS);
-    add('โน้ตกระจายทั่วเพลง', fill > .3 ? 0 : 10 * clamp((full - .3) / .5, 0, 1), 10, fill > .3 ? 'โน้ตแน่นเกินไป' : 'ควรมีโน้ตอย่างน้อย 2 ตัวในเกือบทุกห้อง');
-    const dens = onsets.length / bars, tb = brief.bpm[0] <= bpm && bpm <= brief.bpm[1], td = brief.dn[0] <= dens && dens <= brief.dn[1]; add('จังหวะและความหนาแน่นตรงอารมณ์', (tb ? 5 : 0) + (td ? 5 : 0), 10, `อารมณ์ "${brief.m}" ใช้ ${brief.bpm[0]}–${brief.bpm[1]} BPM และ ${brief.dn[0]}–${brief.dn[1]} โน้ตต่อห้อง`);
-    const top = onsets.map(s => Math.max(...on.get(s).map(n => n[1]))), sm = SCALES[brief.sc].semi, last = onsets.length ? top[top.length - 1] : -1, ls = last < 0 ? -1 : sm[last] % 12;
-    add('จบเพลงที่โน้ตหลัก', ls === 0 ? 10 : ls === 7 ? 6 : 0, 10, 'ลองจบด้วยโน้ตหลัก (ตัวโด/ตัวแรกของสเกล)');
-    let smooth = 0; if (top.length >= 8) { let c = 0; for (let i = 1; i < top.length; i++) if (Math.abs(top[i] - top[i - 1]) <= 2) c++; smooth = c / (top.length - 1); }
-    add('ทำนองเดินต่อเนื่อง ไม่กระโดดมั่ว', top.length >= 8 ? 25 * clamp((smooth - .65) / .25, 0, 1) : 0, 25, 'ทำนองที่ดีมักเดินทีละขั้น ไม่กระโดดไกลทุกโน้ต (ต้องมีอย่างน้อย 8 โน้ต)');
-    const rs = bn.map(x => x.map(s => s % SPB).join(',')), ps = bn.map((x, i) => x.map(s => s % SPB + ':' + Math.max(...on.get(s).map(n => n[1]))).join(',')), ne = bn.map((x, i) => i).filter(i => bn[i].length);
-    const rep = a => ne.length ? ne.filter(i => ne.some(k => k !== i && a[k] === a[i])).length / ne.length : 0, qr = rep(rs), qp = rep(ps);
-    add('มีท่อนซ้ำที่เป็นแบบแผน', ne.length >= 4 ? 25 * clamp(qr / .6, 0, 1) * (.25 + .75 * Math.min(1, qp / .3)) : 0, 25, 'ลองทำจังหวะ/ทำนองที่กลับมาซ้ำเป็นท่อน');
-    const dp = new Set(notes.map(n => n[1])).size, need = clamp(Math.ceil(ne.length / 8), 2, 3), dbs = new Set(ps.filter((x, i) => bn[i].length)).size;
-    add('ความหลากหลาย', 5 * clamp(dp / 5, 0, 1) + 5 * clamp(dbs / need, 0, 1), 10, 'ใช้โน้ตหลายระดับเสียง และมีท่อนที่ต่างกันบ้าง ไม่ใช่ห้องเดียวก๊อปซ้ำ');
-    let tot = out.items.reduce((a, x) => a + x.got, 0);
-    if (ne.length >= 2 && dbs < need) { tot *= .5; out.cap = 'ห้องเพลงเหมือนกันเกือบหมด เหมือนก๊อปห้องเดียววนซ้ำ'; }
-    if (top.length >= 8 && smooth < .7) { tot = Math.min(tot, 45); out.cap = 'ทำนองกระโดดไปมา ฟังเหมือนกดมั่ว'; }
-    if (top.length < 8) { tot = Math.min(tot, 30); out.cap = 'โน้ตน้อยเกินไป'; }
-    out.total = Math.round(clamp(tot, 0, 100)); return out;
-  }
-  function sGrid(j) {
-    const pg = j.page || 0, s0 = pg * 32, cols = Math.min(32, j.bars * SPB - s0), sc = j.sc; let h = `<div class="hpgrd" style="grid-template-columns:34px repeat(${cols},1fr)">`;
-    for (let r = SROWS - 1; r >= 0; r--) { h += `<span class="hprl${SCALES[sc].semi[r] % 12 === 0 ? ' t' : ''}">${sRowName(sc, r)}</span>`; for (let c = 0; c < cols; c++) { const s = s0 + c, k = sNoteAt(j, s, r), n = k >= 0 ? j.notes[k] : null; h += `<button class="hpcell${n ? (n[0] === s ? ' on' : ' tail') : ''}${s % SPB === 0 ? ' bar' : ''}" data-hp="scell" data-s="${s}" data-r="${r}"></button>`; } }
-    return h + '</div><div class="hpph"></div>';
-  }
-  function songHtml() {
-    const head = head2('song');
-    if (res && res.k === 'song') return head + `<div class="hpres"><h3>${res.pass ? (res.score >= 80 ? '🌟 ลูกค้าประทับใจมาก' : '🎵 ลูกค้ารับเพลงนี้') : '😕 ลูกค้ายังไม่รับเพลงนี้'}</h3>${row('คะแนนเพลง', res.score + ' / 100 (เกณฑ์ผ่าน ' + S_PASS + ')')}${res.items.map(x => row(esc2(x.k), x.got + '/' + x.max, x.got >= x.max * .8 ? '' : 'warn')).join('')}${res.cap ? `<p class="hps">⚠️ ${esc2(res.cap)}</p>` : ''}${row('ได้เงิน', '+฿' + baht(res.pay))}${row('ได้ EXP', '+' + res.exp)}${res.lv ? `<p class="hpup">🎉 เลื่อนเป็นเลเวล ${res.lv} แล้ว!</p>` : ''}<div class="hps">${res.items.filter(x => x.got < x.max * .6).map(x => '• ' + esc2(x.tip)).join('<br>')}</div><div class="hpq"><button class="go" data-hp="jnext">งานต่อไป</button></div></div>`;
-    const j = songJob(); if (H.job && H.job.k === 'song' && !j) { H.job = null; return songHtml(); }
-    if (j) {
-      const b = j.brief, sec = sSecs(j.bars, j.bpm), pages = Math.ceil(j.bars * SPB / 32), left = Math.max(0, S_WORK - Math.floor((gnow().getTime() - j.t0) / 60000));
-      return head + `<h3 class="hpjt">🎵 ${esc2(b.t)}</h3><p class="hps">ลูกค้า: ${esc2(b.cl)} · อารมณ์ <b>${esc2(b.m)}</b> · สเกล${esc2(SCALES[j.sc].n)} · ความยาว ${b.lo}–${b.hi} วินาที (ไม่เกิน 2 นาที) · ใบ้: ${b.bpm[0]}–${b.bpm[1]} BPM, ${b.dn[0]}–${b.dn[1]} โน้ตต่อห้อง</p>
-<div class="hpsbar"><label>BPM <input type="range" min="50" max="180" value="${j.bpm}" data-sg="bpm"><b id="hpsbpm">${j.bpm}</b></label><label>ห้อง <select data-sg="bars">${[4, 8, 12, 16, 20, 24, 28, 32].map(n => `<option value="${n}"${n === j.bars ? ' selected' : ''}>${n}</option>`).join('')}</select></label><label>ความยาวโน้ต <select data-sg="len">${[[1, '1/8'], [2, '1/4'], [4, '1/2'], [8, 'เต็มห้อง']].map(([v, t]) => `<option value="${v}"${v === (j.len || 1) ? ' selected' : ''}>${t}</option>`).join('')}</select></label><span class="hps" id="hpssec">${Math.round(sec)} วินาที</span></div>
-<div class="hproll">${sGrid(j)}</div><div class="hpq"><button data-hp="spg" data-d="-1"${(j.page || 0) <= 0 ? ' disabled' : ''}>◀</button> <span class="hps">หน้า ${(j.page || 0) + 1}/${pages}</span> <button data-hp="spg" data-d="1"${(j.page || 0) >= pages - 1 ? ' disabled' : ''}>▶</button> <button data-hp="splay">▶ ฟัง</button> <button data-hp="sstop">⏹</button> <button data-hp="sclear">🗑 ล้าง</button></div>
-<div class="hpcode2"><textarea data-sx rows="2" spellcheck="false" placeholder="Music Code (CGM1|...)">${esc2(j.code || '')}</textarea><div class="hpq"><button data-hp="sexp">📤 ส่งออกโค้ด</button> <button data-hp="simp">📥 นำเข้าโค้ด</button> <span class="hps" id="hpsmsg">${esc2(j.msg || '')}</span></div></div>
-<div class="hpq"><span class="hps">${j.played ? '✅ ฟังแล้ว' : 'ต้องกดฟังก่อนส่ง'} · ${left > 0 ? 'ต้องแต่งอีก ~' + left + ' นาทีเกมก่อนส่งได้' : 'ส่งงานได้แล้ว'}</span><br><button class="go" data-hp="ssubmit">📨 ส่งเพลง</button> <button data-hp="jcancel">ยกเลิกงาน (ไม่เสียอะไร)</button></div>`;
-    }
-    if (H.job) return head + '<p class="hps">ตอนนี้มีงานอื่นที่ยังทำค้างอยู่ ทำให้เสร็จหรือยกเลิกก่อนนะ</p>';
-    const can = leftMin() >= S_MIN, mx = level('song') >= 7 ? 3 : level('song') >= 4 ? 2 : 1;
-    return head + `<div class="hpjob"><h3>🎵 งานแต่งเพลงสั้น</h3><p>ลูกค้าส่งโจทย์อารมณ์เพลงมา ให้แต่งด้วย Piano Roll ความยาวไม่เกิน 2 นาที แล้วส่งให้ลูกค้าตรวจ ใช้ได้แค่ Music Code (ข้อความ) ในการนำเข้า/ส่งออก ไม่มีไฟล์เสียง<br><small>ใช้เวลาเกมอย่างน้อย ${S_MIN} นาที · ค่าตอบแทนสูงสุดตอนนี้ ฿${baht(Math.round(S_BASE * mult(level('song')) * dayF()))} · ต้องได้คะแนนเพลง ${S_PASS}/100 ขึ้นไปถึงจะได้เงิน · ตอนนี้รับโจทย์ระดับ ${'★'.repeat(mx)}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="saccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}</div>`;
-  }
-  function songAccept() {
-    if (H.job || leftMin() < S_MIN) return; const lv = level('song'), diff = lv >= 7 ? 3 : lv >= 4 ? 2 : 1, mi = pickCase(MOODS, 'song'), M = MOODS[mi], rg = diff === 1 ? [20, 90] : diff === 2 ? [40, 80] : [60, 100], shrink = diff === 3 ? 0 : 0;
-    const brief = { m: M.m, t: pick(M.t), cl: pick(FROM_S), lo: rg[0], hi: rg[1], bpm: M.bpm.slice(), dn: M.dn.slice(), sc: M.sc, diff };
-    const bpm = Math.round((M.bpm[0] + M.bpm[1]) / 2), bars = clamp(Math.round(((rg[0] + rg[1]) / 2) * bpm / 240 / 4) * 4, 4, 32);
-    H.job = { k: 'song', pid: mi, brief, sc: M.sc, bpm, bars: Math.min(bars, Math.floor(S_MAXSEC * bpm / 240)), notes: [], len: 1, page: 0, played: false, t0: gnow().getTime(), code: '', msg: '' }; res = null; refreshJobs();
-  }
-  function sSetSong(j, bpm, bars) { j.bpm = bpm; j.bars = bars; while (sSecs(j.bars, j.bpm) > S_MAXSEC && j.bars > 1) j.bars--; j.notes = j.notes.filter(n => n[0] + n[2] <= j.bars * SPB); j.page = Math.min(j.page || 0, Math.ceil(j.bars * SPB / 32) - 1); }
-  function songPlay() {
-    const j = songJob(); if (!j) return; sStop(); if (!j.notes.length) { toast('ยังไม่มีโน้ต', 1.2); return; } const sd = 30 / j.bpm, t0 = performance.now(); j.played = true;
-    j.notes.forEach(n => sTimers.push(setTimeout(() => { try { S.tone(sFreq(j.sc, n[1]), sFreq(j.sc, n[1]), Math.max(.18, n[2] * sd * .95), .05, 'triangle'); } catch (e) {} }, n[0] * sd * 1000)));
-    const total = j.bars * SPB * sd * 1000; sTimers.push(setTimeout(sStop, total + 300));
-    sPlay = { iv: setInterval(() => { const ph = hp && hp.querySelector('.hpph'), g = hp && hp.querySelector('.hpgrd'); if (!ph || !g) return; const st = (performance.now() - t0) / (sd * 1000), pg = j.page || 0, c = st - pg * 32; if (c < 0 || c > 32) { ph.style.display = 'none'; return; } const f = g.querySelector('.hpcell'); if (!f) return; const gr = g.getBoundingClientRect(), fr = f.getBoundingClientRect(), cw = fr.width; ph.style.display = 'block'; ph.style.left = (fr.left - gr.left + c * cw) + 'px'; ph.style.top = '0'; ph.style.height = gr.height + 'px'; }, 60) };
-  }
-  function songSubmit() {
-    const j = songJob(); if (!j) return; if (!j.played) { toast('ต้องกดฟังเพลงของตัวเองก่อนส่ง', 1.8); return; } const wl = S_WORK - Math.floor((gnow().getTime() - j.t0) / 60000); if (wl > 0) { toast('ยังแต่งไม่นานพอ รออีก ~' + wl + ' นาทีเกม', 1.8); return; }
-    sStop(); const sc = sScore(j.notes, j.bars, j.bpm, j.brief), pass = sc.total >= S_PASS, acc = pass ? .3 + .7 * clamp((sc.total - S_PASS) / 50, 0, 1) : 0, l0 = level('song');
-    const pay = pass ? Math.round(S_BASE * mult(l0) * acc * dayF()) : 0, exp = Math.round(S_EXP * (pass ? .4 + .6 * acc : .15));
-    const lv = finishJob('song', 'แต่งเพลง', j.brief.t, pay, exp, pass ? acc : .2, { name: 'นักแต่งเพลง', from: [j.brief.cl], good: 'เพลงนี้ใช่เลยครับ/ค่ะ! ฟังแล้วได้อารมณ์ตามที่อยากได้เลย โอนค่าจ้างให้แล้ว 🎶', ok: 'ใช้ได้เลยค่ะ แต่ยังมีบางท่อนที่ไม่ค่อยเข้าที่ ขอบคุณที่ส่งมานะคะ', bad: 'ขอโทษด้วยนะครับ เพลงนี้ยังไม่ตรงกับที่อยากได้ ลองแต่งใหม่อีกครั้งได้ไหมครับ 🙏', up: 'ฝีมือแต่งเพลงดีขึ้นมาก ตอนนี้เลเวล {L} แล้ว ค่าจ้างขึ้นให้ด้วยนะครับ 🎹' });
-    if (pass) { try { CG.music && CG.music.add(j.brief.t, sCode(j), 'งานแต่งเพลง · ' + sc.total + ' คะแนน'); } catch (e) {} }
-    res = { k: 'song', score: sc.total, pass, items: sc.items, cap: sc.cap, pay, exp, lv }; H.job = null; refreshJobs();
-  }
-
   /* ================= build / render ================= */
   let musicSub = false;
   function build() {
@@ -606,8 +503,6 @@
     try { closePhone(); } catch (e) {} hp.classList.toggle('full', isFull()); applyLamp(); renderDesk(); renderWins(); renderBed();
     hp.addEventListener('input', e => { const ti = e.target.closest && e.target.closest('[data-ta]'); const j = tutJob(); if (ti && j) j.typed[ti.dataset.ta] = ti.value; });
     try { if (window.CG && CG.music) { CG.music.bind(hp); if (!musicSub) { musicSub = true; CG.music.onChange(() => { if (hp) refreshApp('music'); }); } } } catch (e) {}
-    hp.addEventListener('input', e => { const j = songJob(); if (!j) return; const x = e.target.closest && e.target.closest('[data-sx]'); if (x) { j.code = x.value; return; } const g = e.target.closest && e.target.closest('[data-sg="bpm"]'); if (g) { sSetSong(j, +g.value, j.bars); const a = hp.querySelector('#hpsbpm'), c = hp.querySelector('#hpssec'); if (a) a.textContent = j.bpm; if (c) c.textContent = Math.round(sSecs(j.bars, j.bpm)) + ' วินาที'; } });
-    hp.addEventListener('change', e => { const j = songJob(), g = e.target.closest && e.target.closest('[data-sg]'); if (j && g) { if (g.dataset.sg === 'bpm') sSetSong(j, +g.value, j.bars); else if (g.dataset.sg === 'bars') sSetSong(j, j.bpm, +g.value); else if (g.dataset.sg === 'len') j.len = +g.value; refreshApp('song'); } });
     hp.addEventListener('change', e => { const sl = e.target.closest && e.target.closest('[data-cf]'); const j = codeJob(); if (sl && j) { j.fix[sl.dataset.cf] = sl.value; j.out = ''; const rn = hp.querySelector('.hprun'); if (rn) rn.innerHTML = ''; } }); hp.addEventListener('input', e => { const nt = e.target.closest && e.target.closest('[data-note]'); if (nt && H.job && H.job.k === 'det') H.job.note = nt.value;  const t = e.target.closest && e.target.closest('[data-fx]'); if (t && H.job) { (H.job.fix = H.job.fix || {})[t.dataset.fx] = t.value; } }); hp.addEventListener('keydown', e => { const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') { e.stopPropagation(); if (e.key === 'Enter' && e.target.dataset && e.target.dataset.tq) toolSearch(e.target.dataset.tq, e.target.value); } }); hp.addEventListener('click', onClick); hp.addEventListener('dblclick', onDbl); hp.addEventListener('contextmenu', onCtx); hp.addEventListener('pointerdown', onDown);
     new ResizeObserver(() => { if (!mon) return; renderDesk(); fitWins(); }).observe(mon);
   }
@@ -693,14 +588,8 @@
     else if (a === 'raccept') revAccept(); else if (a === 'rstar') { if (H.job && H.job.k === 'rev') { H.job.stars = +b.dataset.v; refreshApp('rev'); } } else if (a === 'rpick') revPick(+b.dataset.i); else if (a === 'rsubmit') revSubmit();
     else if (a === 'daccept') detAccept(); else if (a === 'dans') { if (H.job && H.job.k === 'det') { H.job.ans = +b.dataset.i; refreshApp('det'); } } else if (a === 'dsubmit') detSubmit();
     else if (a === 'taccept') tutAccept(+b.dataset.i); else if (a === 'tpick') tutPick(+b.dataset.i); else if (a === 'trec') tutRec(); else if (a === 'tsend') tutSend(); else if (a === 'tsubmit') tutSubmit(); else if (a === 'tadv') { const j = tutJob(); if (j && j.ph === 'grade') { j.adv = +b.dataset.i; refreshApp('tut'); } } else if (a === 'tmark') { const j = tutJob(); if (j && j.ph === 'grade') { j.marks[+b.dataset.i] = b.dataset.v; refreshApp('tut'); } }
-    else if (a === 'saccept') songAccept(); else if (a === 'ssubmit') songSubmit(); else if (a === 'splay') songPlay(); else if (a === 'sstop') sStop();
-    else if (a === 'scell') { const j = songJob(); if (j) { sToggle(j, +b.dataset.s, +b.dataset.r); const r = hp.querySelector('.hproll'); if (r) r.innerHTML = sGrid(j); } }
-    else if (a === 'spg') { const j = songJob(); if (j) { j.page = clamp((j.page || 0) + +b.dataset.d, 0, Math.ceil(j.bars * SPB / 32) - 1); refreshApp('song'); } }
-    else if (a === 'sclear') { const j = songJob(); if (j) { j.notes = []; refreshApp('song'); } }
-    else if (a === 'sexp') { const j = songJob(); if (j) { j.code = sCode(j); j.msg = 'ส่งออกแล้ว คัดลอกข้อความนี้เก็บไว้ได้'; refreshApp('song'); } }
-    else if (a === 'simp') { const j = songJob(); if (j) { const r = sParse(j.code, j.sc); if (r.err) { j.msg = '❌ ' + r.err; } else { j.bpm = r.bpm; j.bars = r.bars; j.notes = r.notes; j.page = 0; j.msg = '✅ นำเข้าแล้ว ' + r.notes.length + ' โน้ต'; } refreshApp('song'); } }
     else if (a === 'dtool') openWin('app', b.dataset.t); else if (a === 'tsearch') { const inp = hp.querySelector(`[data-tq="${b.dataset.t}"]`); toolSearch(b.dataset.t, inp ? inp.value : ''); }
-    else if (a === 'jcancel') { sStop(); H.job = null; refreshJobs(); } else if (a === 'jnext') { res = null; refreshJobs(); }
+    else if (a === 'jcancel') { H.job = null; refreshJobs(); } else if (a === 'jnext') { res = null; refreshJobs(); }
     else if (a === 'crun') codeRun(); else if (a === 'cmark') { if (codeJob()) { const i = +b.dataset.i; codeMark(i); } }
   }
   addEventListener('keydown', e => { if (!hp || !H.on) return; if (e.key === 'F2' && sel) { const a = item(sel); if (a && a.t === 'dir' && !a.sys) startRename(sel); } else if (e.key === 'Delete' && sel && !(e.target && e.target.tagName === 'INPUT')) delDir(sel); else if (e.key === 'Escape') closeMenu(); });
@@ -733,7 +622,7 @@
   CG.home = {
     enter, exit, on: () => H.on, bed: () => H.bed, open: openItem, newDir, setFull, state: () => ({ on: H.on, bed: H.bed, bal: bank.bal, cred: H.cred, side: H.side, hist: H.hist.slice(), job: H.job, skill: { ...H.skill }, items: H.items.map(x => ({ ...x })), wins: W.map(w => ({ id: w.id, min: w.min, max: w.max })), full: isFull() }),
     petSound, pets: () => ({ ...H.pets }), buyPet: k => { H.pets[k] = true; }, petCost: PET_COST, addSide: (job, amt, exp) => { earn(amt, job); H.hist.push({ d: gd(), job, amt, exp: exp || 0 }); refreshApp('fin'); refreshApp('hist'); },
-    addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, detCase: i => DETS[i], detCount: () => DETS.length, stuCase: i => STU[i], songScore: sScore, songParse: sParse, songCode: sCode, songMoods: () => MOODS, stuCount: () => STU.length, tutOfferNow: () => tOffer, toolSearch, revCase: i => REVS[i], codeCase: i => CODES[i], codeCount: () => CODES.length, passages: () => PASS.length, pass: i => PASS[i],
+    addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, detCase: i => DETS[i], detCount: () => DETS.length, stuCase: i => STU[i],  stuCount: () => STU.length, tutOfferNow: () => tOffer, toolSearch, revCase: i => REVS[i], codeCase: i => CODES[i], codeCount: () => CODES.length, passages: () => PASS.length, pass: i => PASS[i],
   };
   if (CG.Dev) CG.Dev.add('🏠 Home Mode', box => {
     box.innerHTML = '<button data-h="in">เข้าบ้านทันที (ไม่เสียค่ารถ)</button> <button data-h="t2325">23:25</button> <button data-h="t2355">23:55</button> <button data-h="t2000">20:00</button> <button data-h="exp">+500 EXP นิยาย</button> <button data-h="out">ออกจาก Home Mode</button>';
