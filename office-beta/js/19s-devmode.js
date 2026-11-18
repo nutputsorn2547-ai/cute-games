@@ -55,6 +55,7 @@
     <p style="margin-top:8px"><button data-a="off">ปิดโหมดผู้พัฒนา</button></p>`;
     const box = root.querySelector('#devSecs'); Dev.secs.forEach(s => { const d = h('div', { class: 'dsec' }); d.append(h('h5', {}, s.title)); try { s.render(d); } catch (e) { d.append('error: ' + e.message); } box.append(d); });
   }
+  Dev.rerender = render;
   function act(e) {
     const b = e.target.closest('[data-a]'); if (!b) return; const a = b.dataset.a, root = wins.get('dev').body.firstChild;
     if (a === 'career') switchCareer(b.dataset.id);
