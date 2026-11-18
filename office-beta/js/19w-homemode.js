@@ -37,6 +37,9 @@
 
   /* ---- levels: 1..10, pay x1 .. x3 ---- */
   const TH = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200];
+  /* the office #hint toast sits under the home overlay, so home messages get their own toast inside it */
+  let toastEl = null, toastT = 0;
+  function toast(t, sec = 2) { try { if (!hp) { S.toast(t, sec); return; } if (!toastEl || !toastEl.isConnected) { toastEl = h('div', { class: 'hptoast' }); hp.append(toastEl); } toastEl.textContent = t; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl && toastEl.classList.remove('on'), sec * 1000); } catch (e) {} }
   const level = k => { const x = H.skill[k] || 0; let l = 1; TH.forEach((t, i) => { if (x >= t) l = i + 1; }); return l; };
   const mult = l => 1 + (l - 1) * 2 / 9;
 
@@ -169,7 +172,7 @@
     const txt = acc >= .9 ? 'ละเอียดมากเลยค่ะ ขอบคุณที่ช่วยตรวจนะคะ 🥰 โอนค่าตอบแทนให้แล้วนะคะ' : acc >= .6 ? 'ตรวจได้ดีเลยค่ะ มีหลุดไปนิดหน่อยแต่ไม่เป็นไร ไว้ฝากงานอีกนะคะ' : 'ขอบคุณที่ช่วยกันนะคะ ยังมีที่ตกหล่นอยู่บ้าง รอบหน้าลองดูอีกทีนะ 🙂';
     H.msgs.unshift({ from: pick(FROM), at, text: txt, unread: true }); if (l1 > l0) H.msgs.unshift({ from: 'คุณแพร (บรรณาธิการ)', at, text: `เห็นว่าฝีมือพัฒนาขึ้นมากเลย ตอนนี้เลเวล ${l1} แล้ว ค่าตอบแทนขึ้นให้นะคะ ฝากงานต่อไปด้วย 💪`, unread: true });
     res = { found, n: p.n, fp, pay, exp, acc, lv: l1 > l0 ? l1 : 0, rev: p.chunks.filter(c => c.err) }; H.job = null;
-    try { if (l1 > l0) { S.big('🎉 นักตรวจนิยาย เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else S.tone(660, 880, .15, .08); S.toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
+    try { if (l1 > l0) { S.big('🎉 นักตรวจนิยาย เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else S.tone(660, 880, .15, .08); toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
     CG.Bus.emit('sidejob.done', { job: 'novel', pay, exp }); renderDesk(); refreshApp('novel'); refreshApp('fin'); refreshApp('msg'); refreshApp('hist');
   }
 
@@ -179,19 +182,19 @@
   const bark = () => { try { [0, 230].forEach(t => setTimeout(() => { S.noise(.07, 900, .1); S.tone(320, 180, .1, .1, 'square'); }, t)); } catch (e) {} };
   function petSound(kind, manual) {
     if (!H.on || !hp || !H.pets[kind]) return false; const now = Date.now();
-    if (manual && now - H.petAt < PET_CD) { try { S.toast(`${kind === 'cat' ? '🐱' : '🐶'} กำลังพักอยู่ รออีก ${Math.ceil((PET_CD - (now - H.petAt)) / 1000)} วิ`, 1.6); } catch (e) {} return false; }
+    if (manual && now - H.petAt < PET_CD) { try { toast(`${kind === 'cat' ? '🐱' : '🐶'} กำลังพักอยู่ รออีก ${Math.ceil((PET_CD - (now - H.petAt)) / 1000)} วิ`, 1.6); } catch (e) {} return false; }
     H.petAt = now; kind === 'cat' ? meow() : bark();
     const before = Math.round(life.stress); life.stress = Math.max(0, life.stress * .9); try { stressHud(); } catch (e) {}
-    try { S.toast(`${kind === 'cat' ? '🐱 เหมียว~' : '🐶 โฮ่ง โฮ่ง!'} ความเครียดลด 10% (${before} → ${Math.round(life.stress)})`, 2.2); } catch (e) {}
+    try { toast(`${kind === 'cat' ? '🐱 เหมียว~' : '🐶 โฮ่ง โฮ่ง!'} ความเครียดลด 10% (${before} → ${Math.round(life.stress)})`, 2.2); } catch (e) {}
     CG.Bus.emit('pet.sound', { kind }); return true;
   }
   function petHtml() {
     const own = k => H.pets[k], cd = Math.max(0, Math.ceil((PET_CD - (Date.now() - H.petAt)) / 1000));
-    const pet = (k, e, n) => own(k) ? `<div class="hppet">${e} <b>${n}</b> <small>ร้องเองเป็นครั้งคราว</small><button class="go" data-hp="petcall" data-k="${k}">เรียกให้ร้อง</button></div>` : `<div class="hppet">${e} <b>${n}</b> <small>฿${baht(PET_COST)}</small><button class="go" data-hp="petbuy" data-k="${k}">ซื้อ</button></div>`;
+    const pet = (k, e, n) => own(k) ? `<div class="hppet">${e} <b>${n}</b> <small>ร้องเองเป็นครั้งคราว</small><button class="go" data-hp="petcall" data-k="${k}">เรียกให้ร้อง</button></div>` : `<div class="hppet">${e} <b>${n}</b> <small>฿${baht(PET_COST)}${H.side < PET_COST ? ' · เงินรายได้เสริมยังไม่พอ (มี ฿' + baht(H.side) + ')' : ''}</small><button class="${H.side < PET_COST ? 'hpdis' : 'go'}" data-hp="petbuy" data-k="${k}">ซื้อ</button></div>`;
     const opt = (a, v, cur, t) => `<button class="${cur === v ? 'go' : ''}" data-hp="${a}" data-v="${v}">${t}</button>`;
     return `<h3 class="hpjt">🐾 สัตว์เลี้ยง</h3><p class="hps">ไม่มีตัวจริงให้ดูแล มีแค่เสียงน่ารักๆ ทุกครั้งที่ร้อง ความเครียดจะลด 10% ของค่าปัจจุบัน · ซื้อด้วยบัญชีรายได้เสริม (มี ฿${baht(H.side)})</p>${pet('cat', '🐱', 'เสียงแมว')}${pet('dog', '🐶', 'เสียงหมา')}<hr><h3 class="hpjt">🎧 เสียงบรรยากาศ</h3><div class="hpq" style="margin-top:6px">${opt('amb', '', H.amb, '🔇 ปิด')}${opt('amb', 'rain', H.amb, '🌧️ ฝนตก')}${opt('amb', 'night', H.amb, '🌙 จิ้งหรีดยามค่ำ')}</div><hr><h3 class="hpjt">💡 แสงในห้อง</h3><div class="hpq" style="margin-top:6px">${opt('lamp', '0', String(H.lamp), '☀️ สว่าง')}${opt('lamp', '1', String(H.lamp), '🕯️ อบอุ่น')}${opt('lamp', '2', String(H.lamp), '🌑 มืดสลัว')}</div>`;
   }
-  function applyLamp() { if (hp) { hp.classList.toggle('lamp1', H.lamp === 1); hp.classList.toggle('lamp2', H.lamp === 2); } }
+  function applyLamp() { if (!hp) return; hp.classList.toggle('lamp1', H.lamp === 1); hp.classList.toggle('lamp2', H.lamp === 2); let o = hp.querySelector('.hplamp'); if (!o) { o = h('div', { class: 'hplamp' }); hp.append(o); } o.style.background = H.lamp === 1 ? 'radial-gradient(ellipse at 85% 10%,rgba(255,200,120,.42),rgba(255,150,70,.36) 70%)' : H.lamp === 2 ? 'rgba(6,6,28,.62)' : 'transparent'; o.style.mixBlendMode = H.lamp === 1 ? 'multiply' : 'normal'; }
   let ambN = 0;
   setInterval(() => {
     if (!H.on || !hp || H.bed) return; ambN++;
@@ -229,7 +232,7 @@
     const txt = acc >= .9 ? 'เยี่ยมมากครับ ลำดับถูกหมดเลย หุ่นยนต์ทำงานได้ลื่นไหล 🎉 โอนค่าจ้างให้แล้วนะครับ' : acc >= .5 ? 'ใช้ได้ครับ ยังมีบางจุดที่ลำดับไม่ตรง เดี๋ยวผมแก้เอง ขอบคุณครับ' : 'ขอบคุณที่ช่วยครับ หุ่นยนต์ยังงงๆ อยู่ รอบหน้าลองใหม่นะครับ 🙂';
     H.msgs.unshift({ from: pick(FROM_C), at, text: txt, unread: true }); if (l1 > l0) H.msgs.unshift({ from: 'คุณนุ่น (หัวหน้าทีมเว็บ)', at, text: `ฝีมือจัดลำดับพัฒนาขึ้นเยอะเลย ตอนนี้เลเวล ${l1} แล้ว ค่าจ้างขึ้นให้นะครับ ฝากงานต่อด้วย 💪`, unread: true });
     res = { k: 'code', found, n: p.n, fp, pay, exp, acc, lv: l1 > l0 ? l1 : 0, rev: p.steps.slice() }; H.job = null;
-    try { if (l1 > l0) { S.big('🎉 นักแก้โค้ด เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else if (acc >= .5) S.tone(660, 880, .15, .08); else S.noise(.25, 500, .08); S.toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
+    try { if (l1 > l0) { S.big('🎉 นักแก้โค้ด เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else if (acc >= .5) S.tone(660, 880, .15, .08); else S.noise(.25, 500, .08); toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
     CG.Bus.emit('sidejob.done', { job: 'code', pay, exp }); renderDesk(); refreshApp('code'); refreshApp('fin'); refreshApp('msg'); refreshApp('hist');
   }
 
@@ -256,7 +259,7 @@
     H.side += pay; H.hist.push({ d: gd(), job: label + ': ' + title, amt: pay, exp });
     H.msgs.unshift({ from: pick(msgs.from), at, text: acc >= .8 ? msgs.good : acc >= .5 ? msgs.ok : msgs.bad, unread: true });
     if (l1 > l0) H.msgs.unshift({ from: msgs.from[0], at, text: msgs.up.replace('{L}', l1), unread: true });
-    try { if (l1 > l0) { S.big('🎉 ' + msgs.name + ' เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else if (acc >= .5) S.tone(660, 880, .15, .08); else S.noise(.25, 500, .08); S.toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
+    try { if (l1 > l0) { S.big('🎉 ' + msgs.name + ' เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else if (acc >= .5) S.tone(660, 880, .15, .08); else S.noise(.25, 500, .08); toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
     CG.Bus.emit('sidejob.done', { job: k, pay, exp }); renderDesk(); refreshJobs(); refreshApp('fin'); refreshApp('msg'); refreshApp('hist');
     return l1 > l0 ? l1 : 0;
   };
@@ -272,9 +275,9 @@
     return head + `<div class="hpjob"><h3>⭐ งานรีวิว</h3><p>อ่านข้อมูลสินค้าหรือร้าน แล้วให้ดาวและเหตุผลที่ตรงกับความจริง ไม่ให้สูงหรือต่ำเกินไป<br><small>ประมาณ ${R_MIN} นาทีเกม (≈ ${Math.round(R_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุด ฿${baht(Math.round(R_BASE * mult(level('rev')) * credMul()))}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="raccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">รีวิวตรงความจริงจะเพิ่มความน่าเชื่อถือ ค่าจ้างจะสูงขึ้นตาม ส่วนรีวิวที่เกินจริงจะทำให้ลดลง</p></div>${last ? '<h3 class="hpjt">ประวัติรีวิวล่าสุด</h3>' + last : ''}`;
   }
   function revAccept() { if (H.job || leftMin() < R_MIN) return; H.job = { k: 'rev', pid: pickCase(REVS, 'rev'), stars: 0, picks: [] }; res = null; refreshJobs(); }
-  function revPick(i) { const j = H.job; if (!j || j.k !== 'rev') return; const k = j.picks.indexOf(i); if (k >= 0) j.picks.splice(k, 1); else if (j.picks.length < 2) j.picks.push(i); else { try { S.toast('เลือกได้แค่ 2 ข้อ แตะข้อที่เลือกไว้เพื่อยกเลิกก่อน', 1.8); } catch (e) {} } refreshApp('rev'); }
+  function revPick(i) { const j = H.job; if (!j || j.k !== 'rev') return; const k = j.picks.indexOf(i); if (k >= 0) j.picks.splice(k, 1); else if (j.picks.length < 2) j.picks.push(i); else { try { toast('เลือกได้แค่ 2 ข้อ แตะข้อที่เลือกไว้เพื่อยกเลิกก่อน', 1.8); } catch (e) {} } refreshApp('rev'); }
   function revSubmit() {
-    const j = H.job; if (!j || j.k !== 'rev') return; if (!j.stars || j.picks.length < 2) { try { S.toast('ให้ดาวและเลือกเหตุผลให้ครบ 2 ข้อก่อนส่ง', 1.8); } catch (e) {} return; }
+    const j = H.job; if (!j || j.k !== 'rev') return; if (!j.stars || j.picks.length < 2) { try { toast('ให้ดาวและเลือกเหตุผลให้ครบ 2 ข้อก่อนส่ง', 1.8); } catch (e) {} return; }
     const p = REVS[j.pid], d = Math.abs(j.stars - p.best), sp = d === 0 ? 1 : d === 1 ? .6 : 0, g = j.picks.filter(i => p.opts[i][1]).length, bd = 2 - g, rp = clamp((g - bd) / 2, 0, 1), acc = .5 * sp + .5 * rp;
     const pay = Math.round(R_BASE * mult(level('rev')) * acc * credMul()), exp = Math.round(R_EXP * (.4 + .6 * acc)), dc = acc >= .8 ? 6 : acc >= .5 ? 0 : -8, c0 = H.cred; H.cred = clamp(H.cred + dc, 0, 100);
     H.revs.unshift({ t: p.title, st: j.stars, acc }); H.revs = H.revs.slice(0, 15);
@@ -311,7 +314,7 @@
   }
   function detPin(i) { const j = H.job; if (!j || j.k !== 'det') return; const k = j.pins.indexOf(i); if (k >= 0) j.pins.splice(k, 1); else j.pins.push(i); refreshApp('det'); }
   function detSubmit() {
-    const j = H.job; if (!j || j.k !== 'det') return; if (j.ans < 0) { try { S.toast('เลือกคำตอบสรุปคดีก่อนส่งรายงาน', 1.8); } catch (e) {} return; }
+    const j = H.job; if (!j || j.k !== 'det') return; if (j.ans < 0) { try { toast('เลือกคำตอบสรุปคดีก่อนส่งรายงาน', 1.8); } catch (e) {} return; }
     const p = DETS[j.pid], okAns = j.ans === p.ok, kf = j.pins.filter(i => p.ev[i][2]).length, dp = j.pins.length - kf, acc = (okAns ? .6 : 0) + .4 * clamp((kf - dp * .5) / p.nk, 0, 1);
     const pay = Math.round(D_BASE * mult(level('det')) * acc), exp = Math.round(D_EXP * (.4 + .6 * acc));
     const lv = finishJob('det', 'นักสืบ', p.title, pay, exp, acc, { name: 'นักสืบ', from: FROM_D, good: 'ยอดเยี่ยมครับ ไขคดีได้ตรงประเด็นมาก ขอบคุณที่ช่วยนะครับ 🙏 โอนค่าจ้างให้แล้ว', ok: 'ได้เรื่องราวพอสมควรครับ แต่ยังมีบางจุดที่ไม่ตรง ขอบคุณที่ช่วยดูให้', bad: 'รายงานรอบนี้ยังไม่ตรงกับความจริงครับ รอบหน้าลองเปรียบเทียบหลักฐานให้ละเอียดขึ้นนะครับ', up: 'ฝีมือสืบพัฒนาขึ้นเยอะเลย ตอนนี้เลเวล {L} แล้ว ค่าจ้างและคดีที่ให้จะดีขึ้นครับ 💪' });
@@ -349,7 +352,7 @@
   }
   function delDir(id) { const a = item(id); if (!a || a.sys || a.t !== 'dir') return; kids(id).forEach(x => { x.loc = a.loc; if (a.loc === 'desk') x.p = freeCell(x.id, 0, 0); else delete x.p; }); H.items.splice(H.items.indexOf(a), 1); W = W.filter(w => !(w.k === 'dir' && w.ref === id)); renderDesk(); renderWins(); refreshDirs(); }
   function moveTo(id, loc, at) {
-    const a = item(id); if (!a) return false; if (loc !== 'desk') { const d = item(loc); if (!d || d.t !== 'dir' || loc === id || inside(loc, id)) { try { S.toast('ย้ายโฟลเดอร์เข้าไปในตัวมันเองไม่ได้', 1.6); } catch (e) {} return false; } }
+    const a = item(id); if (!a) return false; if (loc !== 'desk') { const d = item(loc); if (!d || d.t !== 'dir' || loc === id || inside(loc, id)) { try { toast('ย้ายโฟลเดอร์เข้าไปในตัวมันเองไม่ได้', 1.6); } catch (e) {} return false; } }
     a.loc = loc; if (loc === 'desk') a.p = at ? freeCell(id, at.c, at.r) : freeCell(id, 0, 0); else delete a.p; renderDesk(); refreshDirs(); return true;
   }
 
@@ -362,7 +365,7 @@
   }
   function onCtx(e) {
     e.preventDefault(); const ic = e.target.closest('.hpi'), tgt = ic ? item(ic.dataset.id) : null, dirId = (e.target.closest('.hpw .hpb[data-drop]') || {dataset: {}}).dataset.drop || '', here = dirId || 'desk';
-    if (tgt) { sel = tgt.id; const m = [['📂 เปิด', () => openItem(tgt.id)], ['✏️ เปลี่ยนชื่อ', () => { if (tgt.sys || tgt.t === 'app') { try { S.toast('ไอคอนของระบบเปลี่ยนชื่อไม่ได้', 1.6); } catch (x) {} } else startRename(tgt.id); }]]; if (tgt.t === 'dir' && !tgt.sys) m.push(['🗑️ ลบโฟลเดอร์ (ของข้างในย้ายออกมา)', () => delDir(tgt.id)]); showMenu(e.clientX, e.clientY, m); return; }
+    if (tgt) { sel = tgt.id; const m = [['📂 เปิด', () => openItem(tgt.id)], ['✏️ เปลี่ยนชื่อ', () => { if (tgt.sys || tgt.t === 'app') { try { toast('ไอคอนของระบบเปลี่ยนชื่อไม่ได้', 1.6); } catch (x) {} } else startRename(tgt.id); }]]; if (tgt.t === 'dir' && !tgt.sys) m.push(['🗑️ ลบโฟลเดอร์ (ของข้างในย้ายออกมา)', () => delDir(tgt.id)]); showMenu(e.clientX, e.clientY, m); return; }
     if (e.target.closest('.hpm') && (e.target.closest('.hpd') || dirId)) showMenu(e.clientX, e.clientY, [['📁 โฟลเดอร์ใหม่', () => newDir(here === 'desk' ? null : here)], ['🔄 จัดไอคอนใหม่', () => { H.items.filter(x => x.loc === 'desk').forEach(x => delete x.p); renderDesk(); }], [isFull() ? '🗗 ออกจากเต็มจอ' : '⛶ เต็มจอ', () => setFull(!isFull())]]);
   }
   function openItem(id) { const a = item(id); if (!a) return; if (a.t === 'dir') openWin('dir', id); else openWin('app', id); }
@@ -401,7 +404,7 @@
     else if (a === 'naccept') novelAccept(); else if (a === 'ncancel') { H.job = null; refreshApp('novel'); refreshApp('code'); } else if (a === 'nnext') { res = null; refreshApp('novel'); refreshApp('code'); }
     else if (a === 'mark') { if (H.job) { const i = +b.dataset.i, k = H.job.marks.indexOf(i); if (k >= 0) H.job.marks.splice(k, 1); else H.job.marks.push(i); b.classList.toggle('hpmk'); const cnt = hp.querySelector('.hpq .hps'); if (cnt) cnt.textContent = `ทำเครื่องหมายแล้ว ${H.job.marks.length} จุด`; } }
     else if (a === 'nsubmit') novelSubmit();
-    else if (a === 'petbuy') { const k = b.dataset.k; if (H.pets[k]) return; if (H.side < PET_COST) { try { S.toast('บัญชีรายได้เสริมมีไม่พอ ไปทำงานเสริมก่อนนะ', 2); } catch (e) {} } else { H.side -= PET_COST; H.pets[k] = true; H.hist.push({ d: gd(), job: 'ซื้อ' + (k === 'cat' ? 'แมว' : 'หมา') + ' (เสียง)', amt: -PET_COST, exp: 0 }); try { S.tone(660, 990, .15, .09); } catch (e) {} refreshApp('pet'); refreshApp('fin'); refreshApp('hist'); petSound(k, false); } }
+    else if (a === 'petbuy') { const k = b.dataset.k; if (H.pets[k]) return; if (H.side < PET_COST) { try { toast('บัญชีรายได้เสริมมีไม่พอ ไปทำงานเสริมก่อนนะ', 2); } catch (e) {} } else { H.side -= PET_COST; H.pets[k] = true; H.hist.push({ d: gd(), job: 'ซื้อ' + (k === 'cat' ? 'แมว' : 'หมา') + ' (เสียง)', amt: -PET_COST, exp: 0 }); try { S.tone(660, 990, .15, .09); } catch (e) {} refreshApp('pet'); refreshApp('fin'); refreshApp('hist'); petSound(k, false); } }
     else if (a === 'petcall') { petSound(b.dataset.k, true); refreshApp('pet'); }
     else if (a === 'amb') { H.amb = b.dataset.v; refreshApp('pet'); } else if (a === 'lamp') { H.lamp = +b.dataset.v; applyLamp(); refreshApp('pet'); }
     else if (a === 'caccept') codeAccept(); else if (a === 'ccancel') { H.job = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'cnext') { res = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'csubmit') codeSubmit();
@@ -464,7 +467,7 @@
     + '#homePC .hpr{display:flex;justify-content:space-between;gap:10px;padding:7px 2px;border-bottom:1px solid #ffffff14;font-size:14px}#homePC .hpr small,#homePC .hps small,#homePC .hpe small{opacity:.65;font-weight:400}#homePC .hpr.warn b{color:#ff9b8a}#homePC .hps{color:#aaa6d8;font-size:13px;margin:10px 0 0}#homePC hr{border:none;border-top:1px dashed #ffffff30;margin:10px 0}'
     + '#homePC .hpe{text-align:center;padding:26px 10px;font-size:34px;color:#cfcaf0}#homePC .hpe p{font-size:14px;margin:8px 0 0}#homePC .hpc{font-size:50px;text-align:center;font-weight:700;letter-spacing:2px;color:#ffe9b0}#homePC .hpq{margin-top:12px;text-align:center}#homePC .hpq p{margin:0 0 10px;font-size:14px}#homePC button.go,#homePC .hpq .go{background:#6c63ff;border-color:#9d97ff;font-weight:700;padding:7px 16px}#homePC .hpq button{margin:4px}'
     + '#homePC .hpm1{background:#1f1a45;border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:13px}#homePC .hpm1 p{margin:4px 0 0;color:#dcd8ff}#homePC .hpl2{margin-bottom:8px;font-size:14px}#homePC .hpx{float:right;color:#ffd98a;font-size:13px}#homePC .hpbar2{height:8px;border-radius:6px;background:#ffffff1f;margin-top:5px;overflow:hidden}#homePC .hpbar2 i{display:block;height:100%;background:linear-gradient(90deg,#7d6dff,#ffd98a)}'
-    + '#homePC .hpjt{margin:6px 0 0;font-size:15px;color:#ffd98a}#homePC .hptx{margin-top:10px;line-height:2.1;font-size:16px}#homePC .hpck{border:none;background:none;color:#f1efff;font:inherit;cursor:pointer;padding:1px 1px;border-radius:5px}#homePC .hpsp{display:inline-block;width:.6em}#homePC .hpck:hover{background:#ffffff18}#homePC .hpck.hpmk{color:#a9a5d8;background:#ffffff1c;box-shadow:inset 0 -2px 0 #9d97ff}#homePC .hpsteps{margin-top:10px;display:flex;flex-direction:column;gap:6px}#homePC .hpstp{display:block;width:100%;text-align:left;border:2px solid #4a4496;background:#1c1840;color:#f1efff;font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;cursor:pointer}#homePC .hpstp i{display:inline-block;width:1.8em;color:#9d97ff;font-style:normal;font-weight:700}#homePC .hpstp:hover{background:#26205a}#homePC .hpstp.sel{border-color:#ffd98a;background:#3a3270}#homePC .hpht{background:#2a2450;border-radius:10px;padding:8px 10px;font-size:13px;color:#ffe9b0;margin:10px 0 0}#homePC .hpol{margin:6px 0 0;padding-left:1.4em;color:#dcd8ff;font-size:13px}#homePC .hpfacts{margin:8px 0}#homePC .hpstp b{color:#ffd98a}#homePC .hpup{color:#ffd98a;font-weight:700;text-align:center}#homePC .hpres h3,#homePC .hpjob h3{margin:0 0 8px;color:#ffd98a}'
+    + '#homePC .hpjt{margin:6px 0 0;font-size:15px;color:#ffd98a}#homePC .hptx{margin-top:10px;line-height:2.1;font-size:16px}#homePC .hpck{border:none;background:none;color:#f1efff;font:inherit;cursor:pointer;padding:1px 1px;border-radius:5px}#homePC .hpsp{display:inline-block;width:.6em}#homePC .hpck:hover{background:#ffffff18}#homePC .hpck.hpmk{color:#a9a5d8;background:#ffffff1c;box-shadow:inset 0 -2px 0 #9d97ff}#homePC .hpsteps{margin-top:10px;display:flex;flex-direction:column;gap:6px}#homePC .hpstp{display:block;width:100%;text-align:left;border:2px solid #4a4496;background:#1c1840;color:#f1efff;font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;cursor:pointer}#homePC .hpstp i{display:inline-block;width:1.8em;color:#9d97ff;font-style:normal;font-weight:700}#homePC .hpstp:hover{background:#26205a}#homePC .hpstp.sel{border-color:#ffd98a;background:#3a3270}#homePC .hpht{background:#2a2450;border-radius:10px;padding:8px 10px;font-size:13px;color:#ffe9b0;margin:10px 0 0}#homePC .hpol{margin:6px 0 0;padding-left:1.4em;color:#dcd8ff;font-size:13px}#homePC .hpfacts{margin:8px 0}#homePC .hpstp b{color:#ffd98a}#homePC .hptoast{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);max-width:80%;background:#0b0a22f2;border:2px solid #9d97ff;color:#fff;border-radius:12px;padding:8px 16px;font-size:14px;z-index:120;opacity:0;pointer-events:none;transition:opacity .2s;text-align:center}#homePC .hptoast.on{opacity:1}#homePC .hpdis{opacity:.5;border:2px solid #5a54a8;background:#221e45;color:#fff;border-radius:9px;padding:3px 10px;font:inherit;cursor:pointer}#homePC .hplamp{position:absolute;inset:0;z-index:5;pointer-events:none;transition:background .4s}#homePC .hpup{color:#ffd98a;font-weight:700;text-align:center}#homePC .hpres h3,#homePC .hpjob h3{margin:0 0 8px;color:#ffd98a}'
     + '#homePC .hpmenu{position:absolute;z-index:100;background:#1c1840;border:2px solid #5a54a8;border-radius:10px;padding:4px;min-width:160px;box-shadow:0 8px 24px #000a}#homePC .hpmenu button{display:block;width:100%;text-align:left;background:none;border:none;color:#fff;font:inherit;font-size:13px;padding:7px 10px;border-radius:7px;cursor:pointer}#homePC .hpmenu button:hover{background:#6c63ff66}'
     + '#homePC .hpbedw{display:none;position:absolute;inset:0;z-index:50}#homePC .hpbedw.on{display:block}#homePC .hpbed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;background:#070716f2}#homePC .hpbi{font-size:54px}#homePC .hpbed h2{margin:6px 0;color:#ffd98a}#homePC .hpbed p{max-width:420px;color:#cfcaf0;font-size:14px}';
   document.head.append(css);
