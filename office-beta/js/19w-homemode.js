@@ -63,6 +63,83 @@
     ['ความฝันของนักบินอวกาศ', 'เด็ก ชาย ตัว น้อย นั่ง มอง ท้องฟ้า ยาม ค่ำคืน ผ่าน กล้องโทรทรรศน์ ตัว โปรด ที่ พ่อ ซื้อ ให้ เป็น ของ ขวัญ วัน เกิด _ เขา มอง เห็น หลุม อุกกาบาต บน ดวง จันทร์ ได้ อย่าง ชัดเจน จน รู้สึก ตื่น ตา ตื่น ใจ _ ใน สมุด วาด เขียน ของ เขา เต็ม ไป ด้วย ภาพ วาด ยาน อวกาศ และ มนุษย์ ต่าง ดาว ตาม จินตนาการ _ เขา ตั้ง ปณิธาน ไว้ ว่า จะ ตั้งใจ เรียน หนังสือ และ ออก กำลัง กาย ให้ แข็ง แรง _ เพื่อ ที่ วัน หนึ่ง จะ ได้ เดิน ทาง ไป _ {สำรวด|สำรวจ} _ อวกาศ อัน กว้าง ใหญ่ ไพศาล เหมือน กับ นักบิน อวกาศ ใน ดวงใจ'],
   ].map(([title, raw]) => { const chunks = raw.split(' ').map(c => { if (c === '_') return { sp: true, t: ' ' }; const m = c.match(/^\{([^|]+)\|([^}]+)\}$/); return m ? { t: m[1], err: true, w: m[1], r: m[2] } : { t: c, err: false }; }); return { title, chunks, n: chunks.filter(c => c.err).length }; });
   const N_BASE = 200, N_EXP = 45, N_MIN = 45;
+
+  /* ---- code debugger puzzles: a line starting with ! is buggy; text after § is the fix ---- */
+  const CODES = [
+    ['หาค่าเฉลี่ยของตัวเลข', `function average(nums) {
+  let sum = 0;
+!  for (let i = 0; i <= nums.length; i++) {§ ต้องเป็น i < nums.length (ไม่เช่นนั้นอ่านเกินตัวสุดท้าย)
+    sum += nums[i];
+  }
+  return sum / nums.length;
+}`],
+    ['เช็กว่าเป็นเลขคู่', `function isEven(n) {
+!  if (n % 2 = 0) {§ ต้องใช้ === เพื่อเปรียบเทียบ ไม่ใช่ = (กำหนดค่า)
+    return true;
+  }
+  return false;
+}`],
+    ['หาค่ามากที่สุดในลิสต์', `function maxOf(list) {
+  let best = list[0];
+  for (const x of list) {
+!    if (x < best) {§ ต้องเป็น x > best เพื่อหาค่ามากที่สุด
+      best = x;
+    }
+  }
+  return best;
+}`],
+    ['คิดราคาหลังลด', `function finalPrice(price, percent) {
+!  const discount = price * percent;§ ต้องหาร 100 ก่อน: price * percent / 100
+  return price - discount;
+}`],
+    ['นับถอยหลังก่อนเริ่มเกม', `let n = 5;
+while (n > 0) {
+  console.log(n);
+!  n++;§ ต้องเป็น n-- ไม่เช่นนั้นวนไม่รู้จบ
+}
+console.log("เริ่ม!");`],
+    ['บวกเลข 1 ถึง n', `function sumTo(n) {
+  let total = 0;
+  for (let i = 1; i <= n; i++) {
+    total += i;
+  }
+!  total;§ ต้อง return total; ไม่เช่นนั้นได้ค่า undefined
+}`],
+    ['ทักทายผู้ใช้', `const name = "Kun";
+!const msg = "สวัสดี " + nam;§ ชื่อตัวแปรผิด ต้องเป็น name
+console.log(msg);`],
+    ['ตรวจรหัสผ่าน', `// รหัสผ่านต้องยาวอย่างน้อย 8 ตัวถึงจะผ่าน
+function checkPass(pw) {
+  if (pw.length < 8) {
+!    return true;§ สั้นเกินไปต้อง return false
+  }
+!  return false;§ ยาวพอแล้วต้อง return true
+}`],
+    ['เอาของออกจากตะกร้า', `const cart = ["นม", "ไข่", "ขนมปัง"];
+cart.push("ชา");
+// ต้องการเอา "ไข่" ออก 1 ชิ้น
+!cart.splice(1, 0);§ ต้องเป็น splice(1, 1) (ลบ 1 ชิ้น)
+console.log(cart.length);`],
+    ['นับคนอายุ 18 ปีขึ้นไป', `# นับคนที่อายุ 18 ปีขึ้นไป
+ages = [12, 20, 18, 30, 9]
+count = 0
+for a in ages:
+!    if a > 18:§ ต้องเป็น a >= 18 (รวมคนอายุ 18 ด้วย)
+        count += 1
+print(count)`],
+    ['แปลงองศาเซลเซียสเป็นฟาเรนไฮต์', `function toFahrenheit(c) {
+!  return c * 9 / 5 - 32;§ ต้องเป็น + 32
+}`],
+    ['ส่งฟรีสำหรับสมาชิกหรือยอดเกิน 500', `// สมาชิก "หรือ" ซื้อเกิน 500 ได้ส่งฟรี
+function freeShip(isMember, total) {
+!  if (isMember && total > 500) {§ ต้องใช้ || (หรือ) ไม่ใช่ && (และ)
+    return true;
+  }
+  return false;
+}`],
+  ].map(([title, raw]) => { const lines = raw.split('\n').map(l => { if (l[0] === '!') { const [t, f] = l.slice(1).split('§'); return { t, bug: true, fix: (f || '').trim() }; } return { t: l, bug: false }; }); return { title, lines, n: lines.filter(x => x.bug).length }; });
+  const C_BASE = 260, C_EXP = 50, C_MIN = 50;
+  const FROM_C = ['คุณก้อง (เจ้าของแอป)', 'คุณฟ้า (สตาร์ตอัพเล็กๆ)', 'คุณโอม (นักศึกษาฝึกเขียนโค้ด)', 'คุณนุ่น (หัวหน้าทีมเว็บ)'];
   const FROM = ['คุณนิรัตน์ (นักเขียนนิยายออนไลน์)', 'คุณมะลิ (สำนักพิมพ์เล็ก)', 'คุณพีท (นักเขียนมือใหม่)', 'คุณแพร (บรรณาธิการ)'];
 
   /* ================= keep the office quiet while at home ================= */
@@ -119,7 +196,7 @@
     if (w.k === 'dir') return dirHtml(w);
     const r = w.ref;
     if (r === 'novel') return novelHtml();
-    if (r === 'code') return empty('🛠️', 'งานนี้ยังไม่เปิดให้รับ', 'จะมาในอัปเดตถัดไป');
+    if (r === 'code') return codeHtml();
     if (r === 'fin') { const mk = monthKey(gd()), mo = H.hist.filter(x => monthKey(x.d) === mk).reduce((a, x) => a + x.amt, 0), sal = Math.round(hr.base || 0); return `${row('🏦 เงินในบัญชีหลัก', '฿' + baht(bank.bal))}${row('💼 เงินเดือนประจำ', sal ? '฿' + baht(sal) + ' / เดือน' : 'ไม่มี')}<hr>${row('✨ บัญชีรายได้เสริม', '฿' + baht(H.side))}${row('📅 รายได้เสริมเดือนนี้', '฿' + baht(mo))}<p class="hps">รายได้เสริมแยกจากเงินเดือนหลัก ดูได้ชัดว่าเงินเดือนเท่าไหร่ รายได้เสริมเท่าไหร่</p>`; }
     if (r === 'msg') return H.msgs.length ? H.msgs.map(m => `<div class="hpm1"><b>${esc2(m.from)}</b> <small>${esc2(m.at)}</small><p>${esc2(m.text)}</p></div>`).join('') : empty('📭', 'ยังไม่มีข้อความจากลูกค้า', 'เมื่อส่งงานเสริมสำเร็จ ลูกค้าจะตอบกลับที่นี่');
     if (r === 'hist') return H.hist.length ? H.hist.slice(-30).reverse().map(x => row(esc2(x.job || 'งานเสริม') + ` <small>${esc2(thDate(T0 + x.d * DAY, { day: 'numeric', month: 'short' }))}${x.exp ? ' · +' + x.exp + ' EXP' : ''}</small>`, '+฿' + baht(x.amt))).join('') : empty('🗂️', 'ยังไม่มีประวัติงานเสริม', 'งานที่ส่งสำเร็จจะมาอยู่ที่นี่');
@@ -129,7 +206,8 @@
   function novelHtml() {
     const l = level('novel'), x = H.skill.novel, lo = TH[l - 1], hi = TH[l] || TH[9], pc = l >= 10 ? 100 : Math.round((x - lo) / (hi - lo) * 100);
     const head = `<div class="hpl2"><b>เลเวล ${l}${l >= 10 ? ' (สูงสุด)' : ''}</b> <small>EXP ${x}${l >= 10 ? '' : ' / ' + hi}</small> <span class="hpx">ค่าตอบแทน ×${mult(l).toFixed(2)}</span><div class="hpbar2"><i style="width:${pc}%"></i></div></div>`;
-    if (res) return head + `<div class="hpres"><h3>${res.acc >= .9 ? '🌟 ตรวจได้ยอดเยี่ยม' : res.acc >= .6 ? '👍 ตรวจได้ดี' : '🙂 ส่งงานแล้ว'}</h3>${row('ตรวจเจอ', `${res.found}/${res.n} จุด`)}${res.fp ? row('ทำเครื่องหมายผิดที่', res.fp + ' จุด', 'warn') : ''}${row('ได้เงิน', '+฿' + baht(res.pay))}${row('ได้ EXP', '+' + res.exp)}${res.lv ? `<p class="hpup">🎉 เลื่อนเป็นเลเวล ${res.lv} แล้ว!</p>` : ''}<p class="hps">เฉลย: ${res.rev.length ? res.rev.map(c => `<s>${esc2(c.w)}</s> → <b>${esc2(c.r)}</b>`).join(' · ') : '-'}</p><div class="hpq"><button class="go" data-hp="nnext">งานต่อไป</button></div></div>`;
+    if (res && res.k !== 'code') return head + `<div class="hpres"><h3>${res.acc >= .9 ? '🌟 ตรวจได้ยอดเยี่ยม' : res.acc >= .6 ? '👍 ตรวจได้ดี' : '🙂 ส่งงานแล้ว'}</h3>${row('ตรวจเจอ', `${res.found}/${res.n} จุด`)}${res.fp ? row('ทำเครื่องหมายผิดที่', res.fp + ' จุด', 'warn') : ''}${row('ได้เงิน', '+฿' + baht(res.pay))}${row('ได้ EXP', '+' + res.exp)}${res.lv ? `<p class="hpup">🎉 เลื่อนเป็นเลเวล ${res.lv} แล้ว!</p>` : ''}<p class="hps">เฉลย: ${res.rev.length ? res.rev.map(c => `<s>${esc2(c.w)}</s> → <b>${esc2(c.r)}</b>`).join(' · ') : '-'}</p><div class="hpq"><button class="go" data-hp="nnext">งานต่อไป</button></div></div>`;
+    if (H.job && H.job.k === 'code') return head + '<p class="hps">💻 ตอนนี้มีงานแก้โค้ดที่ยังทำค้างอยู่ ทำให้เสร็จหรือยกเลิกก่อนนะ</p>';
     if (H.job) {
       const p = PASS[H.job.pid]; if (!p) { H.job = null; return novelHtml(); }
       return head + `<h3 class="hpjt">📖 ${esc2(p.title)}</h3><p class="hps">แตะคำที่เขียนผิด (มีผิด ${p.n} จุด) แตะซ้ำเพื่อยกเลิกเครื่องหมาย</p><div class="hptx">${p.chunks.map((c, i) => c.sp ? '<span class="hpsp"></span>' : `<button class="hpck${H.job.marks.includes(i) ? ' hpmk' : ''}" data-hp="mark" data-i="${i}">${esc2(c.t)}</button>`).join('')}</div><div class="hpq"><span class="hps">ทำเครื่องหมายแล้ว ${H.job.marks.length} จุด</span><br><button class="go" data-hp="nsubmit">📨 ส่งงาน</button><button data-hp="ncancel">ยกเลิกงาน (ไม่เสียอะไร)</button></div>`;
@@ -149,6 +227,33 @@
     res = { found, n: p.n, fp, pay, exp, acc, lv: l1 > l0 ? l1 : 0, rev: p.chunks.filter(c => c.err) }; H.job = null;
     try { if (l1 > l0) { S.big('🎉 นักตรวจนิยาย เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else S.tone(660, 880, .15, .08); S.toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
     CG.Bus.emit('sidejob.done', { job: 'novel', pay, exp }); renderDesk(); refreshApp('novel'); refreshApp('fin'); refreshApp('msg'); refreshApp('hist');
+  }
+
+  /* ================= side job 2: code debugger ================= */
+  function codeHtml() {
+    const l = level('code'), x = H.skill.code, lo = TH[l - 1], hi = TH[l] || TH[9], pc = l >= 10 ? 100 : Math.round((x - lo) / (hi - lo) * 100);
+    const head = `<div class="hpl2"><b>เลเวล ${l}${l >= 10 ? ' (สูงสุด)' : ''}</b> <small>EXP ${x}${l >= 10 ? '' : ' / ' + hi}</small> <span class="hpx">ค่าตอบแทน ×${mult(l).toFixed(2)}</span><div class="hpbar2"><i style="width:${pc}%"></i></div></div>`;
+    if (res && res.k === 'code') return head + `<div class="hpres"><h3>${res.acc >= .9 ? '🌟 แก้บั๊กได้เกลี้ยง' : res.acc >= .6 ? '👍 แก้ได้ดี' : '🙂 ส่งงานแล้ว'}</h3>${row('เจอบั๊ก', `${res.found}/${res.n} จุด`)}${res.fp ? row('ชี้ผิดบรรทัด', res.fp + ' บรรทัด', 'warn') : ''}${row('ได้เงิน', '+฿' + baht(res.pay))}${row('ได้ EXP', '+' + res.exp)}${res.lv ? `<p class="hpup">🎉 เลื่อนเป็นเลเวล ${res.lv} แล้ว!</p>` : ''}<div class="hps">เฉลย:${res.rev.map(c => `<div class="hpfx"><code>${esc2(c.t.trim())}</code><br>→ ${esc2(c.fix)}</div>`).join('')}</div><div class="hpq"><button class="go" data-hp="cnext">งานต่อไป</button></div></div>`;
+    if (H.job && H.job.k === 'code') {
+      const p = CODES[H.job.pid]; if (!p) { H.job = null; return codeHtml(); }
+      return head + `<h3 class="hpjt">💻 ${esc2(p.title)}</h3><p class="hps">โค้ดนี้มีบั๊ก ${p.n} จุด แตะบรรทัดที่ผิด แตะซ้ำเพื่อยกเลิก</p><div class="hpcode">${p.lines.map((c, i) => `<button class="hpcl${H.job.marks.includes(i) ? ' hpmk' : ''}" data-hp="cmark" data-i="${i}"><i>${i + 1}</i>${esc2(c.t)}</button>`).join('')}</div><div class="hpq"><span class="hps">เลือกแล้ว ${H.job.marks.length} บรรทัด</span><br><button class="go" data-hp="csubmit">📨 ส่งงาน</button><button data-hp="ccancel">ยกเลิกงาน (ไม่เสียอะไร)</button></div>`;
+    }
+    if (H.job) return head + '<p class="hps">📖 ตอนนี้มีงานตรวจนิยายที่ยังทำค้างอยู่ ทำให้เสร็จหรือยกเลิกก่อนนะ</p>';
+    const can = leftMin() >= C_MIN;
+    return head + `<div class="hpjob"><h3>💻 งานแก้บั๊กโค้ด</h3><p>อ่านโค้ดสั้นๆ แล้วหาบรรทัดที่มีบั๊กให้ครบ<br><small>ประมาณ ${C_MIN} นาทีเกม (≈ ${Math.round(C_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุด ฿${baht(Math.round(C_BASE * mult(l)))}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="caccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">ไม่มีโทษถ้าไม่รับงาน งานที่ทำค้างไว้ตอนเข้านอนจะถูกเก็บไว้ให้</p></div>`;
+  }
+  function codeAccept() {
+    if (H.job || leftMin() < C_MIN) return; let i; do { i = Math.floor(Math.random() * CODES.length); } while (CODES.length > 1 && i === H.lastC); H.lastC = i; H.job = { k: 'code', pid: i, marks: [] }; res = null; refreshApp('code');
+  }
+  function codeSubmit() {
+    if (!H.job || H.job.k !== 'code') return; const p = CODES[H.job.pid], m = H.job.marks, found = m.filter(i => p.lines[i].bug).length, fp = m.length - found, acc = clamp((found - fp * .5) / p.n, 0, 1), l0 = level('code');
+    const pay = Math.round(C_BASE * mult(l0) * acc), exp = Math.round(C_EXP * (.4 + .6 * acc)); H.skill.code = Math.min(TH[9], H.skill.code + exp); const l1 = level('code');
+    H.side += pay; H.hist.push({ d: gd(), job: 'แก้โค้ด: ' + p.title, amt: pay, exp }); const at = hm(gnow());
+    const txt = acc >= .9 ? 'เยี่ยมมากครับ เจอบั๊กครบเลย แอปรันได้แล้ว 🎉 โอนค่าจ้างให้แล้วนะครับ' : acc >= .6 ? 'ใช้ได้ครับ ยังเหลือบั๊กหลุดไปนิดหน่อย เดี๋ยวผมดูต่อเอง ขอบคุณครับ' : 'ขอบคุณที่ช่วยดูครับ ยังมีบั๊กอยู่อีก รอบหน้าลองใหม่นะครับ 🙂';
+    H.msgs.unshift({ from: pick(FROM_C), at, text: txt, unread: true }); if (l1 > l0) H.msgs.unshift({ from: 'คุณนุ่น (หัวหน้าทีมเว็บ)', at, text: `ฝีมือแก้บั๊กพัฒนาขึ้นเยอะเลย ตอนนี้เลเวล ${l1} แล้ว ค่าจ้างขึ้นให้นะครับ ฝากงานต่อด้วย 💪`, unread: true });
+    res = { k: 'code', found, n: p.n, fp, pay, exp, acc, lv: l1 > l0 ? l1 : 0, rev: p.lines.filter(c => c.bug) }; H.job = null;
+    try { if (l1 > l0) { S.big('🎉 นักแก้โค้ด เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else S.tone(660, 880, .15, .08); S.toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
+    CG.Bus.emit('sidejob.done', { job: 'code', pay, exp }); renderDesk(); refreshApp('code'); refreshApp('fin'); refreshApp('msg'); refreshApp('hist');
   }
 
   /* ================= build / render ================= */
@@ -231,9 +336,11 @@
     else if (a === 'tb') { const t = W.find(x => x.id === b.dataset.w); if (t) { if (!t.min && t.z === zTop) t.min = true; else { t.min = false; focus(t); } renderWins(); } }
     else if (a === 'full') setFull(!isFull()); else if (a === 'up') { const t = b.dataset.to; if (o && t) { closeWin(o.id); openWin('dir', t); } } else if (a === 'newdir') newDir(b.dataset.in);
     else if (a === 'sleepask') { confirmSleep = true; refreshApp('clock'); } else if (a === 'sleepno') { confirmSleep = false; refreshApp('clock'); } else if (a === 'sleepyes') skipToBed(); else if (a === 'bedgo') { if (CG.goHome) CG.goHome.begin({ msg: 'เตรียมเข้านอน…' }); }
-    else if (a === 'naccept') novelAccept(); else if (a === 'ncancel') { H.job = null; refreshApp('novel'); } else if (a === 'nnext') { res = null; refreshApp('novel'); }
+    else if (a === 'naccept') novelAccept(); else if (a === 'ncancel') { H.job = null; refreshApp('novel'); refreshApp('code'); } else if (a === 'nnext') { res = null; refreshApp('novel'); refreshApp('code'); }
     else if (a === 'mark') { if (H.job) { const i = +b.dataset.i, k = H.job.marks.indexOf(i); if (k >= 0) H.job.marks.splice(k, 1); else H.job.marks.push(i); b.classList.toggle('hpmk'); const cnt = hp.querySelector('.hpq .hps'); if (cnt) cnt.textContent = `ทำเครื่องหมายแล้ว ${H.job.marks.length} จุด`; } }
     else if (a === 'nsubmit') novelSubmit();
+    else if (a === 'caccept') codeAccept(); else if (a === 'ccancel') { H.job = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'cnext') { res = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'csubmit') codeSubmit();
+    else if (a === 'cmark') { if (H.job && H.job.k === 'code') { const i = +b.dataset.i, k = H.job.marks.indexOf(i); if (k >= 0) H.job.marks.splice(k, 1); else H.job.marks.push(i); b.classList.toggle('hpmk'); const cnt = hp.querySelector('.hpq .hps'); if (cnt) cnt.textContent = `เลือกแล้ว ${H.job.marks.length} บรรทัด`; } }
   }
   addEventListener('keydown', e => { if (!hp || !H.on) return; if (e.key === 'F2' && sel) { const a = item(sel); if (a && a.t === 'dir' && !a.sys) startRename(sel); } else if (e.key === 'Delete' && sel && !(e.target && e.target.tagName === 'INPUT')) delDir(sel); else if (e.key === 'Escape') closeMenu(); });
 
@@ -265,7 +372,7 @@
   CG.home = {
     enter, exit, on: () => H.on, bed: () => H.bed, open: openItem, newDir, setFull, state: () => ({ on: H.on, bed: H.bed, side: H.side, hist: H.hist.slice(), job: H.job, skill: { ...H.skill }, items: H.items.map(x => ({ ...x })), wins: W.map(w => ({ id: w.id, min: w.min, max: w.max })), full: isFull() }),
     addSide: (job, amt, exp) => { H.side += amt; H.hist.push({ d: gd(), job, amt, exp: exp || 0 }); refreshApp('fin'); refreshApp('hist'); },
-    addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, passages: () => PASS.length, pass: i => PASS[i],
+    addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, codeBugs: i => CODES[i].lines.map((l, k) => l.bug ? k : -1).filter(k => k >= 0), passages: () => PASS.length, pass: i => PASS[i],
   };
   if (CG.Dev) CG.Dev.add('🏠 Home Mode', box => {
     box.innerHTML = '<button data-h="in">เข้าบ้านทันที (ไม่เสียค่ารถ)</button> <button data-h="t2325">23:25</button> <button data-h="t2355">23:55</button> <button data-h="t2000">20:00</button> <button data-h="exp">+500 EXP นิยาย</button> <button data-h="out">ออกจาก Home Mode</button>';
@@ -289,7 +396,7 @@
     + '#homePC .hpr{display:flex;justify-content:space-between;gap:10px;padding:7px 2px;border-bottom:1px solid #ffffff14;font-size:14px}#homePC .hpr small,#homePC .hps small,#homePC .hpe small{opacity:.65;font-weight:400}#homePC .hpr.warn b{color:#ff9b8a}#homePC .hps{color:#aaa6d8;font-size:13px;margin:10px 0 0}#homePC hr{border:none;border-top:1px dashed #ffffff30;margin:10px 0}'
     + '#homePC .hpe{text-align:center;padding:26px 10px;font-size:34px;color:#cfcaf0}#homePC .hpe p{font-size:14px;margin:8px 0 0}#homePC .hpc{font-size:50px;text-align:center;font-weight:700;letter-spacing:2px;color:#ffe9b0}#homePC .hpq{margin-top:12px;text-align:center}#homePC .hpq p{margin:0 0 10px;font-size:14px}#homePC button.go,#homePC .hpq .go{background:#6c63ff;border-color:#9d97ff;font-weight:700;padding:7px 16px}#homePC .hpq button{margin:4px}'
     + '#homePC .hpm1{background:#1f1a45;border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:13px}#homePC .hpm1 p{margin:4px 0 0;color:#dcd8ff}#homePC .hpl2{margin-bottom:8px;font-size:14px}#homePC .hpx{float:right;color:#ffd98a;font-size:13px}#homePC .hpbar2{height:8px;border-radius:6px;background:#ffffff1f;margin-top:5px;overflow:hidden}#homePC .hpbar2 i{display:block;height:100%;background:linear-gradient(90deg,#7d6dff,#ffd98a)}'
-    + '#homePC .hpjt{margin:6px 0 0;font-size:15px;color:#ffd98a}#homePC .hptx{margin-top:10px;line-height:2.1;font-size:16px}#homePC .hpck{border:none;background:none;color:#f1efff;font:inherit;cursor:pointer;padding:1px 1px;border-radius:5px}#homePC .hpsp{display:inline-block;width:.6em}#homePC .hpck:hover{background:#ffffff18}#homePC .hpck.hpmk{color:#a9a5d8;background:#ffffff1c;box-shadow:inset 0 -2px 0 #9d97ff}#homePC .hpup{color:#ffd98a;font-weight:700;text-align:center}#homePC .hpres h3,#homePC .hpjob h3{margin:0 0 8px;color:#ffd98a}'
+    + '#homePC .hpjt{margin:6px 0 0;font-size:15px;color:#ffd98a}#homePC .hptx{margin-top:10px;line-height:2.1;font-size:16px}#homePC .hpck{border:none;background:none;color:#f1efff;font:inherit;cursor:pointer;padding:1px 1px;border-radius:5px}#homePC .hpsp{display:inline-block;width:.6em}#homePC .hpck:hover{background:#ffffff18}#homePC .hpck.hpmk{color:#a9a5d8;background:#ffffff1c;box-shadow:inset 0 -2px 0 #9d97ff}#homePC .hpcode{margin-top:10px;background:#0c0a1f;border-radius:10px;padding:6px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;overflow-x:auto}#homePC .hpcl{display:block;width:100%;text-align:left;white-space:pre;border:none;background:none;color:#e8e6ff;font:inherit;padding:2px 10px 2px 0;cursor:pointer}#homePC .hpcl i{display:inline-block;width:2.4em;text-align:right;margin-right:1em;color:#6f6aa8;font-style:normal}#homePC .hpcl:hover{background:#ffffff14}#homePC .hpcl.hpmk{color:#a9a5d8;background:#ffffff1c;box-shadow:inset 3px 0 0 #9d97ff}#homePC .hpfx{margin-top:8px;font-size:13px;color:#dcd8ff}#homePC .hpfx code{background:#0c0a1f;padding:1px 5px;border-radius:5px;color:#ffd98a}#homePC .hpup{color:#ffd98a;font-weight:700;text-align:center}#homePC .hpres h3,#homePC .hpjob h3{margin:0 0 8px;color:#ffd98a}'
     + '#homePC .hpmenu{position:absolute;z-index:100;background:#1c1840;border:2px solid #5a54a8;border-radius:10px;padding:4px;min-width:160px;box-shadow:0 8px 24px #000a}#homePC .hpmenu button{display:block;width:100%;text-align:left;background:none;border:none;color:#fff;font:inherit;font-size:13px;padding:7px 10px;border-radius:7px;cursor:pointer}#homePC .hpmenu button:hover{background:#6c63ff66}'
     + '#homePC .hpbedw{display:none;position:absolute;inset:0;z-index:50}#homePC .hpbedw.on{display:block}#homePC .hpbed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;background:#070716f2}#homePC .hpbi{font-size:54px}#homePC .hpbed h2{margin:6px 0;color:#ffd98a}#homePC .hpbed p{max-width:420px;color:#cfcaf0;font-size:14px}';
   document.head.append(css);
