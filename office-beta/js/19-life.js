@@ -66,16 +66,16 @@ let stLast = performance.now();
 function stressTick() {
   const now = performance.now(), dt = Math.min(5, (now - stLast) / 1000); stLast = now; if (lk.on) return;
   const hr = gHourNow(), working = hr >= 9 && hr < 19;
-  if (working) life.stress += .015 * dt;
-  const cnt = (perf.callMiss || 0) + (perf.mailMiss || 0) + (career[career.id]?.wrong || 0) + (career.tax?.late || 0); if (cnt > life.lastCnt) life.stress += 6 * (cnt - life.lastCnt); life.lastCnt = cnt;
+  if (working && !window.CG?.lunch?.on()) life.stress += .015 * dt;
+  const cnt = (perf.callMiss || 0) + (perf.mailMiss || 0) + (career[career.id]?.wrong || 0) + (career.tax?.late || 0); if (cnt > life.lastCnt) life.stress += 6 * (cnt - life.lastCnt) * (window.CG?.prot?.active() ? 0 : 1); life.lastCnt = cnt;
   if (typeof hunger !== 'undefined' && hunger.v < STARVING) life.stress += .05 * dt;
   let rel = 0; if (life.play && now < life.play.end) rel += life.play.rate; if (life.music) rel += .5; if (life.tab === 'read' && wins.has('slack')) rel += .45; if ([...wins.keys()].some(k => /^game/.test(k))) rel += .4; if (phone.open && phone.app === 'date') rel += .3;
   life.stress = clamp(life.stress - Math.min(1.3, rel) * dt, 0, 100);
   if (typeof hunger !== 'undefined' && hr >= 8 && hr < 22) hunger.v = Math.max(0, hunger.v - life.stress / 100 * 8 * SPEED / 3600 * dt);
   if (life.play && now >= life.play.end) { S.toast(`${life.play.e} ดูจบแล้ว สดชื่นขึ้นเยอะ`, 2); life.play = null; renderSlack(); }
   // the boss walks by while somebody is slacking
-  if (life.boss) { if (now >= life.boss) { life.boss = null; if (slackActive()) { life.stress = Math.min(100, life.stress + 10); S.big('😾 หัวหน้าเห็นว่าอู้!', 2.2, '#e5536f'); pushMsg('boss', 'boss', pick(['เห็นนะว่าอู้อยู่ 😾 รีบกลับมาทำงาน', 'ทำงานหรือยังคะ/ครับ ตอนนี้ไม่ใช่เวลาเล่นนะ']), 800); } else S.toast('😮‍💨 รอดตัว! หัวหน้าเดินผ่านไป', 2); } }
-  else if (career.id !== 'jl' && slackActive() && hr >= 9 && hr < 19 && Math.random() < .004 * dt * 5) { life.boss = now + 4500; S.toast('👀 พี่หัวหน้ากำลังเดินมา! กด Esc หรือปุ่ม “หัวหน้ามา” เร็ว', 3.6); S.tone(500, 400, .3, .08); }
+  if (life.boss) { if (now >= life.boss) { life.boss = null; if (slackActive()) { if (window.CG?.prot?.active()) { S.big('🌱 หัวหน้าแวะมาดู — ไม่เป็นไร ช่วงปรับตัว', 2.2, '#4caf7d'); } else { life.stress = Math.min(100, life.stress + 10); S.big('😾 หัวหน้าเห็นว่าอู้!', 2.2, '#e5536f'); } pushMsg('boss', 'boss', pick(['เห็นนะว่าอู้อยู่ 😾 รีบกลับมาทำงาน', 'ทำงานหรือยังคะ/ครับ ตอนนี้ไม่ใช่เวลาเล่นนะ']), 800); } else S.toast('😮‍💨 รอดตัว! หัวหน้าเดินผ่านไป', 2); } }
+  else if (career.id !== 'jl' && slackActive() && hr >= 9 && hr < 19 && !window.CG?.lunch?.on() && Math.random() < .004 * dt * 5) { life.boss = now + 4500; S.toast('👀 พี่หัวหน้ากำลังเดินมา! กด Esc หรือปุ่ม “หัวหน้ามา” เร็ว', 3.6); S.tone(500, 400, .3, .08); }
   stressHud();
 }
 function bossKey() { if (life.music) life.music = null; life.play = null; [...wins.keys()].filter(k => /^(slack|game)/.test(k)).forEach(k => closeWin(k, true)); if (phone.open && phone.app === 'date') closePhone(); if (life.boss) { life.boss = null; S.toast('😮‍💨 รอดตัว! หัวหน้าเดินผ่านไป', 2); } else S.toast('🫣 เก็บหน้าจออู้แล้ว', 1.4); }

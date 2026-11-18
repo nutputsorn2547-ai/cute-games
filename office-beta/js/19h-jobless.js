@@ -66,8 +66,8 @@ function jlTick() {
   const nowT = gnow().getTime(); [...new Set(jl.tix.filter(x => nowT >= x.d + 15 * 3600000).map(x => x.d))].sort().forEach(d => { try { lottoDraw(d); } catch (e) { console.error(e); } });
   if (career.id === 'jl') { jlLow(); return; }
   const cnt = (perf.callMiss || 0) + (perf.mailMiss || 0) + (career[career.id]?.wrong || 0) + (career.tax?.late || 0);
-  if (jl.lastCnt === null) jl.lastCnt = cnt; if (cnt > jl.lastCnt) { jl.heat += 14 * (cnt - jl.lastCnt); jl.missToday += cnt - jl.lastCnt; jl.why = 'รับสาย/ตอบอีเมลสำคัญพลาดหลายครั้ง'; } jl.lastCnt = cnt;
-  if (unlockedDay >= 3) TASKS.filter(x => x.due && x.due < unlockedDay && !done.has(x.id) && !jl.late[x.id]).forEach(x => { jl.late[x.id] = 1; jl.heat += 10; jl.missToday++; jl.why = 'ส่งงานเลยกำหนดหลายรายการ'; });
+  if (jl.lastCnt === null) jl.lastCnt = cnt; if (cnt > jl.lastCnt) { jl.heat += 14 * (cnt - jl.lastCnt) * (window.CG?.prot?.active() ? 0 : 1); jl.missToday += cnt - jl.lastCnt; jl.why = 'รับสาย/ตอบอีเมลสำคัญพลาดหลายครั้ง'; } jl.lastCnt = cnt;
+  if (unlockedDay >= 3) TASKS.filter(x => x.due && x.due < unlockedDay && !done.has(x.id) && !jl.late[x.id]).forEach(x => { jl.late[x.id] = 1; jl.heat += 10 * (window.CG?.prot?.active() ? 0 : 1); jl.missToday++; jl.why = 'ส่งงานเลยกำหนดหลายรายการ'; });
   jl.heat = clamp(jl.heat, 0, 100); if (jl.heat < 30) jl.warn = 0;
   if (jl.heat >= 100) return jlFired(jl.why || 'ผลงานต่ำกว่าเกณฑ์อย่างต่อเนื่อง');
   if (jl.heat >= 75 && jl.warn < 2) { jl.warn = 2; jlWarn(2); } else if (jl.heat >= 45 && jl.warn < 1) { jl.warn = 1; jlWarn(1); }

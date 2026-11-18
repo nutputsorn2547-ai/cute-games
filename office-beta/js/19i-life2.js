@@ -202,7 +202,7 @@ function sickTick() {
   if (lk.on) return; const g = gnow(), hr = g.getHours(), wd = g.getDay(), s = lx.sick;
   if (!s && career.id !== 'jl' && life.stress >= 92 && wd >= 1 && wd <= 5 && hr >= 9 && hr < 19 && unlockedDay >= 2) fdFallSick();
   if (s) {
-    if (!s.told && !s.nag && g.getTime() - s.t0 > 2 * HR1) { s.nag = true; lx.bossSat = Math.max(0, lx.bossSat - 5); life.stress = Math.min(100, life.stress + 4); pushMsg('boss', 'boss', 'ทำไมไม่เห็นแจ้งอะไรเลย ไม่สบายหรือเปล่า? ถ้าลาต้องทักพี่ก่อนนะ 😾', 900); sickBar(); }
+    if (!s.told && !s.nag && g.getTime() - s.t0 > 2 * HR1) { s.nag = true; if (!window.CG?.prot?.active()) { lx.bossSat = Math.max(0, lx.bossSat - 5); life.stress = Math.min(100, life.stress + 4); } pushMsg('boss', 'boss', 'ทำไมไม่เห็นแจ้งอะไรเลย ไม่สบายหรือเปล่า? ถ้าลาต้องทักพี่ก่อนนะ 😾', 900); sickBar(); }
     if (s.told) life.stress = Math.max(20, life.stress - 3);
   }
   const hud = $('stressHud'); if (hud) hud.title = 'ความเครียด: ยิ่งเครียดยิ่งหิวเร็ว หน้าจอจะแดงขึ้น พักด้วยมุมอู้งานได้ · ถ้าเครียดเกิน 92 จะป่วย · ความพอใจของหัวหน้า ' + Math.round(lx.bossSat) + '/100';
@@ -215,7 +215,7 @@ react = function (c, m) {
   const s = lx.sick;
   if (s && !s.told && c.id === 'boss' && m.text && /ลา|ป่วย|ไม่สบาย|ไข้|หมอ|พักผ่อน/.test(m.text)) {
     s.told = true; like(c, m, 'boss', 700); sickBar(); starveSync();
-    if (s.over) { lx.bossSat = Math.max(0, lx.bossSat - 12); hr.cap = Math.max(3, hr.cap - 1); say(c, 'boss', 'ลาป่วยอีกแล้วเหรอ 😾 เดือนนี้เกินโควตาแล้วนะ ครั้งนี้พี่อนุมัติ แต่พี่ไม่ค่อยพอใจเลย', 1800); say(c, 'boss', 'พักให้หาย แล้วดูแลตัวเองให้ดีกว่านี้ด้วย', 3600); S.toast('😾 ลาป่วยเกิน 1 ครั้ง/เดือน ความพอใจของหัวหน้าลดลง', 3.4); }
+    if (s.over) { if (!window.CG?.prot?.active()) { lx.bossSat = Math.max(0, lx.bossSat - 12); hr.cap = Math.max(3, hr.cap - 1); } say(c, 'boss', 'ลาป่วยอีกแล้วเหรอ 😾 เดือนนี้เกินโควตาแล้วนะ ครั้งนี้พี่อนุมัติ แต่พี่ไม่ค่อยพอใจเลย', 1800); say(c, 'boss', 'พักให้หาย แล้วดูแลตัวเองให้ดีกว่านี้ด้วย', 3600); S.toast(window.CG?.prot?.active() ? '🌱 ลาป่วยเกินโควตา แต่ช่วงปรับตัวไม่มีผลต่อคะแนน' : '😾 ลาป่วยเกิน 1 ครั้ง/เดือน ความพอใจของหัวหน้าลดลง', 3.4); }
     else say(c, 'boss', 'ดูแลตัวเองนะ 🤒 พักเต็มที่เลย พรุ่งนี้ค่อยมาทำงาน', 1800);
     return;
   }
