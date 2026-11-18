@@ -37,7 +37,7 @@ function applyTime() {
 const chatById = id => chat.list.find(c => c.id === id);
 function pushMsg(id, who, text, at = 1500, extra) { const c = chatById(id); if (c) say(c, who, text, at, extra); }
 let sisBear = false, broTold = false;
-const hr = { base: 25000, cap: 10, done: false };
+const hr = { base: 22000, cap: 10, done: false };
 const GOSSIP = ['วันนี้หัวหน้าแมวสั่งงานตอนห้าโมงเย็นอีกแล้ว 😩', 'ประชุมสองชั่วโมง สรุปว่านัดประชุมใหม่ 🫠', 'หัวหน้าบอกงานง่ายๆ แต่ให้แก้ 7 รอบ 555', 'แต่หัวหน้าเลี้ยงขนมทุกวันศุกร์ ก็ใจดีอยู่นะ 🍰', 'เมื่อกี้หัวหน้าเดินผ่าน เกือบเห็นจอ 😱'];
 const PERSONAL = {
   mom(c, m) {

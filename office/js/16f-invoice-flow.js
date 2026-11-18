@@ -150,7 +150,7 @@ function mailRoute(m) {
     else reply('หัวหน้าแมว', '<p>พี่เห็นเมลแล้ว แต่ไม่เห็นไฟล์แนบเลยนะ 😾 แนบมาใหม่ด้วย</p>');
   } else if (key === 'hr') {
     if (/สลิป|เงินเดือน|รับรอง/.test(text)) {
-      const base = (typeof hr !== 'undefined' && hr.base) || 25000, sso = 750, net = base - sso;
+      const base = (typeof hr !== 'undefined' && hr.base) || 22000, sso = 750, net = base - sso;
       const body = `<h2 style="text-align:center;margin:0">สลิปเงินเดือน (ฉบับทางการ)</h2><p style="text-align:center">ประจำเดือน มกราคม 2569 · บริษัท เมฆน้อย จำกัด</p><table class="pdft"><tr><td>เงินเดือน</td><td style="text-align:right">${base.toLocaleString('en-US')}.00</td></tr><tr><td>หัก ประกันสังคม</td><td style="text-align:right">${sso}.00</td></tr><tr><td><b>เงินได้สุทธิ</b></td><td style="text-align:right"><b>${net.toLocaleString('en-US')}.00</b></td></tr></table><p style="margin-top:24px">ลงชื่อ ........................ ฝ่ายบุคคล (HR)</p><p style="color:#999;font-size:11px">เอกสารสมมุติในเกม</p>`;
       reply('พี่ HR', '<p>ออกสลิปเงินเดือนแบบทางการให้แล้วค่ะ 📎 กดบันทึกไฟล์แนบได้เลย</p>', { att: [{ id: 'payslip-' + Date.now(), name: 'สลิปเงินเดือนทางการ-ม.ค.2569.pdf', body, official: true }] }); complete('mailhr');
     } else reply('พี่ HR', '<p>HR ได้รับเมลแล้วค่ะ แต่ไม่แน่ใจว่าต้องการอะไร ระบุเรื่องที่ขอให้ชัดเจนอีกนิดนะคะ (เช่น ขอสลิปเงินเดือนแบบทางการ)</p>');

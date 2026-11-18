@@ -6,7 +6,7 @@ const P0 = JSON.parse(JSON.stringify(PEOPLE)), CHAT0 = Object.fromEntries(chat.l
 const KEEP_TASKS = new Set(['eat', 'call']); // generic life tasks that stay in every job
 const CAREERS = {
   acct: {
-    label: 'นักบัญชี', co: 'ทีมบัญชีน่ารัก', e: '📒', salary: 25000, people: {}, titles: {}, hide: [], docs: true, apps: [], client: 'ร้านขนมอร่อย (ลูกค้าของเรา)',
+    label: 'นักบัญชี', co: 'ทีมบัญชีน่ารัก', e: '📒', salary: 22000, people: {}, titles: {}, hide: [], docs: true, apps: [], client: 'ร้านขนมอร่อย (ลูกค้าของเรา)',
     book: '<p>งานเดิมของคุณ: บันทึกเอกสารลูกค้า ทำไฟล์ให้หัวหน้า ดูงานในรายการด้านขวาได้เลย</p>',
   },
 };
