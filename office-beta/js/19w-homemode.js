@@ -27,9 +27,9 @@
   };
   CG.Save.register('home', {
     def: () => ({ on: false, bed: false, warnDay: -1, side: 0, hist: [], msgs: [], skill: { novel: 0, code: 0, rev: 0, det: 0 }, cred: 50, revs: [], merged: true, job: null, items: DEF_ITEMS(), full: false, uid: 0, last: -1, pets: { cat: false, dog: false }, amb: '', lamp: 0 }),
-    get: () => ({ on: H.on, bed: H.bed, warnDay: H.warnDay, side: H.side, hist: H.hist.slice(-120), msgs: H.msgs.slice(0, 40), skill: H.skill, merged: H.merged, cred: H.cred, revs: H.revs.slice(0, 15), job: H.job, items: H.items, full: H.full, uid: H.uid, last: H.last, pets: H.pets, amb: H.amb, lamp: H.lamp }),
+    get: () => ({ dd: H.dd, dn: H.dn, on: H.on, bed: H.bed, warnDay: H.warnDay, side: H.side, hist: H.hist.slice(-120), msgs: H.msgs.slice(0, 40), skill: H.skill, merged: H.merged, cred: H.cred, revs: H.revs.slice(0, 15), job: H.job, items: H.items, full: H.full, uid: H.uid, last: H.last, pets: H.pets, amb: H.amb, lamp: H.lamp }),
     set: d => {
-      d = d || {}; H.on = !!d.on; H.bed = !!d.bed; H.warnDay = Number.isFinite(d.warnDay) ? d.warnDay : -1; H.side = +d.side || 0; H.hist = Array.isArray(d.hist) ? d.hist : []; H.msgs = Array.isArray(d.msgs) ? d.msgs : [];
+      d = d || {}; H.dd = d.dd || ''; H.dn = +d.dn || 0; H.on = !!d.on; H.bed = !!d.bed; H.warnDay = Number.isFinite(d.warnDay) ? d.warnDay : -1; H.side = +d.side || 0; H.hist = Array.isArray(d.hist) ? d.hist : []; H.msgs = Array.isArray(d.msgs) ? d.msgs : [];
       H.skill = { novel: +(d.skill && d.skill.novel) || 0, code: +(d.skill && d.skill.code) || 0, rev: +(d.skill && d.skill.rev) || 0, det: +(d.skill && d.skill.det) || 0 }; H.merged = d.merged === true; H.cred = Number.isFinite(d.cred) ? clamp(d.cred, 0, 100) : 50; H.revs = Array.isArray(d.revs) ? d.revs : []; H.job = d.job && typeof d.job.pid === 'number' ? d.job : null; H.items = Array.isArray(d.items) && d.items.length ? d.items : DEF_ITEMS(); H.full = !!d.full; H.uid = +d.uid || 0; H.last = Number.isFinite(d.last) ? d.last : -1; H.pets = { cat: !!(d.pets && d.pets.cat), dog: !!(d.pets && d.pets.dog) }; H.amb = d.amb === 'rain' || d.amb === 'night' ? d.amb : ''; H.lamp = [0, 1, 2].includes(d.lamp) ? d.lamp : 0;
       fixItems(); setTimeout(sync, 700); setTimeout(() => { if (!H.merged) { H.merged = true; if (H.side > 0) { try { bankTx('💼 ย้ายรายได้เสริมเดิมเข้าบัญชีหลัก', H.side); } catch (e) {} } } }, 1500);
     },
@@ -41,7 +41,9 @@
   let toastEl = null, toastT = 0;
   function toast(t, sec = 2) { try { if (!hp) { S.toast(t, sec); return; } if (!toastEl || !toastEl.isConnected) { toastEl = h('div', { class: 'hptoast' }); hp.append(toastEl); } toastEl.textContent = t; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl && toastEl.classList.remove('on'), sec * 1000); } catch (e) {} }
   const level = k => { const x = H.skill[k] || 0; let l = 1; TH.forEach((t, i) => { if (x >= t) l = i + 1; }); return l; };
-  const mult = l => 1 + (l - 1) * 2 / 9;
+  const mult = l => 1 + (l - 1) * 1.2 / 9;
+  const dayKey = () => { const g = gnow(); return g.getFullYear() + '-' + g.getMonth() + '-' + g.getDate(); };
+  const dayN = () => (H.dd === dayKey() ? H.dn || 0 : 0), dayF = () => [1, .8, .6, .4][Math.min(3, dayN())];
 
   /* ---- novel passages: {wrong|right} marks a mistake; chunks are separated by spaces ---- */
   /* passages are split into WORDS by hand: a word is one tap, `_` = a gap between phrases, {wrong|right} = a misspelled word */
@@ -65,7 +67,7 @@
     ['สวนดอกไม้ของคุณยาย', 'ทุกๆ _ เช้า ตรู่ _ คุณ ยาย จะ เดิน ถือ บัว รดน้ำ ออก มา ดูแล แปลง ดอกไม้ หลัง บ้าน ด้วย ความ รัก _ ดอก กุหลาบ หลาก สีสัน และ ดอก มะลิ สี ขาว บริสุทธิ์ ต่าง พา กัน ชู ช่อ รับ แสงแดด และ ส่ง กลิ่น หอม ฟุ้ง ไป ทั่ว บริเวณ _ ผีเสื้อ ตัว น้อย บิน โฉบ ไป มา อย่าง อิสระ _ คุณ ยาย นั่ง มอง สวน สวย ของ ตัว เอง พร้อม กับ จิบ น้ำ ชา อุ่นๆ _ รู้สึก ว่า ธรรมชาติ รอบ ตัว ช่าง _ {งดงาน|งดงาม} _ และ ช่วย เติม เต็ม ความ _ {สดชืน|สดชื่น} _ ให้ กับ ชีวิต ใน วัย เกษียณ ได้ เป็น อย่าง ดี'],
     ['ความฝันของนักบินอวกาศ', 'เด็ก ชาย ตัว น้อย นั่ง มอง ท้องฟ้า ยาม ค่ำคืน ผ่าน กล้องโทรทรรศน์ ตัว โปรด ที่ พ่อ ซื้อ ให้ เป็น ของ ขวัญ วัน เกิด _ เขา มอง เห็น หลุม อุกกาบาต บน ดวง จันทร์ ได้ อย่าง ชัดเจน จน รู้สึก ตื่น ตา ตื่น ใจ _ ใน สมุด วาด เขียน ของ เขา เต็ม ไป ด้วย ภาพ วาด ยาน อวกาศ และ มนุษย์ ต่าง ดาว ตาม จินตนาการ _ เขา ตั้ง ปณิธาน ไว้ ว่า จะ ตั้งใจ เรียน หนังสือ และ ออก กำลัง กาย ให้ แข็ง แรง _ เพื่อ ที่ วัน หนึ่ง จะ ได้ เดิน ทาง ไป _ {สำรวด|สำรวจ} _ อวกาศ อัน กว้าง ใหญ่ ไพศาล เหมือน กับ นักบิน อวกาศ ใน ดวงใจ'],
   ].map(([title, raw]) => { const chunks = raw.split(' ').map(c => { if (c === '_') return { sp: true, t: ' ' }; const m = c.match(/^\{([^|]+)\|([^}]+)\}$/); return m ? { t: m[1], err: true, w: m[1], r: m[2] } : { t: c, err: false }; }); return { title, chunks, n: chunks.filter(c => c.err).length }; });
-  const N_BASE = 120, N_EXP = 45, N_MIN = 45;
+  const N_BASE = 80, N_EXP = 45, N_MIN = 45;
 
   /* ---- code review job in plain Thai: find the setting line that causes the problem and pick the correct value ---- */
   /* line = [name, value, bug?]; bug = { fix, d: [wrong distractors], sym: what the player sees while it is still wrong, why } */
@@ -83,7 +85,7 @@
     { title: 'เกมป้องกันป้อม — ศัตรูเดินทะลุกำแพง', diff: 3, sym: 'ศัตรูเดินทะลุกำแพงเข้าป้อมได้ แถมไม่เสียพลังเมื่อโดนยิง และมาถึงเร็วผิดปกติ', head: '[ศัตรู_01]', lines: [['เดินผ่านกำแพงได้', '"ได้"', { fix: '"ไม่ได้"', d: ['"บางครั้ง"', '"เมื่อฝนตก"'], sym: 'ศัตรูทะลุกำแพง', why: 'ศัตรูต้องเดินผ่านกำแพงไม่ได้' }], ['พลังชีวิต', '100'], ['ความเร็วเดิน', '3'], ['รับดาเมจจากหอคอย', '0%', { fix: '100%', d: ['1000%', '-100%'], sym: 'ศัตรูไม่เสียพลังเมื่อโดนยิง', why: 'รับดาเมจ 0% ศัตรูจึงไม่เป็นอะไรเลย' }], ['ระยะมองเห็น', '30 เมตร'], ['เป้าหมาย', '"ป้อม"']] },
     { title: 'เกมซอมบี้ภาค 2 — ซอมบี้ไม่ยอมตาย', diff: 3, sym: 'ยิงซอมบี้จนกระสุนหมดแล้วก็ยังไม่ล้ม และกระสุนหมดเร็วผิดปกติ', head: '[ซอมบี้_01]', lines: [['พลังชีวิต', '99999', { fix: '100', d: ['10', '9'], sym: 'ซอมบี้อึดเกินไป', why: 'พลังชีวิต 99999 ทำให้ซอมบี้ไม่ตาย ควรเป็นประมาณ 100' }], ['ดาเมจที่รับจากปืน', '1'], ['ความเร็วเดิน', '2'], ['เมื่อพลังชีวิตเป็น 0', '"ล้ม"'], ['กระสุนต่อแม็ก', '3', { fix: '30', d: ['0', '300'], sym: 'กระสุนหมดเร็ว', why: 'กระสุนต่อแม็ก 3 นัดน้อยเกินไป ควรเป็นประมาณ 30' }], ['ระยะมองเห็น', '50 เมตร']] },
   ].map(p => { const pool = p.lines.map(l => l[1]); const lines = p.lines.map(([n, v, bug], i) => { const alts = bug ? [bug.fix, ...bug.d] : (() => { const m = String(v).match(/^(-?\d+)(.*)$/); const o = m ? [String(+m[1] * 2 + 1) + m[2], String(Math.max(1, Math.round(+m[1] / 2))) + m[2], String((+m[1] || 0) + 10) + m[2]] : pool.filter(x => x !== v).slice(0, 3); return o.filter(x => x !== v).slice(0, 3); })(); const opts = [v, ...alts].filter((x, k, a) => a.indexOf(x) === k).map((x, k) => [(k * 7 + i * 3 + p.title.length) % 11, x]).sort((a, b) => a[0] - b[0]).map(x => x[1]); return { n, v, bug, opts }; }); return { title: p.title, diff: p.diff, sym: p.sym, head: p.head, lines, nb: lines.filter(l => l.bug).length }; });
-  const C_BASE = 160, C_EXP = 50, C_MIN = 50;
+  const C_BASE = 100, C_EXP = 50, C_MIN = 50;
   const FROM_C = ['คุณก้อง (เจ้าของแอป)', 'คุณฟ้า (สตาร์ตอัพเล็กๆ)', 'คุณโอม (นักศึกษาฝึกเขียนโค้ด)', 'คุณนุ่น (หัวหน้าทีมเว็บ)'];
   const FROM = ['คุณนิรัตน์ (นักเขียนนิยายออนไลน์)', 'คุณมะลิ (สำนักพิมพ์เล็ก)', 'คุณพีท (นักเขียนมือใหม่)', 'คุณแพร (บรรณาธิการ)'];
 
@@ -163,7 +165,7 @@
       return head + `<h3 class="hpjt">📖 ${esc2(p.title)}</h3><p class="hps">แตะคำที่คิดว่าเขียนผิด แล้วพิมพ์คำที่ถูกต้องในช่องด้านล่าง (มีผิด ${p.n} จุด) แตะซ้ำเพื่อยกเลิก</p><div class="hptx">${p.chunks.map((c, i) => c.sp ? '<span class="hpsp"></span>' : `<button class="hpck${H.job.marks.includes(i) ? ' hpmk' : ''}" data-hp="mark" data-i="${i}">${esc2(c.t)}</button>`).join('')}</div><div class="hpfix">${fixHtml()}</div><div class="hpq"><span class="hps" id="hpmc">ทำเครื่องหมายแล้ว ${H.job.marks.length} จุด</span><br><button class="go" data-hp="nsubmit">📨 ส่งงาน</button><button data-hp="ncancel">ยกเลิกงาน (ไม่เสียอะไร)</button></div>`;
     }
     const can = leftMin() >= N_MIN;
-    return head + `<div class="hpjob"><h3>📖 งานตรวจคำผิดนิยาย</h3><p>ตรวจต้นฉบับสั้นๆ แล้วหาคำที่สะกดผิดให้ครบ<br><small>ประมาณ ${N_MIN} นาทีเกม (≈ ${Math.round(N_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุด ฿${baht(Math.round(N_BASE * mult(l)))}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="naccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">ไม่มีโทษถ้าไม่รับงาน งานที่ทำค้างไว้ตอนเข้านอนจะถูกเก็บไว้ให้</p></div>`;
+    return head + `<div class="hpjob"><h3>📖 งานตรวจคำผิดนิยาย</h3><p>ตรวจต้นฉบับสั้นๆ แล้วหาคำที่สะกดผิดให้ครบ<br><small>ประมาณ ${N_MIN} นาทีเกม (≈ ${Math.round(N_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุดตอนนี้ ฿${baht(Math.round(N_BASE * mult(l) * dayF()))}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="naccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">ไม่มีโทษถ้าไม่รับงาน งานที่ทำค้างไว้ตอนเข้านอนจะถูกเก็บไว้ให้</p></div>`;
   }
   function novelAccept() {
     if (H.job || leftMin() < N_MIN) return; let i; do { i = Math.floor(Math.random() * PASS.length); } while (PASS.length > 1 && i === H.last); H.last = i; H.job = { pid: i, marks: [] }; res = null; refreshApp('novel');
@@ -175,7 +177,7 @@
   }
   function novelSubmit() {
     if (!H.job) return; const p = PASS[H.job.pid], m = H.job.marks, fx = H.job.fix || {}, hit = m.filter(i => p.chunks[i].err), found = hit.filter(i => normW(fx[i]) === normW(p.chunks[i].r)).length, half = hit.length - found, fp = m.length - hit.length, acc = clamp((found + half * .25 - fp * .5) / p.n, 0, 1), l0 = level('novel');
-    const pay = Math.round(N_BASE * mult(l0) * acc), exp = Math.round(N_EXP * (.4 + .6 * acc)); H.skill.novel = Math.min(TH[9], H.skill.novel + exp); const l1 = level('novel');
+    const pay = Math.round(N_BASE * mult(l0) * acc * dayF()), exp = Math.round(N_EXP * (.4 + .6 * acc)); H.skill.novel = Math.min(TH[9], H.skill.novel + exp); const l1 = level('novel');
     earn(pay, 'ตรวจนิยาย: ' + p.title); H.hist.push({ d: gd(), job: 'ตรวจนิยาย: ' + p.title, amt: pay, exp }); const at = hm(gnow());
     const txt = acc >= .9 ? 'ละเอียดมากเลยค่ะ ขอบคุณที่ช่วยตรวจนะคะ 🥰 โอนค่าตอบแทนให้แล้วนะคะ' : acc >= .6 ? 'ตรวจได้ดีเลยค่ะ มีหลุดไปนิดหน่อยแต่ไม่เป็นไร ไว้ฝากงานอีกนะคะ' : 'ขอบคุณที่ช่วยกันนะคะ ยังมีที่ตกหล่นอยู่บ้าง รอบหน้าลองดูอีกทีนะ 🙂';
     H.msgs.unshift({ from: pick(FROM), at, text: txt, unread: true }); if (l1 > l0) H.msgs.unshift({ from: 'คุณแพร (บรรณาธิการ)', at, text: `เห็นว่าฝีมือพัฒนาขึ้นมากเลย ตอนนี้เลเวล ${l1} แล้ว ค่าตอบแทนขึ้นให้นะคะ ฝากงานต่อไปด้วย 💪`, unread: true });
@@ -185,7 +187,7 @@
   }
 
   /* side income goes straight into the main bank balance (one account); H.side only counts lifetime side income */
-  const earn = (amt, job) => { H.side += amt; if (amt > 0) { try { bankTx('💼 งานเสริม: ' + job, amt); } catch (e) {} } };
+  const earn = (amt, job) => { if (H.dd !== dayKey()) { H.dd = dayKey(); H.dn = 0; } H.dn++; H.side += amt; if (amt > 0) { try { bankTx('💼 งานเสริม: ' + job, amt); } catch (e) {} } };
   /* ================= atmosphere: pet sounds (stress -10% of current), ambient sound, room lamp ================= */
   const PET_COST = 300, PET_CD = 30000;
   const meow = () => { try { S.tone(650, 1000, .16, .09, 'triangle'); setTimeout(() => S.tone(1000, 560, .3, .09, 'triangle'), 170); } catch (e) {} };
@@ -231,7 +233,7 @@
     }
     if (H.job) return head + '<p class="hps">ตอนนี้มีงานอื่นที่ยังทำค้างอยู่ ทำให้เสร็จหรือยกเลิกก่อนนะ</p>';
     const can = leftMin() >= C_MIN, mx = level('code') >= 7 ? 3 : level('code') >= 4 ? 2 : 1;
-    return head + `<div class="hpjob"><h3>💻 งานตรวจโค้ด (ภาษาไทย)</h3><p>ลูกค้าส่งสคริปต์ตั้งค่าเกมที่ทำงานผิดปกติมาให้ ช่วยหาบรรทัดที่เป็นสาเหตุ แล้วเลือกค่าที่ถูกต้อง ไม่ต้องรู้ภาษาโปรแกรมเลย<br><small>ประมาณ ${C_MIN} นาทีเกม (≈ ${Math.round(C_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุด ฿${baht(Math.round(C_BASE * mult(level('code'))))} · ตอนนี้รับงานระดับ ${'★'.repeat(mx)}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="caccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">มีปุ่มทดลองรันดูอาการได้ 3 ครั้งก่อนส่งงาน เลเวลสูงขึ้นจะเจองานที่มีจุดผิดหลายจุดมากขึ้น</p></div>`;
+    return head + `<div class="hpjob"><h3>💻 งานตรวจโค้ด (ภาษาไทย)</h3><p>ลูกค้าส่งสคริปต์ตั้งค่าเกมที่ทำงานผิดปกติมาให้ ช่วยหาบรรทัดที่เป็นสาเหตุ แล้วเลือกค่าที่ถูกต้อง ไม่ต้องรู้ภาษาโปรแกรมเลย<br><small>ประมาณ ${C_MIN} นาทีเกม (≈ ${Math.round(C_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุดตอนนี้ ฿${baht(Math.round(C_BASE * mult(level('code')) * dayF()))} · ตอนนี้รับงานระดับ ${'★'.repeat(mx)}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="caccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">มีปุ่มทดลองรันดูอาการได้ 3 ครั้งก่อนส่งงาน เลเวลสูงขึ้นจะเจองานที่มีจุดผิดหลายจุดมากขึ้น</p></div>`;
   }
   function codeAccept() {
     if (H.job || leftMin() < C_MIN) return; const mx = level('code') >= 7 ? 3 : level('code') >= 4 ? 2 : 1, pool = CODES.map((d, i) => i).filter(i => CODES[i].diff <= mx); let i; do { i = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && i === H.lastC); H.lastC = i;
@@ -246,13 +248,13 @@
   }
   function codeSubmit() {
     const j = codeJob(); if (!j) return; const p = CODES[j.pid], e = codeEval(j), acc = clamp((e.good.length + e.wrong.length * .25 - e.fp * .5) / p.nb, 0, 1), l0 = level('code');
-    const pay = Math.round(C_BASE * mult(l0) * acc), exp = Math.round(C_EXP * (.4 + .6 * acc));
+    const pay = Math.round(C_BASE * mult(l0) * acc * dayF()), exp = Math.round(C_EXP * (.4 + .6 * acc));
     const lv = finishJob('code', 'ตรวจโค้ด', p.title, pay, exp, acc, { name: 'นักแก้โค้ด', from: FROM_C, good: 'เยี่ยมเลยครับ เกมกลับมาทำงานปกติแล้ว ขอบคุณมากครับ 🎉 โอนค่าจ้างให้แล้ว', ok: 'ใช้ได้ครับ แต่ยังมีบางจุดที่ผิดอยู่ เดี๋ยวผมดูต่อเอง ขอบคุณที่ช่วยครับ', bad: 'รอบนี้เกมยังไม่ทำงานเลยครับ ลองอ่านอาการแล้วหาบรรทัดที่ผิดใหม่อีกทีนะครับ 🙂', up: 'ฝีมือตรวจโค้ดพัฒนาขึ้นเยอะเลย ตอนนี้เลเวล {L} แล้ว ค่าจ้างขึ้นให้นะครับ 💪' });
     res = { k: 'code', n: p.nb, good: e.good.length, wrong: e.wrong.length, fp: e.fp, pay, exp, acc, lv, rev: p.lines.filter(l => l.bug) }; H.job = null; refreshJobs();
   }
 
   /* ================= side job 3: reviewer ================= */
-  const R_BASE = 150, R_EXP = 40, R_MIN = 40, D_BASE = 240, D_EXP = 60, D_MIN = 60;
+  const R_BASE = 95, R_EXP = 40, R_MIN = 40, D_BASE = 150, D_EXP = 60, D_MIN = 60;
   const REVS = [
     ['ร้านกาแฟ Morning Day', '☕', [['รสชาติกาแฟ', 'ดีมาก'], ['ราคา', 'ค่อนข้างสูง'], ['บรรยากาศ', 'เงียบสงบ'], ['บริการ', 'พนักงานสุภาพ']], 4.2, 4, [['รสชาติกาแฟดีมาก', 1], ['บรรยากาศเงียบสงบ พนักงานสุภาพ', 1], ['ราคาค่อนข้างสูง ถือเป็นข้อเสียเล็กน้อย', 1], ['บริการช้าและพนักงานไม่สุภาพ', 0], ['บรรยากาศวุ่นวาย เสียงดัง', 0]]],
     ['หูฟังไร้สาย SoundBee', '🎧', [['คุณภาพเสียง', 'ดี'], ['แบตเตอรี่', 'อยู่ได้แค่ราว 3 ชั่วโมง'], ['ความสบายตอนใส่', 'ใส่สบาย'], ['ราคา', '590 บาท']], 3.1, 3, [['เสียงดีและใส่สบาย', 1], ['แบตเตอรี่อยู่ได้แค่ราว 3 ชั่วโมง ถือว่าน้อย', 1], ['ราคา 590 บาท ไม่ถูกแต่ไม่แพงเกินไป', 1], ['แบตเตอรี่อึดมาก ใช้ได้ทั้งวัน', 0], ['เสียงแย่ ฟังไม่ได้เลย', 0]]],
@@ -287,14 +289,14 @@
     }
     if (H.job) return head + '<p class="hps">ตอนนี้มีงานอื่นที่ยังทำค้างอยู่ ทำให้เสร็จหรือยกเลิกก่อนนะ</p>';
     const can = leftMin() >= R_MIN, last = H.revs.slice(0, 5).map(x => row(esc2(x.t), '⭐'.repeat(x.st) + ` <small>${Math.round(x.acc * 100)}%</small>`)).join('');
-    return head + `<div class="hpjob"><h3>⭐ งานรีวิว</h3><p>อ่านข้อมูลสินค้าหรือร้าน แล้วให้ดาวและเหตุผลที่ตรงกับความจริง ไม่ให้สูงหรือต่ำเกินไป<br><small>ประมาณ ${R_MIN} นาทีเกม (≈ ${Math.round(R_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุด ฿${baht(Math.round(R_BASE * mult(level('rev')) * credMul()))}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="raccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">รีวิวตรงความจริงจะเพิ่มความน่าเชื่อถือ ค่าจ้างจะสูงขึ้นตาม ส่วนรีวิวที่เกินจริงจะทำให้ลดลง</p></div>${last ? '<h3 class="hpjt">ประวัติรีวิวล่าสุด</h3>' + last : ''}`;
+    return head + `<div class="hpjob"><h3>⭐ งานรีวิว</h3><p>อ่านข้อมูลสินค้าหรือร้าน แล้วให้ดาวและเหตุผลที่ตรงกับความจริง ไม่ให้สูงหรือต่ำเกินไป<br><small>ประมาณ ${R_MIN} นาทีเกม (≈ ${Math.round(R_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุดตอนนี้ ฿${baht(Math.round(R_BASE * mult(level('rev')) * credMul() * dayF()))}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="raccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">รีวิวตรงความจริงจะเพิ่มความน่าเชื่อถือ ค่าจ้างจะสูงขึ้นตาม ส่วนรีวิวที่เกินจริงจะทำให้ลดลง</p></div>${last ? '<h3 class="hpjt">ประวัติรีวิวล่าสุด</h3>' + last : ''}`;
   }
   function revAccept() { if (H.job || leftMin() < R_MIN) return; H.job = { k: 'rev', pid: pickCase(REVS, 'rev'), stars: 0, picks: [] }; res = null; refreshJobs(); }
   function revPick(i) { const j = H.job; if (!j || j.k !== 'rev') return; const k = j.picks.indexOf(i); if (k >= 0) j.picks.splice(k, 1); else if (j.picks.length < 2) j.picks.push(i); else { try { toast('เลือกได้แค่ 2 ข้อ แตะข้อที่เลือกไว้เพื่อยกเลิกก่อน', 1.8); } catch (e) {} } refreshApp('rev'); }
   function revSubmit() {
     const j = H.job; if (!j || j.k !== 'rev') return; if (!j.stars || j.picks.length < 2) { try { toast('ให้ดาวและเลือกเหตุผลให้ครบ 2 ข้อก่อนส่ง', 1.8); } catch (e) {} return; }
     const p = REVS[j.pid], d = Math.abs(j.stars - p.best), sp = d === 0 ? 1 : d === 1 ? .6 : 0, g = j.picks.filter(i => p.opts[i][1]).length, bd = 2 - g, rp = clamp((g - bd) / 2, 0, 1), acc = .5 * sp + .5 * rp;
-    const pay = Math.round(R_BASE * mult(level('rev')) * acc * credMul()), exp = Math.round(R_EXP * (.4 + .6 * acc)), dc = acc >= .8 ? 6 : acc >= .5 ? 0 : -8, c0 = H.cred; H.cred = clamp(H.cred + dc, 0, 100);
+    const pay = Math.round(R_BASE * mult(level('rev')) * acc * credMul() * dayF()), exp = Math.round(R_EXP * (.4 + .6 * acc)), dc = acc >= .8 ? 6 : acc >= .5 ? 0 : -8, c0 = H.cred; H.cred = clamp(H.cred + dc, 0, 100);
     H.revs.unshift({ t: p.title, st: j.stars, acc }); H.revs = H.revs.slice(0, 15);
     const lv = finishJob('rev', 'รีวิว', p.title, pay, exp, acc, { name: 'นักรีวิว', from: FROM_R, good: 'รีวิวละเอียดและตรงความจริงมากค่ะ ขอบคุณนะคะ 🥰 โอนค่าจ้างให้แล้วค่ะ', ok: 'รีวิวใช้ได้ค่ะ มีบางจุดที่ยังไม่ตรงกับข้อมูลนิดหน่อย ไว้ฝากงานอีกนะคะ', bad: 'รีวิวรอบนี้ยังไม่ค่อยตรงกับข้อมูลเลยค่ะ ลองอ่านรายละเอียดให้รอบคอบขึ้นอีกนิดนะคะ', up: 'ฝีมือรีวิวพัฒนาขึ้นมากเลยค่ะ ตอนนี้เลเวล {L} แล้ว ค่าตอบแทนขึ้นให้นะคะ 💪' });
     res = { k: 'rev', stars: j.stars, best: p.best, good: g, bad: bd, dc: Math.round(H.cred - c0), pay, exp, acc, lv }; H.job = null; refreshJobs();
@@ -406,7 +408,7 @@
     }
     if (H.job) return head + '<p class="hps">ตอนนี้มีงานอื่นที่ยังทำค้างอยู่ ทำให้เสร็จหรือยกเลิกก่อนนะ</p>';
     const can = leftMin() >= D_MIN, mx = level('det') >= 7 ? 3 : level('det') >= 4 ? 2 : 1;
-    return head + `<div class="hpjob"><h3>🔍 งานนักสืบ</h3><p>รับคดีจากลูกค้า แล้วใช้แอปในโฟลเดอร์ "เครื่องมือนักสืบ" ค้นหาข้อมูลจริง ได้แก่ ใบเสร็จ ติดตามพัสดุ และรูปพัสดุ จากนั้นสรุปว่าเกิดอะไรขึ้น<br><small>ประมาณ ${D_MIN} นาทีเกม (≈ ${Math.round(D_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุด ฿${baht(Math.round(D_BASE * mult(level('det'))))} · ตอนนี้รับคดีระดับ ${'★'.repeat(mx)}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="daccept">✅ รับคดี</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">คะแนนมาจากสรุปคดีถูกต้อง (60%) และการตรวจหลักฐานที่จำเป็นครบ (40%) · มี 20 คดี เลเวลสูงขึ้นจะเจอคดียากขึ้น</p></div>`;
+    return head + `<div class="hpjob"><h3>🔍 งานนักสืบ</h3><p>รับคดีจากลูกค้า แล้วใช้แอปในโฟลเดอร์ "เครื่องมือนักสืบ" ค้นหาข้อมูลจริง ได้แก่ ใบเสร็จ ติดตามพัสดุ และรูปพัสดุ จากนั้นสรุปว่าเกิดอะไรขึ้น<br><small>ประมาณ ${D_MIN} นาทีเกม (≈ ${Math.round(D_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุดตอนนี้ ฿${baht(Math.round(D_BASE * mult(level('det')) * dayF()))} · ตอนนี้รับคดีระดับ ${'★'.repeat(mx)}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="daccept">✅ รับคดี</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">คะแนนมาจากสรุปคดีถูกต้อง (60%) และการตรวจหลักฐานที่จำเป็นครบ (40%) · มี 20 คดี เลเวลสูงขึ้นจะเจอคดียากขึ้น</p></div>`;
   }
   function detAccept() {
     if (H.job || leftMin() < D_MIN) return; const mx = level('det') >= 7 ? 3 : level('det') >= 4 ? 2 : 1, pool = DETS.map((d, i) => i).filter(i => DETS[i].diff <= mx); let i; do { i = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && i === lastJ.det); lastJ.det = i;
@@ -415,7 +417,7 @@
   function detSubmit() {
     const j = H.job; if (!j || j.k !== 'det') return; if (j.ans < 0) { toast('เลือกคำตอบสรุปคดีก่อนส่งรายงาน', 1.8); return; }
     const p = DETS[j.pid], okAns = j.ans === p.ok, kf = p.need.filter(k => j.seen.includes(k)).length, acc = (okAns ? .6 : 0) + .4 * kf / p.need.length;
-    const pay = Math.round(D_BASE * mult(level('det')) * acc), exp = Math.round(D_EXP * (.4 + .6 * acc));
+    const pay = Math.round(D_BASE * mult(level('det')) * acc * dayF()), exp = Math.round(D_EXP * (.4 + .6 * acc));
     const lv = finishJob('det', 'นักสืบ', p.title, pay, exp, acc, { name: 'นักสืบ', from: FROM_D, good: 'ยอดเยี่ยมครับ ไขคดีได้ตรงประเด็นมาก ขอบคุณที่ช่วยนะครับ 🙏 โอนค่าจ้างให้แล้ว', ok: 'ได้เรื่องราวพอสมควรครับ แต่ยังมีบางจุดที่ไม่ตรง ขอบคุณที่ช่วยดูให้', bad: 'รายงานรอบนี้ยังไม่ตรงกับความจริงครับ รอบหน้าลองตรวจข้อมูลให้ละเอียดขึ้นนะครับ', up: 'ฝีมือสืบพัฒนาขึ้นเยอะเลย ตอนนี้เลเวล {L} แล้ว ค่าจ้างและคดีที่ให้จะดีขึ้นครับ 💪' });
     res = { k: 'det', okAns, kf, nk: p.need.length, pay, exp, acc, lv, why: p.why }; H.job = null; refreshJobs();
   }
