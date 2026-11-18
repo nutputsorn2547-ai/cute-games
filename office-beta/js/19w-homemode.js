@@ -64,80 +64,21 @@
   ].map(([title, raw]) => { const chunks = raw.split(' ').map(c => { if (c === '_') return { sp: true, t: ' ' }; const m = c.match(/^\{([^|]+)\|([^}]+)\}$/); return m ? { t: m[1], err: true, w: m[1], r: m[2] } : { t: c, err: false }; }); return { title, chunks, n: chunks.filter(c => c.err).length }; });
   const N_BASE = 200, N_EXP = 45, N_MIN = 45;
 
-  /* ---- code debugger puzzles: a line starting with ! is buggy; text after § is the fix ---- */
+  /* ---- logic job (no real code): put plain-language steps in the right order. steps = correct order; sw = position swaps that scramble the start ---- */
   const CODES = [
-    ['หาค่าเฉลี่ยของตัวเลข', `function average(nums) {
-  let sum = 0;
-!  for (let i = 0; i <= nums.length; i++) {§ ต้องเป็น i < nums.length (ไม่เช่นนั้นอ่านเกินตัวสุดท้าย)
-    sum += nums[i];
-  }
-  return sum / nums.length;
-}`],
-    ['เช็กว่าเป็นเลขคู่', `function isEven(n) {
-!  if (n % 2 = 0) {§ ต้องใช้ === เพื่อเปรียบเทียบ ไม่ใช่ = (กำหนดค่า)
-    return true;
-  }
-  return false;
-}`],
-    ['หาค่ามากที่สุดในลิสต์', `function maxOf(list) {
-  let best = list[0];
-  for (const x of list) {
-!    if (x < best) {§ ต้องเป็น x > best เพื่อหาค่ามากที่สุด
-      best = x;
-    }
-  }
-  return best;
-}`],
-    ['คิดราคาหลังลด', `function finalPrice(price, percent) {
-!  const discount = price * percent;§ ต้องหาร 100 ก่อน: price * percent / 100
-  return price - discount;
-}`],
-    ['นับถอยหลังก่อนเริ่มเกม', `let n = 5;
-while (n > 0) {
-  console.log(n);
-!  n++;§ ต้องเป็น n-- ไม่เช่นนั้นวนไม่รู้จบ
-}
-console.log("เริ่ม!");`],
-    ['บวกเลข 1 ถึง n', `function sumTo(n) {
-  let total = 0;
-  for (let i = 1; i <= n; i++) {
-    total += i;
-  }
-!  total;§ ต้อง return total; ไม่เช่นนั้นได้ค่า undefined
-}`],
-    ['ทักทายผู้ใช้', `const name = "Kun";
-!const msg = "สวัสดี " + nam;§ ชื่อตัวแปรผิด ต้องเป็น name
-console.log(msg);`],
-    ['ตรวจรหัสผ่าน', `// รหัสผ่านต้องยาวอย่างน้อย 8 ตัวถึงจะผ่าน
-function checkPass(pw) {
-  if (pw.length < 8) {
-!    return true;§ สั้นเกินไปต้อง return false
-  }
-!  return false;§ ยาวพอแล้วต้อง return true
-}`],
-    ['เอาของออกจากตะกร้า', `const cart = ["นม", "ไข่", "ขนมปัง"];
-cart.push("ชา");
-// ต้องการเอา "ไข่" ออก 1 ชิ้น
-!cart.splice(1, 0);§ ต้องเป็น splice(1, 1) (ลบ 1 ชิ้น)
-console.log(cart.length);`],
-    ['นับคนอายุ 18 ปีขึ้นไป', `# นับคนที่อายุ 18 ปีขึ้นไป
-ages = [12, 20, 18, 30, 9]
-count = 0
-for a in ages:
-!    if a > 18:§ ต้องเป็น a >= 18 (รวมคนอายุ 18 ด้วย)
-        count += 1
-print(count)`],
-    ['แปลงองศาเซลเซียสเป็นฟาเรนไฮต์', `function toFahrenheit(c) {
-!  return c * 9 / 5 - 32;§ ต้องเป็น + 32
-}`],
-    ['ส่งฟรีสำหรับสมาชิกหรือยอดเกิน 500', `// สมาชิก "หรือ" ซื้อเกิน 500 ได้ส่งฟรี
-function freeShip(isMember, total) {
-!  if (isMember && total > 500) {§ ต้องใช้ || (หรือ) ไม่ใช่ && (และ)
-    return true;
-  }
-  return false;
-}`],
-  ].map(([title, raw]) => { const lines = raw.split('\n').map(l => { if (l[0] === '!') { const [t, f] = l.slice(1).split('§'); return { t, bug: true, fix: (f || '').trim() }; } return { t: l, bug: false }; }); return { title, lines, n: lines.filter(x => x.bug).length }; });
+    ['เปิดประตูเข้าบ้าน', 'ลองคิดดูสิ ว่าเราเดินเข้าบ้านก่อนเปิดประตูได้ไหม?', ['หยิบกุญแจออกจากกระเป๋า', 'ไขกุญแจที่ประตู', 'เปิดประตู', 'เดินเข้าไปในบ้าน', 'ปิดประตูตามหลัง'], [[2, 3]]],
+    ['ชงกาแฟ', 'ต้องมีกาแฟในแก้วก่อน ถึงจะเทน้ำร้อนใช่ไหม?', ['ต้มน้ำให้เดือด', 'ใส่กาแฟลงในแก้ว', 'เทน้ำร้อนลงไป', 'คนให้เข้ากัน', 'ยกขึ้นจิบ'], [[1, 2]]],
+    ['ซื้อของที่ร้าน', 'เราจ่ายเงินก่อนหรือหลังได้รับของ ลองนึกภาพที่แคชเชียร์ดู', ['หยิบตะกร้า', 'เลือกของใส่ตะกร้า', 'ไปที่แคชเชียร์', 'จ่ายเงิน', 'รับถุงและใบเสร็จ'], [[3, 4]]],
+    ['ซักผ้า', 'ต้องแยกผ้าก่อน ค่อยใส่เครื่องซัก', ['แยกผ้าสีขาวกับผ้าสี', 'ใส่ผ้าลงเครื่องซัก', 'ใส่ผงซักฟอก', 'กดปุ่มเริ่มซัก', 'ตากผ้า'], [[0, 1]]],
+    ['ปลูกต้นไม้', 'เมล็ดต้องอยู่ในหลุมก่อนถึงจะกลบดินได้', ['ขุดหลุมเล็กๆ', 'วางเมล็ดลงในหลุม', 'กลบดิน', 'รดน้ำ', 'รอให้งอก'], [[1, 2]]],
+    ['ทำไข่เจียว', 'กระทะต้องร้อนก่อนเทไข่ลงไป', ['ตอกไข่ใส่ชาม', 'ตีไข่ให้เข้ากัน', 'ตั้งกระทะใส่น้ำมัน', 'เทไข่ลงกระทะ', 'ตักใส่จาน'], [[2, 3]]],
+    ['ถอนเงินที่ตู้ ATM', 'เริ่มจากเสียบบัตรก่อน แล้วค่อยกดรหัส ส่วนเงินสดมาทีหลังสุด', ['เสียบบัตร', 'กดรหัส PIN', 'เลือกจำนวนเงินที่ต้องการถอน', 'รับบัตรคืน', 'รับเงินสด'], [[0, 1], [2, 4]]],
+    ['ขึ้นรถเมล์', 'ต้องรอรถก่อน ถึงจะโบกมือได้ และต้องขึ้นรถก่อนค่อยนั่ง', ['รอรถที่ป้าย', 'โบกมือให้รถจอด', 'ขึ้นรถ', 'จ่ายค่าโดยสาร', 'นั่งลงที่ว่าง', 'กดกริ่งเมื่อถึงป้ายที่จะลง'], [[0, 2]]],
+    ['ส่งพัสดุ', 'ต้องห่อของก่อน ถึงจะเอาไปส่งได้', ['ห่อของใส่กล่อง', 'เขียนชื่อที่อยู่ผู้รับ', 'ไปที่ไปรษณีย์', 'ชั่งน้ำหนักและจ่ายค่าส่ง', 'เก็บใบเสร็จไว้ติดตามพัสดุ'], [[0, 2]]],
+    ['ออกจากบ้านไปทำงาน', 'ลองนึกถึงเช้าวันทำงานของตัวเองดู ตั้งแต่ตื่นจนถึงที่ทำงาน', ['ตื่นนอนตอนเช้า', 'อาบน้ำแต่งตัว', 'กินข้าวเช้า', 'ออกจากบ้าน', 'ถึงที่ทำงาน'], [[1, 3], [2, 4]]],
+    ['ก่อนออกจากบ้านตอนฝนจะตก', 'ต้องดูท้องฟ้าก่อน ถึงจะรู้ว่าต้องหยิบร่มหรือเปล่า', ['ดูท้องฟ้าก่อนออกจากบ้าน', 'ถ้าฝนตก ให้หยิบร่ม', 'ถ้าฝนไม่ตก ให้ใส่แว่นกันแดด', 'ล็อกประตูบ้าน', 'เดินไปที่ป้ายรถเมล์'], [[0, 1]]],
+    ['สั่งอาหารออนไลน์', 'ต้องรู้ก่อนว่าจะส่งที่ไหน ถึงจะจ่ายเงินได้ และต้องรอก่อนถึงจะได้รับอาหาร', ['เปิดแอปสั่งอาหาร', 'เลือกร้านและเมนู', 'ใส่ที่อยู่จัดส่ง', 'กดชำระเงิน', 'รอไรเดอร์มาส่ง', 'รับอาหารและให้คะแนน'], [[3, 4], [2, 5]]],
+  ].map(([title, hint, steps, sw]) => { const start = steps.map((_, i) => i); sw.forEach(([a, b]) => { const t = start[a]; start[a] = start[b]; start[b] = t; }); return { title, hint, steps, start, n: start.filter((v, i) => v !== i).length }; });
   const C_BASE = 260, C_EXP = 50, C_MIN = 50;
   const FROM_C = ['คุณก้อง (เจ้าของแอป)', 'คุณฟ้า (สตาร์ตอัพเล็กๆ)', 'คุณโอม (นักศึกษาฝึกเขียนโค้ด)', 'คุณนุ่น (หัวหน้าทีมเว็บ)'];
   const FROM = ['คุณนิรัตน์ (นักเขียนนิยายออนไลน์)', 'คุณมะลิ (สำนักพิมพ์เล็ก)', 'คุณพีท (นักเขียนมือใหม่)', 'คุณแพร (บรรณาธิการ)'];
@@ -257,30 +198,36 @@ function freeShip(isMember, total) {
     if (now >= H.nextPet) { H.nextPet = now + 60000 + Math.random() * 90000; const ks = ['cat', 'dog'].filter(k => H.pets[k]); if (ks.length) petSound(pick(ks), false); }
   }, 1000);
 
-  /* ================= side job 2: code debugger ================= */
+  /* ================= side job 2: logic / step ordering (called "นักแก้โค้ด") ================= */
   function codeHtml() {
     const l = level('code'), x = H.skill.code, lo = TH[l - 1], hi = TH[l] || TH[9], pc = l >= 10 ? 100 : Math.round((x - lo) / (hi - lo) * 100);
     const head = `<div class="hpl2"><b>เลเวล ${l}${l >= 10 ? ' (สูงสุด)' : ''}</b> <small>EXP ${x}${l >= 10 ? '' : ' / ' + hi}</small> <span class="hpx">ค่าตอบแทน ×${mult(l).toFixed(2)}</span><div class="hpbar2"><i style="width:${pc}%"></i></div></div>`;
-    if (res && res.k === 'code') return head + `<div class="hpres"><h3>${res.acc >= .9 ? '🌟 แก้บั๊กได้เกลี้ยง' : res.acc >= .6 ? '👍 แก้ได้ดี' : '🙂 ส่งงานแล้ว'}</h3>${row('เจอบั๊ก', `${res.found}/${res.n} จุด`)}${res.fp ? row('ชี้ผิดบรรทัด', res.fp + ' บรรทัด', 'warn') : ''}${row('ได้เงิน', '+฿' + baht(res.pay))}${row('ได้ EXP', '+' + res.exp)}${res.lv ? `<p class="hpup">🎉 เลื่อนเป็นเลเวล ${res.lv} แล้ว!</p>` : ''}<div class="hps">เฉลย:${res.rev.map(c => `<div class="hpfx"><code>${esc2(c.t.trim())}</code><br>→ ${esc2(c.fix)}</div>`).join('')}</div><div class="hpq"><button class="go" data-hp="cnext">งานต่อไป</button></div></div>`;
+    if (res && res.k === 'code') return head + `<div class="hpres"><h3>${res.acc >= .9 ? '🤖✨ ทำงานสำเร็จเรียบร้อย!' : res.acc >= .5 ? '🤖💦 ทำงานได้ แต่ยังติดขัดนิดหน่อย' : '🤖💥 หุ่นยนต์งงไปหมด'}</h3>${row('จัดลำดับถูก', `${res.found}/${res.n} จุด`)}${res.fp ? row('ไปทำของที่ถูกอยู่แล้วให้ผิด', res.fp + ' จุด', 'warn') : ''}${row('ได้เงิน', '+฿' + baht(res.pay))}${row('ได้ EXP', '+' + res.exp)}${res.lv ? `<p class="hpup">🎉 เลื่อนเป็นเลเวล ${res.lv} แล้ว!</p>` : ''}<div class="hps">ลำดับที่ถูกต้อง:<ol class="hpol">${res.rev.map(t => `<li>${esc2(t)}</li>`).join('')}</ol></div><div class="hpq"><button class="go" data-hp="cnext">งานต่อไป</button></div></div>`;
     if (H.job && H.job.k === 'code') {
-      const p = CODES[H.job.pid]; if (!p) { H.job = null; return codeHtml(); }
-      return head + `<h3 class="hpjt">💻 ${esc2(p.title)}</h3><p class="hps">โค้ดนี้มีบั๊ก ${p.n} จุด แตะบรรทัดที่ผิด แตะซ้ำเพื่อยกเลิก</p><div class="hpcode">${p.lines.map((c, i) => `<button class="hpcl${H.job.marks.includes(i) ? ' hpmk' : ''}" data-hp="cmark" data-i="${i}"><i>${i + 1}</i>${esc2(c.t)}</button>`).join('')}</div><div class="hpq"><span class="hps">เลือกแล้ว ${H.job.marks.length} บรรทัด</span><br><button class="go" data-hp="csubmit">📨 ส่งงาน</button><button data-hp="ccancel">ยกเลิกงาน (ไม่เสียอะไร)</button></div>`;
+      const p = CODES[H.job.pid]; if (!p || !Array.isArray(H.job.order)) { H.job = null; return codeHtml(); }
+      return head + `<h3 class="hpjt">🧩 ${esc2(p.title)}</h3><p class="hps">ลำดับขั้นตอนข้างล่างสลับกันอยู่ ${p.n} จุด แตะข้อหนึ่ง แล้วแตะอีกข้อเพื่อสลับที่กัน</p><div class="hpsteps">${H.job.order.map((v, i) => `<button class="hpstp${H.job.sel === i ? ' sel' : ''}" data-hp="cstep" data-i="${i}"><i>${i + 1}</i>${esc2(p.steps[v])}</button>`).join('')}</div>${H.job.hint ? `<p class="hpht">💡 ${esc2(p.hint)}</p>` : ''}<div class="hpq"><button class="go" data-hp="csubmit">▶ ลองรันขั้นตอนนี้</button>${H.job.hint ? '' : '<button data-hp="chint">💡 ขอคำใบ้</button>'}<button data-hp="ccancel">ยกเลิกงาน (ไม่เสียอะไร)</button></div>`;
     }
     if (H.job) return head + '<p class="hps">📖 ตอนนี้มีงานตรวจนิยายที่ยังทำค้างอยู่ ทำให้เสร็จหรือยกเลิกก่อนนะ</p>';
     const can = leftMin() >= C_MIN;
-    return head + `<div class="hpjob"><h3>💻 งานแก้บั๊กโค้ด</h3><p>อ่านโค้ดสั้นๆ แล้วหาบรรทัดที่มีบั๊กให้ครบ<br><small>ประมาณ ${C_MIN} นาทีเกม (≈ ${Math.round(C_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุด ฿${baht(Math.round(C_BASE * mult(l)))}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="caccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">ไม่มีโทษถ้าไม่รับงาน งานที่ทำค้างไว้ตอนเข้านอนจะถูกเก็บไว้ให้</p></div>`;
+    return head + `<div class="hpjob"><h3>🧩 งานจัดลำดับคำสั่งให้หุ่นยนต์</h3><p>ขั้นตอนการทำงานถูกสลับที่ไว้ ช่วยเรียงให้ถูกลำดับ ไม่ต้องเขียนโค้ดเลย<br><small>ประมาณ ${C_MIN} นาทีเกม (≈ ${Math.round(C_MIN / 12)} นาทีจริง) · ค่าตอบแทนสูงสุด ฿${baht(Math.round(C_BASE * mult(l)))}</small></p>${can ? '<div class="hpq"><button class="go" data-hp="caccept">✅ รับงาน</button><button data-hp="x">พักก่อน</button></div>' : '<p class="hps">⏳ เวลาส่วนตัววันนี้เหลือไม่พอสำหรับงานนี้ ไว้พรุ่งนี้นะ</p>'}<p class="hps">ไม่มีโทษถ้าไม่รับงาน มีปุ่มคำใบ้ให้ และงานที่ทำค้างไว้ตอนเข้านอนจะถูกเก็บไว้ให้</p></div>`;
   }
   function codeAccept() {
-    if (H.job || leftMin() < C_MIN) return; let i; do { i = Math.floor(Math.random() * CODES.length); } while (CODES.length > 1 && i === H.lastC); H.lastC = i; H.job = { k: 'code', pid: i, marks: [] }; res = null; refreshApp('code');
+    if (H.job || leftMin() < C_MIN) return; let i; do { i = Math.floor(Math.random() * CODES.length); } while (CODES.length > 1 && i === H.lastC); H.lastC = i; H.job = { k: 'code', pid: i, order: CODES[i].start.slice(), sel: -1, hint: 0 }; res = null; refreshApp('code');
+  }
+  function codeStep(i) {
+    const j = H.job; if (!j || j.k !== 'code' || !j.order || !(i >= 0 && i < j.order.length)) return;
+    if (j.sel < 0) j.sel = i; else if (j.sel === i) j.sel = -1; else { const t = j.order[i]; j.order[i] = j.order[j.sel]; j.order[j.sel] = t; j.sel = -1; try { S.tone(520, 700, .06, .05); } catch (e) {} }
+    refreshApp('code');
   }
   function codeSubmit() {
-    if (!H.job || H.job.k !== 'code') return; const p = CODES[H.job.pid], m = H.job.marks, found = m.filter(i => p.lines[i].bug).length, fp = m.length - found, acc = clamp((found - fp * .5) / p.n, 0, 1), l0 = level('code');
+    if (!H.job || H.job.k !== 'code') return; const p = CODES[H.job.pid], o = H.job.order, bad0 = p.start.map((v, i) => v !== i), l0 = level('code');
+    const found = o.filter((v, i) => bad0[i] && v === i).length, fp = o.filter((v, i) => !bad0[i] && v !== i).length, acc = clamp((found - fp * .5) / p.n, 0, 1);
     const pay = Math.round(C_BASE * mult(l0) * acc), exp = Math.round(C_EXP * (.4 + .6 * acc)); H.skill.code = Math.min(TH[9], H.skill.code + exp); const l1 = level('code');
-    H.side += pay; H.hist.push({ d: gd(), job: 'แก้โค้ด: ' + p.title, amt: pay, exp }); const at = hm(gnow());
-    const txt = acc >= .9 ? 'เยี่ยมมากครับ เจอบั๊กครบเลย แอปรันได้แล้ว 🎉 โอนค่าจ้างให้แล้วนะครับ' : acc >= .6 ? 'ใช้ได้ครับ ยังเหลือบั๊กหลุดไปนิดหน่อย เดี๋ยวผมดูต่อเอง ขอบคุณครับ' : 'ขอบคุณที่ช่วยดูครับ ยังมีบั๊กอยู่อีก รอบหน้าลองใหม่นะครับ 🙂';
-    H.msgs.unshift({ from: pick(FROM_C), at, text: txt, unread: true }); if (l1 > l0) H.msgs.unshift({ from: 'คุณนุ่น (หัวหน้าทีมเว็บ)', at, text: `ฝีมือแก้บั๊กพัฒนาขึ้นเยอะเลย ตอนนี้เลเวล ${l1} แล้ว ค่าจ้างขึ้นให้นะครับ ฝากงานต่อด้วย 💪`, unread: true });
-    res = { k: 'code', found, n: p.n, fp, pay, exp, acc, lv: l1 > l0 ? l1 : 0, rev: p.lines.filter(c => c.bug) }; H.job = null;
-    try { if (l1 > l0) { S.big('🎉 นักแก้โค้ด เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else S.tone(660, 880, .15, .08); S.toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
+    H.side += pay; H.hist.push({ d: gd(), job: 'จัดลำดับ: ' + p.title, amt: pay, exp }); const at = hm(gnow());
+    const txt = acc >= .9 ? 'เยี่ยมมากครับ ลำดับถูกหมดเลย หุ่นยนต์ทำงานได้ลื่นไหล 🎉 โอนค่าจ้างให้แล้วนะครับ' : acc >= .5 ? 'ใช้ได้ครับ ยังมีบางจุดที่ลำดับไม่ตรง เดี๋ยวผมแก้เอง ขอบคุณครับ' : 'ขอบคุณที่ช่วยครับ หุ่นยนต์ยังงงๆ อยู่ รอบหน้าลองใหม่นะครับ 🙂';
+    H.msgs.unshift({ from: pick(FROM_C), at, text: txt, unread: true }); if (l1 > l0) H.msgs.unshift({ from: 'คุณนุ่น (หัวหน้าทีมเว็บ)', at, text: `ฝีมือจัดลำดับพัฒนาขึ้นเยอะเลย ตอนนี้เลเวล ${l1} แล้ว ค่าจ้างขึ้นให้นะครับ ฝากงานต่อด้วย 💪`, unread: true });
+    res = { k: 'code', found, n: p.n, fp, pay, exp, acc, lv: l1 > l0 ? l1 : 0, rev: p.steps.slice() }; H.job = null;
+    try { if (l1 > l0) { S.big('🎉 นักแก้โค้ด เลเวล ' + l1, 2.6, '#f0a020'); S.jingle(); } else if (acc >= .5) S.tone(660, 880, .15, .08); else S.noise(.25, 500, .08); S.toast('💬 ลูกค้าตอบกลับแล้ว', 2); } catch (e) {}
     CG.Bus.emit('sidejob.done', { job: 'code', pay, exp }); renderDesk(); refreshApp('code'); refreshApp('fin'); refreshApp('msg'); refreshApp('hist');
   }
 
@@ -371,7 +318,7 @@ function freeShip(isMember, total) {
     else if (a === 'petcall') { petSound(b.dataset.k, true); refreshApp('pet'); }
     else if (a === 'amb') { H.amb = b.dataset.v; refreshApp('pet'); } else if (a === 'lamp') { H.lamp = +b.dataset.v; applyLamp(); refreshApp('pet'); }
     else if (a === 'caccept') codeAccept(); else if (a === 'ccancel') { H.job = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'cnext') { res = null; refreshApp('code'); refreshApp('novel'); } else if (a === 'csubmit') codeSubmit();
-    else if (a === 'cmark') { if (H.job && H.job.k === 'code') { const i = +b.dataset.i, k = H.job.marks.indexOf(i); if (k >= 0) H.job.marks.splice(k, 1); else H.job.marks.push(i); b.classList.toggle('hpmk'); const cnt = hp.querySelector('.hpq .hps'); if (cnt) cnt.textContent = `เลือกแล้ว ${H.job.marks.length} บรรทัด`; } }
+    else if (a === 'cstep') codeStep(+b.dataset.i); else if (a === 'chint') { if (H.job && H.job.k === 'code') { H.job.hint = 1; refreshApp('code'); } }
   }
   addEventListener('keydown', e => { if (!hp || !H.on) return; if (e.key === 'F2' && sel) { const a = item(sel); if (a && a.t === 'dir' && !a.sys) startRename(sel); } else if (e.key === 'Delete' && sel && !(e.target && e.target.tagName === 'INPUT')) delDir(sel); else if (e.key === 'Escape') closeMenu(); });
 
@@ -403,7 +350,7 @@ function freeShip(isMember, total) {
   CG.home = {
     enter, exit, on: () => H.on, bed: () => H.bed, open: openItem, newDir, setFull, state: () => ({ on: H.on, bed: H.bed, side: H.side, hist: H.hist.slice(), job: H.job, skill: { ...H.skill }, items: H.items.map(x => ({ ...x })), wins: W.map(w => ({ id: w.id, min: w.min, max: w.max })), full: isFull() }),
     petSound, pets: () => ({ ...H.pets }), buyPet: k => { H.pets[k] = true; }, petCost: PET_COST, addSide: (job, amt, exp) => { H.side += amt; H.hist.push({ d: gd(), job, amt, exp: exp || 0 }); refreshApp('fin'); refreshApp('hist'); },
-    addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, codeBugs: i => CODES[i].lines.map((l, k) => l.bug ? k : -1).filter(k => k >= 0), passages: () => PASS.length, pass: i => PASS[i],
+    addExp: (k, n) => { H.skill[k] = Math.min(TH[9], (H.skill[k] || 0) + n); refreshApp(k); }, level, mult, codeSteps: i => CODES[i].steps.slice(), codeStart: i => CODES[i].start.slice(), passages: () => PASS.length, pass: i => PASS[i],
   };
   if (CG.Dev) CG.Dev.add('🏠 Home Mode', box => {
     box.innerHTML = '<button data-h="in">เข้าบ้านทันที (ไม่เสียค่ารถ)</button> <button data-h="t2325">23:25</button> <button data-h="t2355">23:55</button> <button data-h="t2000">20:00</button> <button data-h="exp">+500 EXP นิยาย</button> <button data-h="out">ออกจาก Home Mode</button>';
@@ -427,7 +374,7 @@ function freeShip(isMember, total) {
     + '#homePC .hpr{display:flex;justify-content:space-between;gap:10px;padding:7px 2px;border-bottom:1px solid #ffffff14;font-size:14px}#homePC .hpr small,#homePC .hps small,#homePC .hpe small{opacity:.65;font-weight:400}#homePC .hpr.warn b{color:#ff9b8a}#homePC .hps{color:#aaa6d8;font-size:13px;margin:10px 0 0}#homePC hr{border:none;border-top:1px dashed #ffffff30;margin:10px 0}'
     + '#homePC .hpe{text-align:center;padding:26px 10px;font-size:34px;color:#cfcaf0}#homePC .hpe p{font-size:14px;margin:8px 0 0}#homePC .hpc{font-size:50px;text-align:center;font-weight:700;letter-spacing:2px;color:#ffe9b0}#homePC .hpq{margin-top:12px;text-align:center}#homePC .hpq p{margin:0 0 10px;font-size:14px}#homePC button.go,#homePC .hpq .go{background:#6c63ff;border-color:#9d97ff;font-weight:700;padding:7px 16px}#homePC .hpq button{margin:4px}'
     + '#homePC .hpm1{background:#1f1a45;border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:13px}#homePC .hpm1 p{margin:4px 0 0;color:#dcd8ff}#homePC .hpl2{margin-bottom:8px;font-size:14px}#homePC .hpx{float:right;color:#ffd98a;font-size:13px}#homePC .hpbar2{height:8px;border-radius:6px;background:#ffffff1f;margin-top:5px;overflow:hidden}#homePC .hpbar2 i{display:block;height:100%;background:linear-gradient(90deg,#7d6dff,#ffd98a)}'
-    + '#homePC .hpjt{margin:6px 0 0;font-size:15px;color:#ffd98a}#homePC .hptx{margin-top:10px;line-height:2.1;font-size:16px}#homePC .hpck{border:none;background:none;color:#f1efff;font:inherit;cursor:pointer;padding:1px 1px;border-radius:5px}#homePC .hpsp{display:inline-block;width:.6em}#homePC .hpck:hover{background:#ffffff18}#homePC .hpck.hpmk{color:#a9a5d8;background:#ffffff1c;box-shadow:inset 0 -2px 0 #9d97ff}#homePC .hpcode{margin-top:10px;background:#0c0a1f;border-radius:10px;padding:6px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;overflow-x:auto}#homePC .hpcl{display:block;width:100%;text-align:left;white-space:pre;border:none;background:none;color:#e8e6ff;font:inherit;padding:2px 10px 2px 0;cursor:pointer}#homePC .hpcl i{display:inline-block;width:2.4em;text-align:right;margin-right:1em;color:#6f6aa8;font-style:normal}#homePC .hpcl:hover{background:#ffffff14}#homePC .hpcl.hpmk{color:#a9a5d8;background:#ffffff1c;box-shadow:inset 3px 0 0 #9d97ff}#homePC .hpfx{margin-top:8px;font-size:13px;color:#dcd8ff}#homePC .hpfx code{background:#0c0a1f;padding:1px 5px;border-radius:5px;color:#ffd98a}#homePC .hppet{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid #ffffff14;font-size:15px}#homePC .hppet small{opacity:.65;flex:1}#homePC.lamp1 .hpm{filter:sepia(.45) brightness(.85) saturate(1.2)}#homePC.lamp2 .hpm{filter:sepia(.3) brightness(.55)}#homePC .hpup{color:#ffd98a;font-weight:700;text-align:center}#homePC .hpres h3,#homePC .hpjob h3{margin:0 0 8px;color:#ffd98a}'
+    + '#homePC .hpjt{margin:6px 0 0;font-size:15px;color:#ffd98a}#homePC .hptx{margin-top:10px;line-height:2.1;font-size:16px}#homePC .hpck{border:none;background:none;color:#f1efff;font:inherit;cursor:pointer;padding:1px 1px;border-radius:5px}#homePC .hpsp{display:inline-block;width:.6em}#homePC .hpck:hover{background:#ffffff18}#homePC .hpck.hpmk{color:#a9a5d8;background:#ffffff1c;box-shadow:inset 0 -2px 0 #9d97ff}#homePC .hpsteps{margin-top:10px;display:flex;flex-direction:column;gap:6px}#homePC .hpstp{display:block;width:100%;text-align:left;border:2px solid #4a4496;background:#1c1840;color:#f1efff;font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;cursor:pointer}#homePC .hpstp i{display:inline-block;width:1.8em;color:#9d97ff;font-style:normal;font-weight:700}#homePC .hpstp:hover{background:#26205a}#homePC .hpstp.sel{border-color:#ffd98a;background:#3a3270}#homePC .hpht{background:#2a2450;border-radius:10px;padding:8px 10px;font-size:13px;color:#ffe9b0;margin:10px 0 0}#homePC .hpol{margin:6px 0 0;padding-left:1.4em;color:#dcd8ff;font-size:13px}#homePC .hpup{color:#ffd98a;font-weight:700;text-align:center}#homePC .hpres h3,#homePC .hpjob h3{margin:0 0 8px;color:#ffd98a}'
     + '#homePC .hpmenu{position:absolute;z-index:100;background:#1c1840;border:2px solid #5a54a8;border-radius:10px;padding:4px;min-width:160px;box-shadow:0 8px 24px #000a}#homePC .hpmenu button{display:block;width:100%;text-align:left;background:none;border:none;color:#fff;font:inherit;font-size:13px;padding:7px 10px;border-radius:7px;cursor:pointer}#homePC .hpmenu button:hover{background:#6c63ff66}'
     + '#homePC .hpbedw{display:none;position:absolute;inset:0;z-index:50}#homePC .hpbedw.on{display:block}#homePC .hpbed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;background:#070716f2}#homePC .hpbi{font-size:54px}#homePC .hpbed h2{margin:6px 0;color:#ffd98a}#homePC .hpbed p{max-width:420px;color:#cfcaf0;font-size:14px}';
   document.head.append(css);
